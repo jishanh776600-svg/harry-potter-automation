@@ -215,48 +215,24 @@ FORBIDDEN_SPOKEN_PART_PATTERNS = [
     r"\bnext part\b"
 ]
 
-# Configurable Bella Voice Mood/Tone Profiles (Audition-ready, not permanently locked)
+# Configurable Bella Voice Mood/Tone Delivery Profiles (Audition-ready, not permanently locked)
 BELLA_VOICE_PROFILES = {
-    "BELLA_CANONICAL": {
-        "id": "af_bella",
-        "name": "Bella Canonical",
-        "speed": 1.0,
-        "pause_multiplier": 1.0,
-        "tone": "balanced",
-        "description": "Clear, natural storytelling delivery."
-    },
-    "BELLA_CINEMATIC": {
-        "id": "af_bella",
-        "name": "Bella Cinematic Storyteller",
-        "speed": 0.98,
-        "pause_multiplier": 1.05,
-        "tone": "cinematic",
-        "description": "Immersive cinematic delivery for Harry Potter novel storytelling."
-    },
-    "BELLA_DISCOVERY": {
-        "id": "af_bella",
-        "name": "Bella Discovery & Intrigue",
-        "speed": 1.02,
-        "pause_multiplier": 0.95,
-        "tone": "engaging_discovery",
-        "description": "Crisp, lively pacing for standalone lore and book vs movie discoveries."
-    },
-    "BELLA_DRAMATIC": {
-        "id": "af_bella",
-        "name": "Bella Dramatic",
-        "speed": 0.95,
-        "pause_multiplier": 1.15,
-        "tone": "dramatic",
-        "description": "Heightened tension for climactic magical confrontations."
-    },
-    "BELLA_WARM": {
-        "id": "af_bella",
-        "name": "Bella Warm",
-        "speed": 1.0,
-        "pause_multiplier": 1.0,
-        "tone": "warm",
-        "description": "Friendly, welcoming Hogwarts exploration tone."
-    }
+    "BELLA_CANONICAL": {"id": "af_bella", "name": "Bella Canonical", "speed": 1.00, "pause_multiplier": 1.00, "tone": "balanced", "description": "Natural baseline narration: conversational, neutral, clear."},
+    "BELLA_CINEMATIC": {"id": "af_bella", "name": "Bella Cinematic Storyteller", "speed": 0.94, "pause_multiplier": 1.10, "tone": "cinematic", "description": "Immersive cinematic delivery for Harry Potter novel storytelling."},
+    "BELLA_DISCOVERY": {"id": "af_bella", "name": "Bella Discovery & Intrigue", "speed": 1.03, "pause_multiplier": 0.90, "tone": "engaging_discovery", "description": "Crisp, lively pacing for standalone lore and book vs movie discoveries."},
+    "BELLA_DRAMATIC": {"id": "af_bella", "name": "Bella Dramatic", "speed": 0.92, "pause_multiplier": 1.18, "tone": "dramatic", "description": "Heightened tension and emotional weight for climactic confrontations."},
+    "BELLA_WARM": {"id": "af_bella", "name": "Bella Warm", "speed": 0.96, "pause_multiplier": 1.05, "tone": "warm", "description": "Nostalgic, gentle, heartfelt storytelling for character moments."},
+    "BELLA_CALM": {"id": "af_bella", "name": "Bella Calm", "speed": 0.93, "pause_multiplier": 1.12, "tone": "calm", "description": "Soothing, steady, composed, measured cadence."},
+    "BELLA_SUSPENSE": {"id": "af_bella", "name": "Bella Suspense", "speed": 0.90, "pause_multiplier": 1.25, "tone": "suspense", "description": "Whispered anticipation, deliberate pauses, brooding tension."},
+    "BELLA_SURPRISED": {"id": "af_bella", "name": "Bella Surprised", "speed": 1.05, "pause_multiplier": 0.88, "tone": "surprised", "description": "Wide-eyed energetic inflection, genuine astonishment."},
+    "BELLA_EXCITED": {"id": "af_bella", "name": "Bella Excited", "speed": 1.08, "pause_multiplier": 0.82, "tone": "excited", "description": "High energy, punchy pace, enthusiastic Quidditch-style momentum."},
+    "BELLA_SAD": {"id": "af_bella", "name": "Bella Sad", "speed": 0.91, "pause_multiplier": 1.20, "tone": "sad", "description": "Melancholic, softer cadence, subdued resonance."},
+    "BELLA_ANGRY": {"id": "af_bella", "name": "Bella Angry", "speed": 1.04, "pause_multiplier": 0.85, "tone": "angry", "description": "Firm, sharp articulation, assertive indignation, tense edge."},
+    "BELLA_DARK": {"id": "af_bella", "name": "Bella Dark", "speed": 0.89, "pause_multiplier": 1.22, "tone": "dark", "description": "Deep, ominous, shadowy, cold restraint."},
+    "BELLA_SARCASTIC": {"id": "af_bella", "name": "Bella Sarcastic", "speed": 1.01, "pause_multiplier": 0.98, "tone": "sarcastic", "description": "Dry wit, wry irony, knowing comedic inflection."},
+    "BELLA_EDUCATIONAL": {"id": "af_bella", "name": "Bella Educational", "speed": 1.01, "pause_multiplier": 0.95, "tone": "educational", "description": "Articulate explainer, clear pedagogical rhythm, instructive."},
+    "BELLA_FAST_ENERGETIC": {"id": "af_bella", "name": "Bella Fast Energetic", "speed": 1.10, "pause_multiplier": 0.75, "tone": "fast_energetic", "description": "High tempo, rapid hook delivery, zero dead air, creator punch."},
+    "BELLA_EMOTIONAL_RESTRAINED": {"id": "af_bella", "name": "Bella Emotional Restrained", "speed": 0.93, "pause_multiplier": 1.15, "tone": "emotional_restrained", "description": "Poignant, holding back deep feeling, subtle quiver, heartfelt."}
 }
 DEFAULT_BELLA_PROFILE = "BELLA_CINEMATIC"
 
