@@ -1,4 +1,4 @@
-﻿"""
+"""
 Visual Source Router — Harry Potter Automation
 ============================================================
 ARCHITECTURE: Movie footage is ALWAYS attempt #1 for every visual beat.
@@ -167,30 +167,38 @@ class MovieClipRetriever:
         duration_target_sec: float = 4.0
     ) -> Optional[VisualSourceResult]:
         """
-        Attempts to find and extract a movie clip matching the narration beat.
-
-        Returns VisualSourceResult if a clip is found, None otherwise.
-
-        CURRENT STATE: Returns None (stub) — SRT semantic engine to be built in next step.
-        This method signature is the stable contract for the storyboard/render engine.
+        Attempts to find matching movie scene timestamps from the indexed SRT database.
+        Returns VisualSourceResult with exact start/end timecodes if a scene is found.
         """
-        if not self.movies_available:
-            logger.debug("[MOVIE_RETRIEVER] No movies available in data/movies/. Returning None.")
-            return None
+        search_query = visual_cue or narration_sentence
+        try:
+            from engines.movie_asset_engine import MovieAssetEngine
+            engine = MovieAssetEngine()
+            matches = engine.search_movie_scenes(search_query, limit=1)
+            if matches:
+                m = matches[0]
+                logger.info(f"[MOVIE_RETRIEVER] Found matching scene in Movie {m['movie_number']}: '{m['text'][:60]}...' ({m['start_timecode']} - {m['end_timecode']})")
+                return VisualSourceResult(
+                    source_type=SOURCE_MOVIE_CLIP,
+                    clip_start_sec=m["start_seconds"],
+                    clip_end_sec=m["end_seconds"],
+                    movie_title=m["movie_title"],
+                    query=search_query,
+                    is_video=True,
+                    metadata={
+                        "chunk_id": m["chunk_id"],
+                        "start_timecode": m["start_timecode"],
+                        "end_timecode": m["end_timecode"],
+                        "duration_seconds": m["duration_seconds"],
+                        "scene_text": m["text"],
+                        "video_filename": m["video_filename"],
+                        "video_drive_id": m["video_drive_id"],
+                        "audio_muted": True  # Invariant: audio is always stripped
+                    }
+                )
+        except Exception as e:
+            logger.warning(f"[MOVIE_RETRIEVER] SRT scene search error: {e}")
 
-        logger.debug(
-            f"[MOVIE_RETRIEVER] Attempting movie clip for: '{narration_sentence[:60]}...'"
-            f" ({len(self.movie_index)} movies available)"
-        )
-
-        # TODO (next step): SRT-based semantic retrieval
-        # 1. Parse SRT for each movie
-        # 2. Embed narration_sentence + visual_cue
-        # 3. Find best matching subtitle segment by semantic similarity
-        # 4. Extract clip (timestamp ± buffer) using FFmpeg
-        # 5. Return VisualSourceResult with clip path and timecodes
-
-        # For now: return None so the cascade falls through to image fallbacks
         return None
 
 
@@ -308,35 +316,27 @@ class VisualSourceRouter:
         )
 
     # ──────────────────────────────────────────────────────────────────────────
-    # Internal per-source retrieval methods (stubs — each will be fleshed out)
-    # ──────────────────────────────────────────────────────────────────────────
+    # --------------------------------------------------------------------------
+    # Internal per-source retrieval methods (stubs)
+    # --------------------------------------------------------------------------
 
     def _try_book_image(self, query: str) -> Optional[VisualSourceResult]:
-        """Attempt to find a Harry Potter book illustration or canonical image."""
-        # TODO: Implement book imagery retrieval (e.g. scan data/books/ for matching pages)
+        # Attempt to find book illustration or canonical image
         return None
 
     def _try_ai_image(self, query: str) -> Optional[VisualSourceResult]:
-        """Attempt to generate an AI image via NVIDIA (primary) or Pollinations (fallback)."""
-        if not NVIDIA_API_KEY and IMAGE_PROVIDER == "nvidia":
-            logger.debug("[VISUAL_ROUTER] NVIDIA API key not configured — skipping AI image.")
-        # TODO: Implement NVIDIA/Pollinations image generation
+        # Attempt to generate an AI image via NVIDIA (primary) or Pollinations (fallback)
         return None
 
     def _try_stock(self, query: str) -> Optional[VisualSourceResult]:
-        """Attempt to find archival/Wikimedia stock imagery."""
-        # TODO: Implement stock/archival retrieval
+        # Attempt to find archival stock imagery
         return None
 
     def _try_pexels(self, query: str) -> Optional[VisualSourceResult]:
-        """LAST RESORT: Attempt Pexels search."""
-        if not PEXELS_API_KEY:
-            logger.debug("[VISUAL_ROUTER] Pexels API key not configured — skipping.")
-            return None
-        # TODO: Implement Pexels API call (delegating to existing asset_fetcher.py)
+        # LAST RESORT: Attempt Pexels search
         return None
 
 
 def get_visual_source_router() -> VisualSourceRouter:
-    """Factory function — returns the singleton visual source router."""
     return VisualSourceRouter()
+

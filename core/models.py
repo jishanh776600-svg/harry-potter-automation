@@ -645,11 +645,67 @@ class NovelChunk(Base):
     chunk_index = Column(Integer, nullable=False)  # Sequential within chapter
     global_chronology_index = Column(Integer, nullable=False, unique=True, index=True)  # 1 to N across all 7 books!
     text = Column(Text, nullable=False)
-    word_count = Column(Integer, nullable=False)
+    word_count = Column(Integer, default=0, nullable=False)
     source_file = Column(String(255), nullable=False)
     source_location = Column(String(255), nullable=False)  # "Book 1 Chapter 1 Page 2-3"
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     book = relationship("NovelBook", back_populates="chunks")
     chapter = relationship("NovelChapter", back_populates="chunks")
+
+
+# ==============================================================================
+# HARRY POTTER MOVIE & SRT ASSET MODELS (Step 6A)
+# Deterministic pairing of movie video files and searchable SRT scene units.
+# Enforces the audio-muting invariant on all movie clips.
+# ==============================================================================
+
+class MovieAssetRecord(Base):
+    """Authoritative metadata and pairing record for Harry Potter movie footage."""
+    __tablename__ = "movie_assets"
+
+    id = Column(String(64), primary_key=True)  # hp_movie_1 .. hp_movie_3
+    movie_number = Column(Integer, unique=True, nullable=False, index=True)
+    title = Column(String(255), nullable=False)
+    video_filename = Column(String(255), nullable=False)
+    video_drive_id = Column(String(128), nullable=False)
+    video_file_size_bytes = Column(Integer, default=0, nullable=False)
+    video_duration_seconds = Column(Float, default=0.0, nullable=False)
+    width = Column(Integer, default=1920, nullable=False)
+    height = Column(Integer, default=800, nullable=False)
+    srt_filename = Column(String(255), nullable=False)
+    srt_local_path = Column(String(512), nullable=False)
+    total_raw_subtitles = Column(Integer, default=0, nullable=False)
+    total_scene_chunks = Column(Integer, default=0, nullable=False)
+    pairing_status = Column(String(32), default="VALID", nullable=False)
+    audio_muted_invariant = Column(Boolean, default=True, nullable=False)  # Enforces -an on all clip extraction
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    subtitles = relationship("MovieSubtitleChunk", back_populates="movie", cascade="all, delete-orphan", order_by="MovieSubtitleChunk.seq_start")
+
+
+class MovieSubtitleChunk(Base):
+    """
+    Searchable scene-sized subtitle unit preserving exact start/end timestamps
+    for automated movie clip extraction and semantic visual retrieval.
+    """
+    __tablename__ = "movie_subtitle_chunks"
+
+    id = Column(String(64), primary_key=True)  # hp_m1_scene_001 ..
+    movie_id = Column(String(64), ForeignKey("movie_assets.id"), nullable=False, index=True)
+    movie_number = Column(Integer, nullable=False, index=True)
+    movie_title = Column(String(255), nullable=False)
+    seq_start = Column(Integer, nullable=False)  # Starting raw SRT index
+    seq_end = Column(Integer, nullable=False)    # Ending raw SRT index
+    start_seconds = Column(Float, nullable=False, index=True)
+    end_seconds = Column(Float, nullable=False, index=True)
+    start_timecode = Column(String(32), nullable=False)  # "00:01:22,277"
+    end_timecode = Column(String(32), nullable=False)    # "00:01:35,500"
+    duration_seconds = Column(Float, nullable=False)
+    text = Column(Text, nullable=False)
+    source_srt = Column(String(255), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    movie = relationship("MovieAssetRecord", back_populates="subtitles")
+
 
