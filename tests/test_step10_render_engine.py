@@ -46,11 +46,11 @@ def engine():
     return HPRenderEngine()
 
 
-# 1. Andrew Hype TTS configuration
-def test_andrew_hype_voice_configuration():
-    assert LOCKED_VOICE_ID == "en-US-AndrewNeural"
-    assert LOCKED_VOICE_PITCH == "+24Hz"
-    assert LOCKED_VOICE_RATE == "+14%"
+# 1. Sarah TTS configuration (af_sarah, Kokoro-82M ONNX)
+def test_sarah_voice_configuration():
+    assert LOCKED_VOICE_ID == "af_sarah"
+    assert LOCKED_VOICE_PITCH == "+0Hz"
+    assert LOCKED_VOICE_RATE == "+0%"
 
 
 # 2. TTS narration generation (offline deterministic mock)

@@ -77,7 +77,7 @@ class TestHarryPotterScriptEngine(unittest.TestCase):
                 self.assertEqual(s.qa_status, "APPROVED")
                 self.assertGreaterEqual(s.word_count, 55)
                 self.assertLessEqual(s.word_count, 75)
-                self.assertEqual(s.voice_id, "en-US-AndrewNeural")
+                self.assertEqual(s.voice_id, "af_sarah")
                 self.assertEqual(s.status, "READY_FOR_STEP_9")
                 beats = json.loads(s.visual_beats_json)
                 self.assertGreaterEqual(len(beats), 3)

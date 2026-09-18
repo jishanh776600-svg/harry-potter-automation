@@ -77,10 +77,10 @@ def is_valid_ready_short(
             if topic_id.startswith(("top_test_", "test_")):
                 return False, f"Test artifact topic_id: '{topic_id}'"
 
-        # Voice property check — must match current production voice (Andrew Hype)
+        # Voice property check — must match current production voice (af_sarah or Andrew)
         v_prop = props.get("voice")
-        if v_prop and v_prop not in ("en-US-AndrewNeural", "andrew_hype"):
-            return False, f"Non-authoritative voice '{v_prop}' in properties (en-US-AndrewNeural required)"
+        if v_prop and v_prop not in ("af_sarah", "sarah", "en-US-AndrewNeural", "andrew_hype"):
+            return False, f"Non-authoritative voice '{v_prop}' in properties (af_sarah required)"
 
         # RenderedVideoRecord check for cloud manifests
         if db and name.startswith("short_man_"):
@@ -91,8 +91,8 @@ def is_valid_ready_short(
                     (RenderedVideoRecord.cloud_storage_path.ilike(f"%{name}%"))
                 ).first()
                 if r:
-                    if r.voice_id != "en-US-AndrewNeural":
-                        return False, f"Non-authoritative voice '{r.voice_id}' (en-US-AndrewNeural required)"
+                    if r.voice_id not in ("af_sarah", "en-US-AndrewNeural"):
+                        return False, f"Non-authoritative voice '{r.voice_id}' (af_sarah required)"
                     if r.qa_status != "PASSED":
                         return False, f"RenderedVideoRecord QA status is '{r.qa_status}'"
             except Exception as r_err:
@@ -171,8 +171,8 @@ def is_valid_ready_short(
                     (RenderedVideoRecord.cloud_storage_path.ilike(f"%{name}%"))
                 ).first()
                 if r:
-                    if r.voice_id != "en-US-AndrewNeural":
-                        return False, f"Non-authoritative voice '{r.voice_id}' (en-US-AndrewNeural required)"
+                    if r.voice_id not in ("af_sarah", "en-US-AndrewNeural"):
+                        return False, f"Non-authoritative voice '{r.voice_id}' (af_sarah required)"
                     if r.qa_status != "PASSED":
                         return False, f"RenderedVideoRecord QA status is '{r.qa_status}'"
             except Exception as r_err:

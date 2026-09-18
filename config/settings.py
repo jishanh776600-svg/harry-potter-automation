@@ -159,13 +159,13 @@ def get_content_mix_allocation(total_shorts: int | None = None) -> dict[str, int
     }
 
 
-# TTS Settings — Andrew Hype (en-US-AndrewNeural) — Permanent Production Voice
-# Youthful 18yo American male, high-energy +24Hz pitch, +14% rate — selected after audition
-TTS_PROVIDER = os.getenv("TTS_PROVIDER", "edge")  # edge — Andrew Hype is Edge-TTS Neural
-KOKORO_VOICE = os.getenv("KOKORO_VOICE", "en-US-AndrewNeural")  # N/A for Edge-only voice; kept for schema compat
-ACTIVE_VOICE_PITCH = os.getenv("ACTIVE_VOICE_PITCH", "+24Hz")
-ACTIVE_VOICE_RATE = os.getenv("ACTIVE_VOICE_RATE", "+14%")
-APPROVED_PRODUCTION_VOICES = ["en-US-AndrewNeural"]
+# TTS Settings — Sarah (af_sarah) — Permanent Production Voice
+# Kokoro-82M ONNX US Female voice with tight, rapid-fire pacing (-40% pause intervals)
+TTS_PROVIDER = os.getenv("TTS_PROVIDER", "kokoro")
+KOKORO_VOICE = os.getenv("KOKORO_VOICE", "af_sarah")
+ACTIVE_VOICE_PITCH = os.getenv("ACTIVE_VOICE_PITCH", "+0Hz")
+ACTIVE_VOICE_RATE = os.getenv("ACTIVE_VOICE_RATE", "+0%")
+APPROVED_PRODUCTION_VOICES = ["af_sarah"]
 KOKORO_MODEL_PATH = DATA_DIR / "kokoro-v1.0.onnx"
 KOKORO_VOICES_PATH = DATA_DIR / "voices-v1.0.bin"
 

@@ -54,10 +54,10 @@ RENDERS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 CAPTIONS_DIR.mkdir(parents=True, exist_ok=True)
 CLIPS_DIR.mkdir(parents=True, exist_ok=True)
 
-# Locked Voice Parameters
-LOCKED_VOICE_ID = "en-US-AndrewNeural"
-LOCKED_VOICE_PITCH = "+24Hz"
-LOCKED_VOICE_RATE = "+14%"
+# Locked Voice Parameters — Sarah (af_sarah, Kokoro-82M ONNX)
+LOCKED_VOICE_ID = "af_sarah"
+LOCKED_VOICE_PITCH = "+0Hz"
+LOCKED_VOICE_RATE = "+0%"
 
 # BGM Catalog
 DEFAULT_BGM_TRACK = "The Flux Beneath It All.wav"
@@ -147,28 +147,54 @@ class HPRenderEngine:
 
         raw_mp3 = VOICE_DIR / f"tts_{script_id}.mp3"
         out_wav = VOICE_DIR / f"tts_{script_id}.wav"
+        words = []
 
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            ok, words = loop.run_until_complete(
-                self._synthesize_edge_tts_async(clean_text, raw_mp3)
+        if LOCKED_VOICE_ID.startswith("af_") or os.getenv("TTS_PROVIDER", "kokoro") == "kokoro":
+            # Kokoro-82M ONNX Sarah Route with calibrated tight pauses
+            from engines.tts_engine import TTSEngine
+            from config.constants import EFFECTIVE_SENTENCE_PAUSE_SEC, EFFECTIVE_CLAUSE_PAUSE_SEC
+            tts_engine = TTSEngine()
+            ok, dur = tts_engine.generate_kokoro_audio(
+                text=clean_text,
+                output_path=out_wav,
+                voice=LOCKED_VOICE_ID,
+                speed=1.12,
+                sentence_pause=EFFECTIVE_SENTENCE_PAUSE_SEC,
+                clause_pause=EFFECTIVE_CLAUSE_PAUSE_SEC
             )
-        finally:
-            loop.close()
+            if not ok or not out_wav.exists():
+                raise RuntimeError(f"Kokoro synthesis failed for script {script_id}")
+            
+            # Extract word boundaries via CaptionEngine (faster-whisper)
+            try:
+                from engines.caption_engine import CaptionEngine
+                ce = CaptionEngine()
+                words = ce.transcribe_words(out_wav)
+            except Exception as e:
+                logger.warning(f"Whisper word boundary extraction notice: {e}")
+                words = []
+        else:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                ok, words = loop.run_until_complete(
+                    self._synthesize_edge_tts_async(clean_text, raw_mp3)
+                )
+            finally:
+                loop.close()
 
-        if not ok:
-            raise RuntimeError(f"Edge-TTS synthesis failed for script {script_id}")
+            if not ok:
+                raise RuntimeError(f"Edge-TTS synthesis failed for script {script_id}")
 
-        # Convert MP3 to clean 44.1kHz 16-bit PCM WAV
-        conv_cmd = [
-            "ffmpeg", "-y", "-loglevel", "error",
-            "-i", str(raw_mp3),
-            "-ar", "44100", "-ac", "1",
-            str(out_wav)
-        ]
-        subprocess.run(conv_cmd, check=True)
-        raw_mp3.unlink(missing_ok=True)
+            # Convert MP3 to clean 44.1kHz 16-bit PCM WAV
+            conv_cmd = [
+                "ffmpeg", "-y", "-loglevel", "error",
+                "-i", str(raw_mp3),
+                "-ar", "44100", "-ac", "1",
+                str(out_wav)
+            ]
+            subprocess.run(conv_cmd, check=True)
+            raw_mp3.unlink(missing_ok=True)
 
         # Get exact duration via ffprobe
         dur_cmd = [

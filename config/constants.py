@@ -247,21 +247,22 @@ BGM_FADE_IN_SEC = 0.8
 BGM_FADE_OUT_SEC = 1.5
 
 # Voiceover Pause Calibration (Restored to Natural Original Bella Delivery)
-VOICEOVER_PAUSE_MULTIPLIER: float = 1.00
+# Pacing & Pause Calibration — Reduced by 40% for rapid-fire high-retention storytelling
+VOICEOVER_PAUSE_MULTIPLIER: float = 0.60
 
-# Base intentional natural conversational pauses (seconds)
-BASE_CLAUSE_PAUSE_SEC: float = 0.05
-BASE_SENTENCE_PAUSE_SEC: float = 0.18
-BASE_PARAGRAPH_PAUSE_SEC: float = 0.25
-BASE_EMPHASIS_PAUSE_SEC: float = 0.30
-BASE_MAX_SILENCE_CAP_SEC: float = 0.35
+# Base intentional natural conversational pauses (seconds) — scaled down by 40%
+BASE_CLAUSE_PAUSE_SEC: float = 0.03
+BASE_SENTENCE_PAUSE_SEC: float = 0.11
+BASE_PARAGRAPH_PAUSE_SEC: float = 0.15
+BASE_EMPHASIS_PAUSE_SEC: float = 0.18
+BASE_MAX_SILENCE_CAP_SEC: float = 0.21
 
-# Effective calibrated pause durations (Normal conversational speed)
-EFFECTIVE_CLAUSE_PAUSE_SEC: float = 0.05
-EFFECTIVE_SENTENCE_PAUSE_SEC: float = 0.18
-EFFECTIVE_PARAGRAPH_PAUSE_SEC: float = 0.25
-EFFECTIVE_EMPHASIS_PAUSE_SEC: float = 0.30
-EFFECTIVE_MAX_SILENCE_CAP_SEC: float = 0.35
+# Effective calibrated pause durations (Tight rapid-fire delivery)
+EFFECTIVE_CLAUSE_PAUSE_SEC: float = 0.03
+EFFECTIVE_SENTENCE_PAUSE_SEC: float = 0.11
+EFFECTIVE_PARAGRAPH_PAUSE_SEC: float = 0.15
+EFFECTIVE_EMPHASIS_PAUSE_SEC: float = 0.18
+EFFECTIVE_MAX_SILENCE_CAP_SEC: float = 0.21
 
 # Audio QA Thresholds
 MIN_AUDIO_LOUDNESS_LUFS = -22.0

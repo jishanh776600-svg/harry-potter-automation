@@ -30,21 +30,21 @@ class VoiceVariationPolicy:
     """
 
     APPROVED_PERSONAS: Dict[str, Dict[str, Any]] = {
-        "af_bella": {
-            "id": "af_bella",
-            "name": "Bella (US Female)",
+        "af_sarah": {
+            "id": "af_sarah",
+            "name": "Sarah (US Female)",
             "gender": "FEMALE",
-            "style": "High-Presence / Slightly-Fast / Creator Delivery",
-            "persona": "Energetic Female Creator",
-            "best_for": ["history", "mystery"],
-            "profile": DeliveryProfile.CONVERSATIONAL,
-            "supported_profiles": [DeliveryProfile.CONVERSATIONAL]
+            "style": "High-Presence / Fast Storytelling / Creator Delivery",
+            "persona": "Energetic Female Storyteller",
+            "best_for": ["harry potter", "novel", "discovery", "mystery"],
+            "profile": DeliveryProfile.SARAH_MAX_CREATOR,
+            "supported_profiles": [DeliveryProfile.SARAH_MAX_CREATOR, DeliveryProfile.CONVERSATIONAL]
         }
     }
 
     # Backward compatibility alias
     AVAILABLE_VOICES = list(APPROVED_PERSONAS.keys())
-    APPROVED_PRODUCTION_VOICES = ["af_bella"]
+    APPROVED_PRODUCTION_VOICES = ["af_sarah"]
 
     MAX_CONSECUTIVE_VOICE = 2
     MAX_CONSECUTIVE_PROFILE = 2

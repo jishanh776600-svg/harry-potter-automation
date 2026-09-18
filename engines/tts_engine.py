@@ -29,19 +29,35 @@ logger = logging.getLogger(__name__)
 KOKORO_MODEL_URL = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx"
 KOKORO_VOICES_URL = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin"
 
-APPROVED_PRODUCTION_VOICES = ["en-US-AndrewNeural"]
+APPROVED_PRODUCTION_VOICES = ["af_sarah", "en-US-AndrewNeural"]
 
 AVAILABLE_VOICES = [
+    {
+        "id": "af_sarah",
+        "display_name": "Sarah (US Female)",
+        "engine": "Kokoro-82M ONNX",
+        "description": "Engaging American female narrator with tight, high-retention storytelling delivery and calibrated fast pause rhythm (-40% pauses).",
+        "style": "Conversational Storyteller",
+        "gender": "Female",
+        "accent": "American",
+        "age": "25",
+        "kokoro_voice": "af_sarah",
+        "edge_voice": "en-US-JennyNeural",
+        "edge_pitch": "+0Hz",
+        "edge_rate": "+15%",
+        "delivery_profile": "SARAH_MAX_CREATOR",
+        "available": True
+    },
     {
         "id": "en-US-AndrewNeural",
         "display_name": "Andrew Hype (Young US Male)",
         "engine": "Edge-TTS Neural",
-        "description": "High-energy 18yo American voice with rapid-fire excitement. Youthful pitch (+24Hz) and electrifying tempo (+14%) — ideal for Harry Potter duels, lore drops, and high-retention YouTube Shorts hooks.",
+        "description": "High-energy 18yo American voice with rapid-fire excitement.",
         "style": "Electrifying / High Tempo / Youth",
         "gender": "Male",
         "accent": "American",
         "age": "18",
-        "kokoro_voice": None,
+        "kokoro_voice": "af_sarah",
         "edge_voice": "en-US-AndrewNeural",
         "edge_pitch": "+24Hz",
         "edge_rate": "+14%",
@@ -56,12 +72,12 @@ def resolve_voice_config(voice_id: str) -> dict:
     Authoritative voice configuration resolver.
     Returns the canonical voice entry for any supported voice_id, ensuring
     both Kokoro and Edge-TTS providers resolve to the exact intended voice profile.
-    Restricted strictly to APPROVED_PRODUCTION_VOICES (en-US-AndrewNeural / Andrew Hype).
+    Restricted strictly to APPROVED_PRODUCTION_VOICES.
     """
     for v in AVAILABLE_VOICES:
         if v["id"] == voice_id and v.get("available", False):
             return v
-    # Safe fallback to approved production voice (Bella)
+    # Safe fallback to approved production voice (Sarah)
     return AVAILABLE_VOICES[0]
 
 
@@ -74,7 +90,7 @@ def get_active_voice(db: Optional[Session] = None) -> str:
                 return cfg.value
         except Exception:
             pass
-    return "en-US-AndrewNeural"
+    return "af_sarah"
 
 
 def select_voice_by_policy(category: str = "", title: str = "", script_text: str = "") -> str:
@@ -352,13 +368,13 @@ class TTSEngine:
 
         active_voice = voice or get_active_voice(db)
         if active_voice not in APPROVED_PRODUCTION_VOICES:
-            logger.warning(f"[TTS_ENGINE] Voice '{active_voice}' not approved for production. Defaulting to 'en-US-AndrewNeural'.")
-            active_voice = "en-US-AndrewNeural"
+            logger.warning(f"[TTS_ENGINE] Voice '{active_voice}' not approved for production. Defaulting to 'af_sarah'.")
+            active_voice = "af_sarah"
         v_cfg = resolve_voice_config(active_voice)
         kokoro_v = v_cfg.get("kokoro_voice", active_voice)
-        edge_v = v_cfg.get("edge_voice", "en-US-AndrewNeural")
-        edge_pitch = v_cfg.get("edge_pitch", "+24Hz")
-        edge_rate = v_cfg.get("edge_rate", "+14%")
+        edge_v = v_cfg.get("edge_voice", "en-US-JennyNeural")
+        edge_pitch = v_cfg.get("edge_pitch", "+0Hz")
+        edge_rate = v_cfg.get("edge_rate", "+15%")
 
         # Extract delivery parameters if delivery_spec is provided (calibrated natural breathing pauses)
         synthesize_text = delivery_spec.prepared_text if (delivery_spec and getattr(delivery_spec, "prepared_text", None)) else text
@@ -373,8 +389,8 @@ class TTSEngine:
         tts_source = "kokoro"
         license_type = LicenseType.APACHE_2_0.value
 
-        # 1. Direct Edge-TTS route if configured or if voice is Edge-only
-        if active_voice.startswith("en-") or TTS_PROVIDER == "edge":
+        # 1. Direct Edge-TTS route if configured for edge or voice is Edge-only
+        if (active_voice.startswith("en-") and not active_voice.startswith("af_")) or (TTS_PROVIDER == "edge" and not active_voice.startswith("af_")):
             mp3_path = self.voice_dir / f"{asset_id}.mp3"
             try:
                 loop = asyncio.get_event_loop()

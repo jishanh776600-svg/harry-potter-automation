@@ -878,10 +878,10 @@ class HarryPotterScript(Base):
 
     # Production Metadata & Style
     part_marker = Column(String(32), nullable=True)  # e.g. "PART 01" (VISUAL ONLY, never spoken)
-    voice_id = Column(String(64), default="en-US-AndrewNeural", nullable=False)
-    voice_pitch = Column(String(32), default="+24Hz", nullable=False)
-    voice_rate = Column(String(32), default="+14%", nullable=False)
-    narrator_style = Column(String(64), default="Andrew Hype / High Tempo Duel Commentator", nullable=False)
+    voice_id = Column(String(64), default="af_sarah", nullable=False)
+    voice_pitch = Column(String(32), default="+0Hz", nullable=False)
+    voice_rate = Column(String(32), default="+0%", nullable=False)
+    narrator_style = Column(String(64), default="SARAH_MAX_CREATOR", nullable=False)
 
     # 3-Stage Narration (Hook -> Development -> Payoff)
     hook = Column(Text, nullable=False)
@@ -982,9 +982,9 @@ class HPRender(Base):
     part_marker = Column(String(32), nullable=True)  # "PART 01" (purely visual)
 
     # Voice & Audio Specifications
-    voice_id = Column(String(64), default="en-US-AndrewNeural", nullable=False)
-    voice_pitch = Column(String(32), default="+24Hz", nullable=False)
-    voice_rate = Column(String(32), default="+14%", nullable=False)
+    voice_id = Column(String(64), default="af_sarah", nullable=False)
+    voice_pitch = Column(String(32), default="+0Hz", nullable=False)
+    voice_rate = Column(String(32), default="+0%", nullable=False)
     narration_duration_sec = Column(Float, nullable=False)
     narration_audio_path = Column(String(512), nullable=True)
 
