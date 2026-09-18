@@ -964,3 +964,63 @@ class HPMovieClip(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
 
+# ==============================================================================
+# HARRY POTTER STEP 10: HEADLESS VIDEO RENDERING DATA MODELS
+# ==============================================================================
+
+class HPRender(Base):
+    """
+    Persisted record of a rendered vertical YouTube Short (1080x1920, 30 FPS).
+    Integrates narration, BGM, synchronized captions, visual PART marker,
+    and technical QA verification results.
+    """
+    __tablename__ = "hp_renders"
+
+    id = Column(String(64), primary_key=True)  # e.g. "render_hps_ns_b1c01_gc0001_0003"
+    script_id = Column(String(64), ForeignKey("hp_scripts.id"), nullable=False, index=True)
+    content_type = Column(String(32), nullable=False, index=True)  # novel_story, discovery
+    part_marker = Column(String(32), nullable=True)  # "PART 01" (purely visual)
+
+    # Voice & Audio Specifications
+    voice_id = Column(String(64), default="en-US-AndrewNeural", nullable=False)
+    voice_pitch = Column(String(32), default="+24Hz", nullable=False)
+    voice_rate = Column(String(32), default="+14%", nullable=False)
+    narration_duration_sec = Column(Float, nullable=False)
+    narration_audio_path = Column(String(512), nullable=True)
+
+    # Visual Assembly
+    shot_count = Column(Integer, default=0, nullable=False)
+    movie_numbers_used = Column(String(64), nullable=True)  # e.g. "1,8"
+    visual_policy = Column(String(64), default="MOVIE_FOOTAGE_ONLY", nullable=False)
+
+    # BGM & Loudness Master
+    bgm_track = Column(String(128), nullable=True)
+    bgm_volume_db = Column(Float, default=-20.0, nullable=False)
+    master_lufs = Column(Float, nullable=True)  # Target -14.0 LUFS
+
+    # Subtitles & Captions
+    caption_style = Column(String(64), default="ASS_SAFE_ZONE_GOLD_ACTIVE", nullable=False)
+    subtitles_path = Column(String(512), nullable=True)
+
+    # Render Specifications
+    video_path = Column(String(512), nullable=False)
+    file_size_bytes = Column(Integer, nullable=False)
+    sha256 = Column(String(64), nullable=True)
+    width = Column(Integer, default=1080, nullable=False)
+    height = Column(Integer, default=1920, nullable=False)
+    fps = Column(Float, default=30.0, nullable=False)
+    total_duration_sec = Column(Float, nullable=False)
+
+    # Technical QA
+    qa_status = Column(String(32), default="PENDING", nullable=False, index=True)  # PASSED, FAILED
+    qa_report_json = Column(Text, nullable=True)
+    audio_streams_count = Column(Integer, default=1, nullable=False)
+    movie_audio_detected = Column(Boolean, default=False, nullable=False)  # Must be False
+
+    # State & Review Gate
+    status = Column(String(32), default="READY_FOR_REVIEW", nullable=False, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+

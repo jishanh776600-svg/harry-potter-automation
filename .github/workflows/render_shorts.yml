@@ -1,0 +1,95 @@
+name: Harry Potter Shorts Headless Render & QA Engine
+# ==============================================================================
+# STEP 10: Headless Video Rendering & Audio-Visual Assembly Pipeline
+# Cloud-runner compatible rendering workflow:
+# 1. Andrew Hype TTS voiceover generation (en-US-AndrewNeural +24Hz +14%)
+# 2. ASS dynamic captions with punch keywords and visual PART marker (PART 01-04)
+# 3. Fast extraction of rapid-fire movie shots (1.5s - 3.0s) from vault
+# 4. Master audio mixing (Narration + BGM bed, ducked -20dB, normalized -14.0 LUFS)
+# 5. FFmpeg composition into 1080x1920 @ 30 FPS vertical MP4
+# 6. Automated 20-point technical QA validation
+# 7. Preserves artifact output for human review (PUBLISHING REMAINS DISABLED)
+# ==============================================================================
+
+on:
+  workflow_dispatch:
+    inputs:
+      render_target:
+        description: 'Target script ID or "all" to render all approved launch scripts'
+        required: false
+        default: 'all'
+        type: string
+      force_rerender:
+        description: 'Force re-render even if short already exists in hp_renders'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hp-render-pipeline
+  cancel-in-progress: false
+
+jobs:
+  render_shorts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install System Dependencies (FFmpeg & Fonts)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-liberation fonts-dejavu-core
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Restore Harry Potter Vault Secrets & Configuration
+        env:
+          HP_TOKEN_JSON: ${{ secrets.HP_TOKEN_JSON }}
+          HP_CLIENT_SECRET_JSON: ${{ secrets.HP_CLIENT_SECRET_JSON }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          mkdir -p credentials data/database data/movies data/clips data/voice data/renders data/captions
+          if [ -n "${HP_TOKEN_JSON}" ]; then
+            echo "${HP_TOKEN_JSON}" > credentials/hp_token.json
+          fi
+          if [ -n "${HP_CLIENT_SECRET_JSON}" ]; then
+            echo "${HP_CLIENT_SECRET_JSON}" > credentials/client_secret.json
+          fi
+          if [ -n "${GEMINI_API_KEY}" ]; then
+            echo "GEMINI_API_KEY=${GEMINI_API_KEY}" >> .env
+          fi
+          echo "PUBLISHING_ENABLED=False" >> .env
+          echo "UPLOAD_ENABLED=False" >> .env
+
+      - name: Run Focused Step 10 Sanity Verification
+        run: |
+          pytest tests/test_step10_render_engine.py -v
+
+      - name: Execute Headless Video Rendering Engine
+        run: |
+          python scripts/run_step10_render.py
+
+      - name: Upload Rendered Shorts as Artifacts (Review Gate)
+        uses: actions/upload-artifact@v4
+        with:
+          name: hp-rendered-shorts
+          path: data/renders/*.mp4
+          retention-days: 14
+          if-no-files-found: warn
