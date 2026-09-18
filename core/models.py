@@ -906,3 +906,57 @@ class HarryPotterScript(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
+
+# ==============================================================================
+# HARRY POTTER STEP 9: MOVIE VISUAL RETRIEVAL & CLIP EXTRACTION DATA MODELS
+# ==============================================================================
+
+class HPMovieClip(Base):
+    """
+    Persisted metadata for an extracted movie visual clip.
+    Strictly audio-muted (-an) with ffprobe verification (0 audio streams).
+    Preserves full lineage: hp_script_id -> beat_id -> movie_number -> subtitle_chunk_id.
+    """
+    __tablename__ = "hp_movie_clips"
+
+    id = Column(String(64), primary_key=True)  # e.g. "clip_hps_ns_b1c01_gc0001_0003_beat_1"
+    script_id = Column(String(64), ForeignKey("hp_scripts.id"), nullable=False, index=True)
+    beat_id = Column(String(32), nullable=False, index=True)
+
+    # Movie Source Identity
+    movie_id = Column(String(64), nullable=False, index=True)
+    movie_number = Column(Integer, nullable=False, index=True)
+    movie_title = Column(String(255), nullable=False)
+    source_asset_id = Column(String(64), nullable=True)
+    subtitle_chunk_id = Column(String(64), nullable=True)
+
+    # Timecodes & Duration
+    source_start_seconds = Column(Float, nullable=False)
+    source_end_seconds = Column(Float, nullable=False)
+    clip_start_seconds = Column(Float, nullable=False)
+    clip_end_seconds = Column(Float, nullable=False)
+    duration_seconds = Column(Float, nullable=False)
+
+    # Retrieval & Match Signals
+    matched_text = Column(Text, nullable=True)
+    retrieval_query = Column(Text, nullable=True)
+    retrieval_score = Column(Float, default=0.0, nullable=False)
+    confidence = Column(Float, default=0.0, nullable=False)
+    match_status = Column(String(32), default="ACCEPTED", nullable=False, index=True)  # ACCEPTED, REJECTED, FLAGGED
+    rejection_reason = Column(Text, nullable=True)
+
+    # Video Integrity & Audio Muting
+    file_path = Column(String(512), nullable=True)
+    file_size_bytes = Column(Integer, nullable=True)
+    sha256 = Column(String(64), nullable=True)
+    audio_stream_count = Column(Integer, default=0, nullable=False)
+    width = Column(Integer, nullable=True)
+    height = Column(Integer, nullable=True)
+    visual_source_policy = Column(String(64), default="MOVIE_FOOTAGE_ONLY", nullable=False)
+
+    # State
+    status = Column(String(32), default="READY_FOR_STEP_10", nullable=False, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+

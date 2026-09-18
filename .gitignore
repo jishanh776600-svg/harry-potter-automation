@@ -60,6 +60,8 @@ data/movies/
 !data/movies/.gitkeep
 data/movie_subtitles/
 !data/movie_subtitles/.gitkeep
+data/clips/
+!data/clips/.gitkeep
 
 # Temporary test audio and logs
 *.log
