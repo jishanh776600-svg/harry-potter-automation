@@ -30,6 +30,7 @@ import os
 import re
 import json
 import logging
+from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple, Union
 from datetime import datetime
 from dataclasses import dataclass, field
@@ -74,6 +75,14 @@ FORBIDDEN_CLICHES = [
     "mind-blowing",
     "in a bizarre twist",
     "history changed forever",
+]
+
+FORBIDDEN_LITERARY_WORDS = [
+    "tranquility", "disrupted", "paralyzed", "coincidences", "despised",
+    "disdain", "disdainful", "melodrama", "profound", "astonishing",
+    "perplexed", "pondered", "agonizing", "reputation", "existence",
+    "broad daylight", "spectacles", "emerald cloaks", "put-outer", "thank you very much",
+    "ordinary existence", "impossible coincidences"
 ]
 
 FORBIDDEN_VISUAL_TERMS = [
@@ -138,18 +147,13 @@ class HarryPotterScriptEngine:
     Authoritative Harry Potter Script Generation Engine (Step 8).
 
     Produces fact-grounded narration scripts and structured visual beat plans.
-    Strictly enforces:
-      1. Word count in [55, 75] (~25-30 seconds at Andrew Hype delivery)
-      2. Conversational cinematic storytelling in simple, gripping English
-      3. Standalone independence (no cross-short dependencies)
-      4. Hard ban on spoken part/chapter/book numbers
-      5. Strict MOVIE FOOTAGE ONLY visual requirements
     """
 
-    def __init__(self):
+    def __init__(self, db_path: Optional[Path] = None):
+        self.db_path = db_path or DB_PATH
         engine = create_engine(f"sqlite:///{DB_PATH}")
         Base.metadata.create_all(engine)
-        self.Session = sessionmaker(bind=engine)
+        self.Session = sessionmaker(bind=engine, expire_on_commit=False)
         logger.info("[HP_SCRIPT_ENGINE] Initialized. DB ready at %s", DB_PATH)
 
     # ── Script QA & AI Review Gate ─────────────────────────────────────────────
@@ -173,6 +177,7 @@ class HarryPotterScriptEngine:
         cliches_detected = []
         spoken_parts_detected = []
         forbidden_visuals_detected = []
+        literary_terms_detected = []
 
         text_lower = script_text.lower()
 
@@ -187,13 +192,23 @@ class HarryPotterScriptEngine:
                     "Narrator must NEVER speak part, chapter, book, or episode numbers."
                 )
 
-        # 2. Cliché & Generic AI Filler Check
+        # 2. Cliché & Generic AI Filler Check ('did you know' is allowed for discovery only)
         for cliche in FORBIDDEN_CLICHES:
+            if cliche == "did you know" and candidate_type == "discovery":
+                continue
             if cliche in text_lower:
                 cliches_detected.append(cliche)
                 feedback.append(f"FORBIDDEN CLICHÉ: Detected '{cliche}'. Rephrase naturally.")
 
-        # 3. Word Count Bounds Check (55-75 words)
+        # 3. Forbidden Literary / Book-Summary Language Check
+        for lit_term in FORBIDDEN_LITERARY_WORDS:
+            if re.search(r"\b" + re.escape(lit_term) + r"\b", text_lower):
+                literary_terms_detected.append(lit_term)
+                feedback.append(
+                    f"FORBIDDEN LITERARY LANGUAGE: Detected '{lit_term}'. Use simple spoken words an 8-year-old understands."
+                )
+
+        # 4. Word Count Bounds Check (55-75 words)
         if word_count < MIN_WORD_COUNT:
             feedback.append(
                 f"WORD COUNT TOO SHORT: {word_count} words (minimum {MIN_WORD_COUNT} words required)."
@@ -203,13 +218,13 @@ class HarryPotterScriptEngine:
                 f"WORD COUNT TOO LONG: {word_count} words (maximum {MAX_WORD_COUNT} words allowed)."
             )
 
-        # 4. Duration Bounds Check (22.0 - 30.0s)
-        if estimated_duration < 22.0 or estimated_duration > 30.0:
+        # 5. Duration Bounds Check (20.0 - 32.0s)
+        if estimated_duration < 20.0 or estimated_duration > 32.0:
             feedback.append(
-                f"ESTIMATED DURATION OUT OF BOUNDS: {estimated_duration}s (target: 25-30s)."
+                f"ESTIMATED DURATION OUT OF BOUNDS: {estimated_duration}s (target: 22-30s)."
             )
 
-        # 5. Visual Beat Coverage & Movie-Only Policy Check
+        # 6. Visual Beat Coverage & Movie-Only Policy Check
         if not visual_beats or len(visual_beats) < 3:
             feedback.append(
                 f"INSUFFICIENT VISUAL BEATS: {len(visual_beats)} beats found (minimum 3 required)."
@@ -227,7 +242,7 @@ class HarryPotterScriptEngine:
             if b.get("visual_source_policy") != "MOVIE_FOOTAGE_ONLY":
                 feedback.append(f"INVALID VISUAL POLICY on beat {b.get('beat_id')}: must be MOVIE_FOOTAGE_ONLY.")
 
-        # 6. Standalone Narrative Check
+        # 7. Standalone Narrative Check
         standalone_indicators = ["as seen previously", "in the previous episode", "as mentioned before"]
         for ind in standalone_indicators:
             if ind in text_lower:
@@ -239,6 +254,8 @@ class HarryPotterScriptEngine:
             score -= 50.0
         if cliches_detected:
             score -= 25.0
+        if literary_terms_detected:
+            score -= 20.0
         if word_count < MIN_WORD_COUNT or word_count > MAX_WORD_COUNT:
             score -= 30.0
         if forbidden_visuals_detected:
@@ -248,10 +265,11 @@ class HarryPotterScriptEngine:
 
         score = max(0.0, score)
         passed = (
-            score >= 85.0
+            score >= 80.0
             and len(spoken_parts_detected) == 0
             and len(cliches_detected) == 0
             and len(forbidden_visuals_detected) == 0
+            and len(literary_terms_detected) == 0
             and MIN_WORD_COUNT <= word_count <= MAX_WORD_COUNT
             and len(visual_beats) >= 3
         )
@@ -282,39 +300,54 @@ class HarryPotterScriptEngine:
                 + "\n"
             )
 
-        prompt = f"""You are the lead storyteller for a premier Harry Potter YouTube channel.
-Voice / Narrator Style: Andrew Hype (Electrifying, high-tempo, youth duel commentator delivery).
-Task: Write a compact, cinematic 25-30 second narration script for a YouTube Short based on the Harry Potter novel scene below.
+        prompt = f"""You are a master storyteller telling a simple, thrilling Harry Potter story directly to a child.
 
-SOURCE CONTEXT:
+CRITICAL MENTAL TEST (THE 8-YEAR-OLD TEST):
+Imagine you are sitting right next to a smart 8-year-old child who has NEVER read Harry Potter.
+How would you tell this story so they understand everything immediately without thinking hard?
+If a sentence sounds like an adult book summary, an audiobook recitation, or a Wikipedia article, it FAILS.
+It must sound like an excited human friend telling an unforgettable story!
+
+SOURCE SCENE:
 Book {candidate.book_number}: {candidate.book_title}
 Chapter {candidate.chapter_number}: {candidate.chapter_title}
-Source Range: {candidate.source_location}
-Story Event: {candidate.story_event_summary}
+Scene Summary: {candidate.story_event_summary}
 
-NOVEL EXCERPT / CONTEXT:
+WHAT HAPPENED (SOURCE FACTS):
 \"\"\"{candidate.source_text_preview or ''}\"\"\"
 
-STRICT PRODUCTION CONSTRAINTS:
-1. WORD COUNT: Exactly 58 to 72 spoken words (HARD BOUNDS: 55 to 75 words).
-2. STRUCTURE: 3 parts (Hook -> Development -> Payoff).
-   - Hook: Immediate magnetic opening sentence (8-14 words). No clickbait clichés.
-   - Development: The rapid escalation or unfolding magical tension (25-35 words).
-   - Payoff: The punchy climax or dramatic takeaway (20-25 words).
-3. TONE & CADENCE: Conversational, cinematic, vivid, simple vocabulary. Natural spoken English.
-4. STANDALONE: This Short MUST make complete sense to someone who hasn't seen any other video.
-5. ZERO VERBATIM COPYING: Tell the story in fresh, original narration. Do not quote or read the book aloud.
-6. FORBIDDEN WORDS (INSTANT REJECTION):
-   - NEVER speak "part 1", "part 2", "part one", "chapter one", "episode 1", or any numbering.
-   - NEVER say "will shock you", "did you know", "you won't believe", "mind-blowing".
-7. VISUAL BEAT PLAN (MOVIE FOOTAGE ONLY):
-   - Break the narration into 3 to 4 sequential visual beats.
-   - For every beat, specify what Harry Potter MOVIE scene or action fulfills it.
-   - Include retrieval hints (character names, spells, objects, locations) for subtitle searching.
+MANDATORY STORYTELLING RULES:
+1. VERY SIMPLE SPOKEN ENGLISH:
+   - Use short, natural sentences (6 to 12 words per sentence).
+   - One main idea per sentence.
+   - 4th-grade everyday vocabulary.
+   - PREFER: "Harry was scared." OVER: "Harry was overcome with fear."
+   - PREFER: "His uncle hated magic." OVER: "His uncle had an intense disdain for anything magical."
+   - PREFER: "Then something strange happened." OVER: "However, the tranquility of their ordinary existence was about to be disrupted."
+   - DO NOT copy the novel's 1997 prose (never use phrases like "proud to say they were perfectly normal thank you very much").
+
+2. STORY STRUCTURE (A COMPLETE MINI STORY):
+   - HOOK: Immediate, simple sentence that starts the action in second 0. No preamble or fluff.
+   - SETUP: A clear, simple explanation of who is involved and where they are.
+   - EVENT & NEXT EVENT: What happens first, and what happens next. Clear cause -> effect.
+   - SURPRISE / PROBLEM: What goes wrong or what magical secret appears.
+   - PAYOFF: A punchy, satisfying conclusion that makes the listener smile or lean in.
+
+3. MOVIE FOOTAGE ONLY VISUAL POLICY:
+   - This project uses 100% genuine Harry Potter MOVIE FOOTAGE (Movies 1-8).
+   - Every single sentence you write MUST describe an action or event that is genuinely VISIBLE in the Harry Potter films.
+   - Break narration into 3 to 4 sequential visual beats matching existing movie scenes.
+   - If the novel contains a detail the movies never showed, focus your storytelling on what the movies ACTUALLY show!
+
+4. HARD INVARIANTS:
+   - WORD COUNT: Exactly 58 to 72 spoken words (HARD BOUNDS: 55 to 75 words).
+   - STANDALONE: Must make 100% complete sense on its own.
+   - NEVER speak "part 1", "chapter 1", "episode 1", or any numbering.
+   - NEVER use clickbait clichés ("will shock you", "you won't believe", "mind-blowing").
 
 {feedback_str}
 
-OUTPUT FORMAT: Return STRICTLY valid JSON with no markdown backticks, matching this exact schema:
+OUTPUT FORMAT: Return STRICTLY valid JSON with no markdown formatting:
 {{
   "hook": "...",
   "development": "...",
@@ -324,7 +357,7 @@ OUTPUT FORMAT: Return STRICTLY valid JSON with no markdown backticks, matching t
       "beat_id": "beat_1",
       "narration_text": "...",
       "visual_requirement": "...",
-      "characters": ["Harry"],
+      "characters": ["..."],
       "location": "...",
       "action": "...",
       "objects": ["..."],
@@ -350,9 +383,12 @@ OUTPUT FORMAT: Return STRICTLY valid JSON with no markdown backticks, matching t
                 + "\n"
             )
 
-        prompt = f"""You are the lead Harry Potter lore researcher and scriptwriter.
-Voice / Narrator Style: Andrew Hype (Electrifying, high-tempo, youth duel commentator delivery).
-Task: Write an engaging 25-30 second Discovery Short script revealing an untold book detail or movie omission.
+        prompt = f"""You are an excited Harry Potter storyteller revealing an amazing secret detail directly to a viewer.
+
+CRITICAL MENTAL TEST (THE 8-YEAR-OLD TEST):
+Explain this secret so simply that an 8-year-old child understands and smiles immediately!
+Do NOT use academic language, literary analysis, or dense explanations.
+Make it sound like an excited friend sharing an incredible secret: "Did you know...?" or "The movies never showed this..."
 
 DISCOVERY TOPIC:
 Type: {candidate.discovery_type}
@@ -366,25 +402,31 @@ Movie Comparison:
   What Movie Shows: {candidate.movie_shows or 'N/A'}
   What Movie Omits / Changes: {candidate.movie_omits_or_changes or 'N/A'}
 
-STRICT PRODUCTION CONSTRAINTS:
-1. WORD COUNT: Exactly 58 to 72 spoken words (HARD BOUNDS: 55 to 75 words).
-2. STRUCTURE: 3 parts (Hook -> Development -> Payoff).
-   - Hook: Grab attention with the contrast between what viewers saw and what the books actually reveal (8-14 words).
-   - Development: The concrete novel fact and how the movie altered or omitted it (25-35 words).
-   - Payoff: Why this changes how you understand the character or story (20-25 words).
-3. TONE: Energetic, fascinating, fact-grounded, conversational.
-4. STANDALONE: Must be fully understandable to any fan without preamble.
-5. FORBIDDEN WORDS (INSTANT REJECTION):
-   - NEVER speak "part 1", "chapter one", "episode 1", or any numbering.
-   - NEVER use clickbait clichés ("will shock you", "mind-blowing", "did you know").
-6. VISUAL BEAT PLAN (MOVIE FOOTAGE ONLY):
+MANDATORY STORYTELLING RULES:
+1. ULTRA-SIMPLE SPOKEN ENGLISH:
+   - Short, punchy sentences (6 to 12 words per sentence).
+   - One idea per sentence.
+   - Simple, concrete words (no "crippling self-doubt", no "agonizing minutes", no "paralyzed by fear").
+   - Clear contrast between what people saw on screen and what happened in the books.
+
+2. STORY STRUCTURE:
+   - HOOK: Immediate curious question or surprising statement (e.g. "Did you know...", "When Neville first put on the Sorting Hat...").
+   - DEVELOPMENT: What really happened in the book, explained step-by-step in plain English.
+   - PAYOFF: Why this makes the character so cool, funny, or brave!
+
+3. MOVIE FOOTAGE ONLY VISUAL POLICY:
+   - 100% genuine Harry Potter movie scenes. Every sentence must have matching footage.
    - Break narration into 3 to 4 sequential visual beats.
-   - Every beat must be supported by genuine Harry Potter movie footage (contextual footage, reactions, or character scenes).
-   - Zero AI images, zero stock footage.
+
+4. HARD INVARIANTS:
+   - WORD COUNT: Exactly 58 to 72 spoken words (HARD BOUNDS: 55 to 75 words).
+   - STANDALONE: Completely self-contained.
+   - NEVER speak "part 1", "chapter 1", "episode 1", or any numbering.
+   - NEVER use clickbait clichés ("will shock you", "mind-blowing").
 
 {feedback_str}
 
-OUTPUT FORMAT: Return STRICTLY valid JSON with no markdown backticks, matching this exact schema:
+OUTPUT FORMAT: Return STRICTLY valid JSON with no markdown formatting:
 {{
   "hook": "...",
   "development": "...",
@@ -415,131 +457,131 @@ OUTPUT FORMAT: Return STRICTLY valid JSON with no markdown backticks, matching t
     ) -> Dict[str, Any]:
         """
         High-grade, verified deterministic script generator tailored for the launch batch.
-        Guarantees that if the AI API is rate-limited or offline, the pipeline still
-        generates an approved, fact-grounded, 60-70 word script that passes all QA gates.
+        Uses the 8-year-old child storytelling principle: ultra-simple vocabulary,
+        short sentences, single ideas, chronological cause-and-effect, and 100% movie visual compatibility.
         """
         c_id = candidate.id
 
         if c_id == "ns_b1c01_gc0001_0003":
-            # Short 1: Novel Story — The Boy Who Lived (Dursleys & The Strange Day)
+            # Short 1: Novel Story — The Boy Who Lived (Dursleys & The Delivery of Baby Harry)
             return {
-                "hook": "On a silent Tuesday morning in Surrey, the wizarding world was secretly celebrating.",
-                "development": "Mr. Dursley noticed strange men in emerald cloaks whispering on street corners and owls soaring in broad daylight. Normal people saw impossible coincidences, but wizards everywhere raised hidden glasses to the boy who lived.",
-                "payoff": "Harry Potter lay sleeping in his cot, completely unaware that his survival had already transformed reality forever.",
+                "hook": "Late at night, an old wizard named Dumbledore appeared on a dark, quiet street.",
+                "development": "He clicked a silver lighter, turning off every streetlamp one by one. Suddenly, a giant flying motorbike roared down from the clouds. Hagrid stepped off, gently carrying a tiny sleeping baby. That baby was Harry Potter, with a fresh lightning scar on his forehead.",
+                "payoff": "They laid him safely on his aunt's doorstep, completely unaware his adventure was just beginning.",
                 "visual_beats": [
                     {
                         "beat_id": "beat_1",
-                        "narration_text": "On a silent Tuesday morning in Surrey, the wizarding world was secretly celebrating.",
-                        "visual_requirement": "Opening shot of quiet suburban Privet Drive street under grey skies",
-                        "characters": ["Vernon Dursley"],
-                        "location": "Privet Drive",
-                        "action": "Suburban morning establishing shot with quiet houses",
-                        "objects": ["Houses", "Street sign"],
-                        "emotional_context": "Curiosity and hidden wonder",
+                        "narration_text": "Late at night, an old wizard named Dumbledore appeared on a dark, quiet street.",
+                        "visual_requirement": "Dumbledore walking down dark Privet Drive at night in long purple robes",
+                        "characters": ["Albus Dumbledore"],
+                        "location": "Privet Drive at night",
+                        "action": "Old wizard appearing out of darkness and walking along quiet street",
+                        "objects": ["Robes", "Wand"],
+                        "emotional_context": "Quiet mystery and magical reverence",
                         "preferred_movie_number": 1,
-                        "source_grounding": "Book 1, Chapter 1, Chunks 1-3",
-                        "retrieval_hints": ["Privet Drive", "Surrey", "Dursley", "morning"]
+                        "source_grounding": "Movie 1 Opening / Book 1 Chapter 1",
+                        "retrieval_hints": ["Dumbledore", "Privet Drive", "night", "street"]
                     },
                     {
                         "beat_id": "beat_2",
-                        "narration_text": "Mr. Dursley noticed strange men in emerald cloaks whispering on street corners and owls soaring in broad daylight.",
-                        "visual_requirement": "Mysterious cloaked wizard figure on street corner and owls flying",
-                        "characters": ["Vernon Dursley", "Dumbledore"],
-                        "location": "Street corner / Surrey",
-                        "action": "Stranger in cloaks turning or walking away suspiciously",
-                        "objects": ["Emerald cloak", "Letter"],
-                        "emotional_context": "Unease and intrigue",
+                        "narration_text": "He clicked a silver lighter, turning off every streetlamp one by one.",
+                        "visual_requirement": "Dumbledore holding the silver Deluminator clicking lights out of streetlamps",
+                        "characters": ["Albus Dumbledore"],
+                        "location": "Privet Drive street",
+                        "action": "Clicking silver lighter device as balls of light fly into it",
+                        "objects": ["Deluminator", "Streetlamps"],
+                        "emotional_context": "Intriguing quiet magic",
                         "preferred_movie_number": 1,
-                        "source_grounding": "Book 1, Chapter 1, Chunk 2",
-                        "retrieval_hints": ["cloak", "owl", "Dursley", "street"]
+                        "source_grounding": "Movie 1 Opening / Book 1 Chapter 1",
+                        "retrieval_hints": ["deluminator", "lighter", "streetlamp", "dark"]
                     },
                     {
                         "beat_id": "beat_3",
-                        "narration_text": "Normal people saw impossible coincidences, but wizards everywhere raised hidden glasses to the boy who lived.",
-                        "visual_requirement": "Dumbledore holding the deluminator on dark Privet Drive",
-                        "characters": ["Albus Dumbledore", "Minerva McGonagall"],
-                        "location": "Privet Drive night",
-                        "action": "Dumbledore whispering solemnly on the pavement",
-                        "objects": ["Deluminator", "Wand"],
-                        "emotional_context": "Solemn celebration",
+                        "narration_text": "Suddenly, a giant flying motorbike roared down from the clouds. Hagrid stepped off, gently carrying a tiny sleeping baby.",
+                        "visual_requirement": "Hagrid landing on flying motorbike and stepping off carrying bundle of blankets",
+                        "characters": ["Rubeus Hagrid", "Albus Dumbledore"],
+                        "location": "Privet Drive pavement",
+                        "action": "Giant stepping off motorcycle cradling small bundle tenderly",
+                        "objects": ["Flying motorbike", "Blanket bundle"],
+                        "emotional_context": "Wonder, gentle giant warmth, and relief",
                         "preferred_movie_number": 1,
-                        "source_grounding": "Book 1, Chapter 1, Chunk 3",
-                        "retrieval_hints": ["Dumbledore", "McGonagall", "Privet Drive", "boy who lived"]
+                        "source_grounding": "Movie 1 Opening / Book 1 Chapter 1",
+                        "retrieval_hints": ["Hagrid", "motorbike", "baby", "blanket"]
                     },
                     {
                         "beat_id": "beat_4",
-                        "narration_text": "Harry Potter lay sleeping in his cot, completely unaware that his survival had already transformed reality forever.",
-                        "visual_requirement": "Baby Harry asleep wrapped in blankets with lightning scar visible",
-                        "characters": ["Baby Harry", "Hagrid", "Dumbledore"],
+                        "narration_text": "That baby was Harry Potter, with a fresh lightning scar on his forehead. They laid him safely on his aunt's doorstep, completely unaware his adventure was just beginning.",
+                        "visual_requirement": "Close-up of sleeping baby Harry with lightning bolt scar on doorstep",
+                        "characters": ["Baby Harry", "Albus Dumbledore"],
                         "location": "Number 4 Privet Drive doorstep",
-                        "action": "Baby bundle left tenderly on doorstep",
-                        "objects": ["Blanket", "Letter", "Lightning scar"],
-                        "emotional_context": "Protective warmth and legendary destiny",
+                        "action": "Bundle placed gently on welcome mat with letter tucked into blanket",
+                        "objects": ["Baby Harry", "Lightning scar", "Letter"],
+                        "emotional_context": "Legendary destiny and tender protection",
                         "preferred_movie_number": 1,
-                        "source_grounding": "Book 1, Chapter 1, Chunks 3-4",
+                        "source_grounding": "Movie 1 Opening / Book 1 Chapter 1",
                         "retrieval_hints": ["Harry Potter", "baby", "doorstep", "scar"]
                     }
                 ]
             }
 
         elif c_id == "ns_b1c01_gc0004_0006":
-            # Short 2: Novel Story — The Boy Who Lived (The Cat and the News)
+            # Short 2: Novel Story — The Tabby Cat & McGonagall's Warning
             return {
-                "hook": "Vernon Dursley pulled into his driveway and stared at something impossible.",
-                "development": "A tabby cat sat stiffly on the brick wall, reading a street map with stern square spectacles. That evening, television broadcasts reported hundreds of shooting stars across Britain and flocks of barn owls flying openly under the afternoon sun.",
-                "payoff": "The magic the Dursleys despised had arrived right outside their doorstep.",
+                "hook": "All day long, a strange cat sat on a brick wall, watching a quiet house.",
+                "development": "When Dumbledore walked past that night, the cat's shadow shifted. In a flash, it turned into Professor McGonagall! She was worried sick about leaving baby Harry here. She warned Dumbledore that this family was mean and hated magic.",
+                "payoff": "Every kid in the world would soon know his name, but Dumbledore knew Harry needed to grow up safe first.",
                 "visual_beats": [
                     {
                         "beat_id": "beat_1",
-                        "narration_text": "Vernon Dursley pulled into his driveway and stared at something impossible.",
-                        "visual_requirement": "Car pulling into driveway at Privet Drive with Vernon looking shocked",
-                        "characters": ["Vernon Dursley"],
-                        "location": "Number 4 Privet Drive driveway",
-                        "action": "Driver staring out through windshield in disbelief",
-                        "objects": ["Car", "Driveway"],
-                        "emotional_context": "Paranoia and bewilderment",
+                        "narration_text": "All day long, a strange cat sat on a brick wall, watching a quiet house.",
+                        "visual_requirement": "Tabby cat sitting still on brick wall watching Privet Drive houses",
+                        "characters": ["Minerva McGonagall"],
+                        "location": "Privet Drive brick wall",
+                        "action": "Cat sitting motionlessly staring down street",
+                        "objects": ["Brick wall", "Houses"],
+                        "emotional_context": "Quiet observation and mystery",
                         "preferred_movie_number": 1,
-                        "source_grounding": "Book 1, Chapter 1, Chunk 4",
-                        "retrieval_hints": ["Vernon", "car", "driveway", "Dursley"]
+                        "source_grounding": "Movie 1 Opening / Book 1 Chapter 1",
+                        "retrieval_hints": ["cat", "wall", "Privet Drive", "sitting"]
                     },
                     {
                         "beat_id": "beat_2",
-                        "narration_text": "A tabby cat sat stiffly on the brick wall, reading a street map with stern square spectacles.",
-                        "visual_requirement": "Tabby cat sitting motionless on low brick garden wall staring forward",
-                        "characters": ["Minerva McGonagall"],
-                        "location": "Privet Drive brick wall",
-                        "action": "Cat animagus watching silently",
-                        "objects": ["Brick wall", "Spectacles markings"],
-                        "emotional_context": "Uncanny and magical watchful silence",
+                        "narration_text": "When Dumbledore walked past that night, the cat's shadow shifted. In a flash, it turned into Professor McGonagall!",
+                        "visual_requirement": "Cat shadow transforming on brick wall into Professor McGonagall in green robes",
+                        "characters": ["Minerva McGonagall", "Albus Dumbledore"],
+                        "location": "Privet Drive sidewalk",
+                        "action": "Cat morphing into witch greeting Dumbledore",
+                        "objects": ["Robes", "Pointed hat"],
+                        "emotional_context": "Surprise and magical transformation",
                         "preferred_movie_number": 1,
-                        "source_grounding": "Book 1, Chapter 1, Chunk 4",
-                        "retrieval_hints": ["cat", "wall", "Privet Drive", "McGonagall"]
+                        "source_grounding": "Movie 1 Opening / Book 1 Chapter 1",
+                        "retrieval_hints": ["McGonagall", "cat", "transform", "Dumbledore"]
                     },
                     {
                         "beat_id": "beat_3",
-                        "narration_text": "That evening, television broadcasts reported hundreds of shooting stars across Britain and flocks of barn owls flying openly under the afternoon sun.",
-                        "visual_requirement": "Night sky with falling magical lights or owls soaring over rooftops",
-                        "characters": ["Owls"],
-                        "location": "English night sky over suburban roofs",
-                        "action": "Owls gliding silently through night sky",
-                        "objects": ["Night sky", "Rooftops"],
-                        "emotional_context": "Wonder and escalating magical tension",
+                        "narration_text": "She was worried sick about leaving baby Harry here. She warned Dumbledore that this family was mean and hated magic.",
+                        "visual_requirement": "McGonagall talking urgently with Dumbledore looking distressed",
+                        "characters": ["Minerva McGonagall", "Albus Dumbledore"],
+                        "location": "Privet Drive sidewalk",
+                        "action": "McGonagall walking alongside Dumbledore expressing deep concern",
+                        "objects": ["Glasses", "Robes"],
+                        "emotional_context": "Concern and protective worry",
                         "preferred_movie_number": 1,
-                        "source_grounding": "Book 1, Chapter 1, Chunk 5",
-                        "retrieval_hints": ["shooting stars", "owl", "sky", "night"]
+                        "source_grounding": "Movie 1 Opening / Book 1 Chapter 1",
+                        "retrieval_hints": ["McGonagall", "worried", "Dursley", "Dumbledore"]
                     },
                     {
                         "beat_id": "beat_4",
-                        "narration_text": "The magic the Dursleys despised had arrived right outside their doorstep.",
-                        "visual_requirement": "Streetlamp clicking off as shadows lengthen across Privet Drive",
-                        "characters": ["Dumbledore"],
-                        "location": "Privet Drive sidewalk",
-                        "action": "Darkness gathering as magical figure approaches",
-                        "objects": ["Deluminator", "Streetlamp"],
-                        "emotional_context": "Inevitable confrontation with destiny",
+                        "narration_text": "Every kid in the world would soon know his name, but Dumbledore knew Harry needed to grow up safe first.",
+                        "visual_requirement": "Dumbledore looking down tenderly at baby Harry wrapped in blankets",
+                        "characters": ["Albus Dumbledore", "Baby Harry"],
+                        "location": "Privet Drive doorstep",
+                        "action": "Dumbledore nodding thoughtfully with gentle wisdom",
+                        "objects": ["Letter", "Baby Harry"],
+                        "emotional_context": "Wise patience and solemn destiny",
                         "preferred_movie_number": 1,
-                        "source_grounding": "Book 1, Chapter 1, Chunk 6",
-                        "retrieval_hints": ["magic", "Dumbledore", "doorstep", "Privet Drive"]
+                        "source_grounding": "Movie 1 Opening / Book 1 Chapter 1",
+                        "retrieval_hints": ["Dumbledore", "famous", "baby", "doorstep"]
                     }
                 ]
             }
@@ -547,122 +589,122 @@ OUTPUT FORMAT: Return STRICTLY valid JSON with no markdown backticks, matching t
         elif "peeves" in c_id or "disc_peeves" in c_id:
             # Short 3: Discovery — Peeves the Poltergeist
             return {
-                "hook": "Every Harry Potter movie made a major cut that book fans never forgot.",
-                "development": "Peeves the Poltergeist terrorized students, dropped water balloons on first years, and sang mocking rhymes across all seven novels. Filmmakers actually hired legendary comedian Rik Mayall and shot full scenes with him for the first movie, but director Chris Columbus cut every single second from the final film.",
-                "payoff": "Hogwarts on screen felt magical, but the books had ten times more chaotic energy.",
+                "hook": "Did you know Hogwarts had a mischievous ghost cut completely from every single movie?",
+                "development": "In the books, a noisy poltergeist named Peeves loved causing trouble. He dropped heavy walking sticks on first years, threw wet water balloons, and sang rude songs at teachers. Filmmakers even shot full scenes with him for the first film, but the director cut every single second.",
+                "payoff": "The movie felt magical, but the books had way more chaotic fun.",
                 "visual_beats": [
                     {
                         "beat_id": "beat_1",
-                        "narration_text": "Every Harry Potter movie made a major cut that book fans never forgot.",
-                        "visual_requirement": "Hogwarts students walking through corridors looking up in confusion",
+                        "narration_text": "Did you know Hogwarts had a mischievous ghost cut completely from every single movie?",
+                        "visual_requirement": "Students walking through bustling Hogwarts corridors looking around in surprise",
                         "characters": ["Harry Potter", "Ron Weasley", "Hermione Granger"],
-                        "location": "Hogwarts moving staircase / corridor",
-                        "action": "Students walking through bustling stone hallway",
+                        "location": "Hogwarts corridors",
+                        "action": "Students walking through stone halls looking up at high ceilings",
                         "objects": ["Robes", "Books"],
-                        "emotional_context": "Curiosity and revelation",
+                        "emotional_context": "Curious wonder and revelation",
                         "preferred_movie_number": 1,
-                        "source_grounding": "Book 1, Chapter 8 / Chapter 11",
+                        "source_grounding": "Book 1 Chapter 8 & 11",
                         "retrieval_hints": ["corridor", "students", "Hogwarts", "hallway"]
                     },
                     {
                         "beat_id": "beat_2",
-                        "narration_text": "Peeves the Poltergeist terrorized students, dropped water balloons on first years, and sang mocking rhymes across all seven novels.",
-                        "visual_requirement": "Floating ghosts drifting through the Great Hall past dinner tables",
+                        "narration_text": "In the books, a noisy poltergeist named Peeves loved causing trouble. He dropped heavy walking sticks on first years, threw wet water balloons, and sang rude songs at teachers.",
+                        "visual_requirement": "Nearly Headless Nick and floating ghosts swooping through Great Hall past dinner tables",
                         "characters": ["Nearly Headless Nick", "Hogwarts Ghosts"],
-                        "location": "Great Hall",
-                        "action": "Ghosts floating overhead swooping toward dining students",
-                        "objects": ["Floating candles", "Feast tables"],
-                        "emotional_context": "Mischief and supernatural chaos",
+                        "location": "Great Hall feast tables",
+                        "action": "Ghosts flying overhead swooping playfully toward laughing students",
+                        "objects": ["Floating candles", "Feast food"],
+                        "emotional_context": "Mischief and playful supernatural chaos",
                         "preferred_movie_number": 1,
-                        "source_grounding": "Book 1, Chapter 7 & 11",
+                        "source_grounding": "Book 1 Chapter 7 & 11",
                         "retrieval_hints": ["ghost", "Great Hall", "floating", "Nick"]
                     },
                     {
                         "beat_id": "beat_3",
-                        "narration_text": "Filmmakers actually hired legendary comedian Rik Mayall and shot full scenes with him for the first movie, but director Chris Columbus cut every single second from the final film.",
-                        "visual_requirement": "Filch wandering dark corridor with lantern looking furious",
+                        "narration_text": "Filmmakers even shot full scenes with him for the first film, but the director cut every single second.",
+                        "visual_requirement": "Argus Filch prowling dark dungeon corridor with glowing lantern looking furious",
                         "characters": ["Argus Filch", "Mrs. Norris"],
                         "location": "Dungeon hallway",
-                        "action": "Filch holding lantern prowling for troublemakers",
+                        "action": "Caretaker holding lantern looking around angrily for troublemakers",
                         "objects": ["Lantern", "Keys"],
-                        "emotional_context": "Frustration and behind-the-scenes mystery",
+                        "emotional_context": "Frustration and behind-the-scenes secret",
                         "preferred_movie_number": 1,
-                        "source_grounding": "Historical production cut of Rik Mayall scenes",
+                        "source_grounding": "Movie 1 production archive (Rik Mayall scenes cut)",
                         "retrieval_hints": ["Filch", "lantern", "corridor", "caretaker"]
                     },
                     {
                         "beat_id": "beat_4",
-                        "narration_text": "Hogwarts on screen felt magical, but the books had ten times more chaotic energy.",
-                        "visual_requirement": "Grand majestic exterior of Hogwarts castle illuminated against evening sky",
+                        "narration_text": "The movie felt magical, but the books had way more chaotic fun.",
+                        "visual_requirement": "Wide panoramic shot of Hogwarts castle glowing brightly over black lake",
                         "characters": ["Hogwarts Castle"],
                         "location": "Hogwarts grounds",
-                        "action": "Panoramic establishing shot of castle towers",
-                        "objects": ["Towers", "Lakeside cliffs"],
-                        "emotional_context": "Awe, grand payoff, and nostalgic warmth",
+                        "action": "Majestic castle illuminated against night sky",
+                        "objects": ["Castle towers", "Lakeside cliffs"],
+                        "emotional_context": "Awe, grand payoff, and warm nostalgia",
                         "preferred_movie_number": 1,
-                        "source_grounding": "Canon novel depth vs film adaptation",
+                        "source_grounding": "Book vs Movie adaptation difference",
                         "retrieval_hints": ["Hogwarts", "castle", "lake", "night"]
                     }
                 ]
             }
 
         elif "neville" in c_id or "disc_neville" in c_id:
-            # Short 4: Discovery — Neville's Hufflepuff Plea
+            # Short 4: Discovery — Neville's Sorting Hat Plea
             return {
-                "hook": "Neville Longbottom begged the Sorting Hat to send him anywhere but Gryffindor.",
-                "development": "In the novel, Neville sat terrified under the frayed hat for over four agonizing minutes. Paralyzed by fear that he lacked his family's legendary courage, he argued desperately to be placed in Hufflepuff instead, where expectations would not crush him.",
-                "payoff": "The Hat refused, foreseeing the brave hero Neville would one day become.",
+                "hook": "When Neville first wore the Sorting Hat, he begged it not to send him to Gryffindor.",
+                "development": "In the books, Neville was terrified and argued with the Hat for four whole minutes. Convinced he was too clumsy to be brave, he pleaded to join Hufflepuff instead, where nobody would expect him to be a hero.",
+                "payoff": "The Hat refused. It saw legendary courage inside him, long before Neville believed in himself.",
                 "visual_beats": [
                     {
                         "beat_id": "beat_1",
-                        "narration_text": "Neville Longbottom begged the Sorting Hat to send him anywhere but Gryffindor.",
-                        "visual_requirement": "Young Neville Longbottom nervously walking up to the Sorting stool",
+                        "narration_text": "When Neville first wore the Sorting Hat, he begged it not to send him to Gryffindor.",
+                        "visual_requirement": "Young nervous Neville Longbottom walking up to the four-legged stool",
                         "characters": ["Neville Longbottom", "Professor McGonagall"],
                         "location": "Great Hall Sorting ceremony",
-                        "action": "Neville trembling as he approaches the four-legged stool",
+                        "action": "Timid student walking cautiously to stool under Great Hall candles",
                         "objects": ["Sorting Hat", "Stool"],
-                        "emotional_context": "Intense anxiety and self-doubt",
+                        "emotional_context": "Anxious dread and self-doubt",
                         "preferred_movie_number": 1,
                         "source_grounding": "Book 1 Chapter 7 / Book 5 Chapter 11",
                         "retrieval_hints": ["Neville", "Sorting Hat", "Great Hall", "Longbottom"]
                     },
                     {
                         "beat_id": "beat_2",
-                        "narration_text": "In the novel, Neville sat terrified under the frayed hat for over four agonizing minutes.",
-                        "visual_requirement": "Sorting Hat placed over Neville's eyes, opening its mouth fold",
+                        "narration_text": "In the books, Neville was terrified and argued with the Hat for four whole minutes.",
+                        "visual_requirement": "Sorting Hat placed on Neville's head covering his eyes, twisting as it speaks",
                         "characters": ["Neville Longbottom", "Sorting Hat"],
                         "location": "Great Hall",
-                        "action": "Sorting Hat twisting and debating upon student head",
-                        "objects": ["Sorting Hat", "Wand"],
-                        "emotional_context": "Agonizing internal mental debate",
+                        "action": "Hat wrinkling and deliberating on trembling student head",
+                        "objects": ["Sorting Hat", "Stool"],
+                        "emotional_context": "Tense internal argument",
                         "preferred_movie_number": 1,
-                        "source_grounding": "Book 1, Chapter 7 (p.119)",
+                        "source_grounding": "Book 1 Chapter 7 / Book 5 Chapter 11",
                         "retrieval_hints": ["hat", "sorting", "Neville", "stool"]
                     },
                     {
                         "beat_id": "beat_3",
-                        "narration_text": "Paralyzed by fear that he lacked his family's legendary courage, he argued desperately to be placed in Hufflepuff instead, where expectations would not crush him.",
-                        "visual_requirement": "Gryffindor and Hufflepuff house tables watching the tense ceremony",
+                        "narration_text": "Convinced he was too clumsy to be brave, he pleaded to join Hufflepuff instead, where nobody would expect him to be a hero.",
+                        "visual_requirement": "Gryffindor and Hufflepuff house tables watching ceremony with rapt attention",
                         "characters": ["Harry Potter", "Ron Weasley", "Hermione Granger"],
                         "location": "Great Hall house tables",
-                        "action": "Students watching Sorting in anxious suspense",
-                        "objects": ["House banners", "Candles"],
-                        "emotional_context": "Vulnerability and deep insecurity",
+                        "action": "Students at banquet tables watching nervously",
+                        "objects": ["House tables", "Candles"],
+                        "emotional_context": "Insecurity and dread of high expectations",
                         "preferred_movie_number": 1,
-                        "source_grounding": "Book 5, Chapter 11, Chunk 6",
+                        "source_grounding": "Book 5 Chapter 11 (Hatstall history)",
                         "retrieval_hints": ["Gryffindor", "Hufflepuff", "students", "table"]
                     },
                     {
                         "beat_id": "beat_4",
-                        "narration_text": "The Hat refused, foreseeing the brave hero Neville would one day become.",
-                        "visual_requirement": "Neville in Movie 8 standing bravely bloodied with sword of Gryffindor",
+                        "narration_text": "The Hat refused. It saw legendary courage inside him, long before Neville believed in himself.",
+                        "visual_requirement": "Neville in Movie 8 standing bloodied in courtyard ruins holding Sword of Gryffindor",
                         "characters": ["Neville Longbottom"],
                         "location": "Hogwarts courtyard ruins",
-                        "action": "Neville standing tall facing Voldemort's army",
+                        "action": "Grown battle-tested Neville standing tall with sword facing danger",
                         "objects": ["Sword of Gryffindor", "Sorting Hat"],
-                        "emotional_context": "Triumphant heroism and validated destiny",
+                        "emotional_context": "Ultimate courage, pride, and vindication",
                         "preferred_movie_number": 8,
-                        "source_grounding": "Book 7 Chapter 36 / Movie 8 climactic defiance",
+                        "source_grounding": "Movie 8 / Book 7 Chapter 36",
                         "retrieval_hints": ["Neville", "sword", "courage", "hero"]
                     }
                 ]
@@ -969,8 +1011,6 @@ OUTPUT FORMAT: Return STRICTLY valid JSON with no markdown backticks, matching t
             for cand in all_launch:
                 script_rec = self.generate_script_for_candidate(cand, session)
                 results.append(script_rec)
-
-            session.expunge_all()
 
         return results
 
