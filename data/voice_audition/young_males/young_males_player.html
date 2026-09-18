@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harry Potter Young Male Voices (18–20yo) | Audition Gallery</title>
+    <style>
+        :root {
+            --bg-deep: #0b0e14;
+            --bg-card: #151b26;
+            --bg-card-hover: #1c2433;
+            --gold-primary: #e6b450;
+            --gold-glow: rgba(230, 180, 80, 0.25);
+            --text-main: #e2e8f0;
+            --text-dim: #94a3b8;
+            --accent-glow: #38bdf8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body {
+            background: var(--bg-deep);
+            color: var(--text-main);
+            padding: 30px 20px 80px;
+        }
+        .header {
+            max-width: 1200px;
+            margin: 0 auto 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 2.2rem;
+            color: var(--gold-primary);
+            text-shadow: 0 0 16px var(--gold-glow);
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .header p {
+            color: var(--text-dim);
+            font-size: 1.05rem;
+            max-width: 760px;
+            margin: 0 auto;
+        }
+        .filter-bar {
+            max-width: 1200px;
+            margin: 20px auto 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            background: #111622;
+            padding: 14px 20px;
+            border-radius: 12px;
+            border: 1px solid #232c3d;
+        }
+        .filter-btn {
+            background: #1a2232;
+            border: 1px solid #334155;
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.88rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .filter-btn:hover, .filter-btn.active {
+            background: var(--gold-primary);
+            color: #0b0e14;
+            border-color: var(--gold-primary);
+            box-shadow: 0 0 12px var(--gold-glow);
+        }
+        .grid {
+            max-width: 1240px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 20px;
+        }
+        .voice-card {
+            background: var(--bg-card);
+            border: 1px solid #232c3d;
+            border-radius: 14px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+        }
+        .voice-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--gold-primary);
+            box-shadow: 0 8px 24px var(--gold-glow);
+        }
+        .card-header {
+            margin-bottom: 12px;
+        }
+        .voice-title-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .voice-num {
+            font-weight: 700;
+            color: var(--gold-primary);
+            font-size: 0.95rem;
+        }
+        .voice-name {
+            font-size: 1.15rem;
+            color: #fff;
+            flex-grow: 1;
+        }
+        .age-pill {
+            background: #25334a;
+            color: #38bdf8;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 12px;
+            border: 1px solid #38bdf844;
+        }
+        .badges-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .badge {
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 3px 9px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge-edge { background: #0284c7; color: #fff; }
+        .badge-kokoro { background: #059669; color: #fff; }
+        .badge-blend { background: #7c3aed; color: #fff; }
+        .badge-accent { background: #334155; color: #cbd5e1; }
+        .badge-mood { background: #3f2e15; color: #f59e0b; border: 1px solid #f59e0b44; }
+        .vibe-desc {
+            font-size: 0.9rem;
+            color: #cbd5e1;
+            line-height: 1.4;
+            margin-bottom: 12px;
+        }
+        .tuning-info {
+            font-size: 0.78rem;
+            color: var(--text-dim);
+            background: #0f141d;
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin-bottom: 14px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .tuning-info code {
+            color: #38bdf8;
+            font-family: monospace;
+        }
+        .samples-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: #0d1117;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #1e2638;
+        }
+        .sample-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .sample-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+        }
+        .sample-badge {
+            font-weight: 600;
+            padding: 2px 7px;
+            border-radius: 4px;
+        }
+        .sample-badge.s1 { background: #1e3a5f; color: #93c5fd; }
+        .sample-badge.s2 { background: #4c1d38; color: #f472b6; }
+        .sample-dur { color: var(--text-dim); font-family: monospace; }
+        audio {
+            width: 100%;
+            height: 36px;
+            border-radius: 6px;
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>⚡ Harry Potter Automation — Young Male Voices (18–20yo)</h1>
+        <p>Audition 20 new high-tempo, energetic, youthful male voices spanning British, Celtic, American, and Commonwealth accents across Kokoro-82M, Edge-TTS Neural, and Custom Youth Blends.</p>
+    </div>
+
+    <div class="filter-bar">
+        <button class="filter-btn active" onclick="filterCards('all')">Show All (20)</button>
+        <button class="filter-btn" onclick="filterCards('British')">🇬🇧 British (4)</button>
+        <button class="filter-btn" onclick="filterCards('Irish')">🇮🇪 Irish / Celtic (1)</button>
+        <button class="filter-btn" onclick="filterCards('Canadian')">🇨🇦 Canadian (1)</button>
+        <button class="filter-btn" onclick="filterCards('Australian')">🇦🇺 Australian (1)</button>
+        <button class="filter-btn" onclick="filterCards('American')">🇺🇸 American (12)</button>
+        <button class="filter-btn" onclick="filterEngine('Edge-TTS')">Edge-TTS (13)</button>
+        <button class="filter-btn" onclick="filterEngine('Kokoro')">Kokoro & Blends (7)</button>
+    </div>
+
+    <div class="grid" id="voicesGrid">
+        
+            <div class="voice-card" data-accent="British (UK)" data-engine="Edge-TTS">
+                <div class="card-header">
+                    <div class="voice-title-row">
+                        <span class="voice-num">#01</span>
+                        <h3 class="voice-name">Ryan (Gryffindor Seeker)</h3>
+                        <span class="age-pill">18–19 yrs</span>
+                    </div>
+                    <div class="badges-row">
+                        <span class="badge badge-edge">Edge-TTS</span>
+                        <span class="badge badge-accent">British (UK)</span>
+                        <span class="badge badge-mood">High Energy / Urgent Hook</span>
+                    </div>
+                </div>
+
+                <p class="vibe-desc">Energetic 19yo British narrator with breathless revelation and fast hook.</p>
+
+                <div class="tuning-info">
+                    <span class="param-tag">Base: <code>en-GB-RyanNeural</code></span>
+                    <span class='param-tag'>Pitch: <code>+18Hz</code></span>
+                    <span class='param-tag'>Rate: <code>+12%</code></span>
+                    
+                </div>
+
+                <div class="samples-container">
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s1">Sample 1: Mystery Hook</span>
+                            <span class="sample-dur">12.86s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_01_ryan_energetic/ym_01_ryan_energetic_sample_01.wav"></audio>
+                    </div>
+
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s2">Sample 2: Fast Lore/Action</span>
+                            <span class="sample-dur">13.75s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_01_ryan_energetic/ym_01_ryan_energetic_sample_02.wav"></audio>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="voice-card" data-accent="British (UK)" data-engine="Edge-TTS">
+                <div class="card-header">
+                    <div class="voice-title-row">
+                        <span class="voice-num">#02</span>
+                        <h3 class="voice-name">Ryan (Restricted Section Sleuth)</h3>
+                        <span class="age-pill">18–19 yrs</span>
+                    </div>
+                    <div class="badges-row">
+                        <span class="badge badge-edge">Edge-TTS</span>
+                        <span class="badge badge-accent">British (UK)</span>
+                        <span class="badge badge-mood">Intrigued / Conspiratorial</span>
+                    </div>
+                </div>
+
+                <p class="vibe-desc">Curious 18yo Hogwarts student uncovering forbidden midnight secrets.</p>
+
+                <div class="tuning-info">
+                    <span class="param-tag">Base: <code>en-GB-RyanNeural</code></span>
+                    <span class='param-tag'>Pitch: <code>+10Hz</code></span>
+                    <span class='param-tag'>Rate: <code>+5%</code></span>
+                    
+                </div>
+
+                <div class="samples-container">
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s1">Sample 1: Mystery Hook</span>
+                            <span class="sample-dur">13.73s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_02_ryan_curious/ym_02_ryan_curious_sample_01.wav"></audio>
+                    </div>
+
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s2">Sample 2: Fast Lore/Action</span>
+                            <span class="sample-dur">14.66s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_02_ryan_curious/ym_02_ryan_curious_sample_02.wav"></audio>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="voice-card" data-accent="British Blend" data-engine="Kokoro Blended">
+                <div class="card-header">
+                    <div class="voice-title-row">
+                        <span class="voice-num">#03</span>
+                        <h3 class="voice-name">Leo (Marauder Mischief)</h3>
+                        <span class="age-pill">18–19 yrs</span>
+                    </div>
+                    <div class="badges-row">
+                        <span class="badge badge-blend">Kokoro Blended</span>
+                        <span class="badge badge-accent">British Blend</span>
+                        <span class="badge badge-mood">Playful / Smirking / Rebel</span>
+                    </div>
+                </div>
+
+                <p class="vibe-desc">Fred & George prankster energy with a sharp teenage British bite.</p>
+
+                <div class="tuning-info">
+                    <span class="param-tag">Base: <code>0.65*am_puck + 0.35*bm_lewis</code></span>
+                    
+                    
+                    <span class='param-tag'>Speed: <code>1.12x</code></span>
+                </div>
+
+                <div class="samples-container">
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s1">Sample 1: Mystery Hook</span>
+                            <span class="sample-dur">12.78s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_03_blend_marauder/ym_03_blend_marauder_sample_01.wav"></audio>
+                    </div>
+
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s2">Sample 2: Fast Lore/Action</span>
+                            <span class="sample-dur">13.21s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_03_blend_marauder/ym_03_blend_marauder_sample_02.wav"></audio>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="voice-card" data-accent="British Blend" data-engine="Kokoro Blended">
+                <div class="card-header">
+                    <div class="voice-title-row">
+                        <span class="voice-num">#04</span>
+                        <h3 class="voice-name">Julian (Ravenclaw Prodigy)</h3>
+                        <span class="age-pill">18–19 yrs</span>
+                    </div>
+                    <div class="badges-row">
+                        <span class="badge badge-blend">Kokoro Blended</span>
+                        <span class="badge badge-accent">British Blend</span>
+                        <span class="badge badge-mood">Articulate / Clever / Fast</span>
+                    </div>
+                </div>
+
+                <p class="vibe-desc">Sharp 18yo wizarding scholar breaking down advanced spell lore.</p>
+
+                <div class="tuning-info">
+                    <span class="param-tag">Base: <code>0.70*am_liam + 0.30*bm_daniel</code></span>
+                    
+                    
+                    <span class='param-tag'>Speed: <code>1.1x</code></span>
+                </div>
+
+                <div class="samples-container">
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s1">Sample 1: Mystery Hook</span>
+                            <span class="sample-dur">11.37s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_04_blend_prodigy/ym_04_blend_prodigy_sample_01.wav"></audio>
+                    </div>
+
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s2">Sample 2: Fast Lore/Action</span>
+                            <span class="sample-dur">11.56s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_04_blend_prodigy/ym_04_blend_prodigy_sample_02.wav"></audio>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="voice-card" data-accent="Irish (Celtic)" data-engine="Edge-TTS">
+                <div class="card-header">
+                    <div class="voice-title-row">
+                        <span class="voice-num">#05</span>
+                        <h3 class="voice-name">Connor (Gryffindor Firebrand)</h3>
+                        <span class="age-pill">19 yrs</span>
+                    </div>
+                    <div class="badges-row">
+                        <span class="badge badge-edge">Edge-TTS</span>
+                        <span class="badge badge-accent">Irish (Celtic)</span>
+                        <span class="badge badge-mood">Fiery / Spirited / Spunky</span>
+                    </div>
+                </div>
+
+                <p class="vibe-desc">Seamus Finnigan spirited energy; passionate Celtic storytelling.</p>
+
+                <div class="tuning-info">
+                    <span class="param-tag">Base: <code>en-IE-ConnorNeural</code></span>
+                    <span class='param-tag'>Pitch: <code>+16Hz</code></span>
+                    <span class='param-tag'>Rate: <code>+10%</code></span>
+                    
+                </div>
+
+                <div class="samples-container">
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s1">Sample 1: Mystery Hook</span>
+                            <span class="sample-dur">13.37s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_05_connor_celtic/ym_05_connor_celtic_sample_01.wav"></audio>
+                    </div>
+
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s2">Sample 2: Fast Lore/Action</span>
+                            <span class="sample-dur">13.49s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_05_connor_celtic/ym_05_connor_celtic_sample_02.wav"></audio>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="voice-card" data-accent="Canadian" data-engine="Edge-TTS">
+                <div class="card-header">
+                    <div class="voice-title-row">
+                        <span class="voice-num">#06</span>
+                        <h3 class="voice-name">Liam (Exchange Student)</h3>
+                        <span class="age-pill">19–20 yrs</span>
+                    </div>
+                    <div class="badges-row">
+                        <span class="badge badge-edge">Edge-TTS</span>
+                        <span class="badge badge-accent">Canadian</span>
+                        <span class="badge badge-mood">Charismatic / Natural / Clear</span>
+                    </div>
+                </div>
+
+                <p class="vibe-desc">Ultra-clean modern articulation; approachable young adult creator.</p>
+
+                <div class="tuning-info">
+                    <span class="param-tag">Base: <code>en-CA-LiamNeural</code></span>
+                    <span class='param-tag'>Pitch: <code>+14Hz</code></span>
+                    <span class='param-tag'>Rate: <code>+8%</code></span>
+                    
+                </div>
+
+                <div class="samples-container">
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s1">Sample 1: Mystery Hook</span>
+                            <span class="sample-dur">12.94s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_06_liam_canadian/ym_06_liam_canadian_sample_01.wav"></audio>
+                    </div>
+
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s2">Sample 2: Fast Lore/Action</span>
+                            <span class="sample-dur">13.42s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_06_liam_canadian/ym_06_liam_canadian_sample_02.wav"></audio>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="voice-card" data-accent="Australian" data-engine="Edge-TTS">
+                <div class="card-header">
+                    <div class="voice-title-row">
+                        <span class="voice-num">#07</span>
+                        <h3 class="voice-name">William (Creatures Explorer)</h3>
+                        <span class="age-pill">19–20 yrs</span>
+                    </div>
+                    <div class="badges-row">
+                        <span class="badge badge-edge">Edge-TTS</span>
+                        <span class="badge badge-accent">Australian</span>
+                        <span class="badge badge-mood">Adventurous / Upbeat</span>
+                    </div>
+                </div>
+
+                <p class="vibe-desc">Daring young adventurer tracking down dangerous magical beasts.</p>
+
+                <div class="tuning-info">
+                    <span class="param-tag">Base: <code>en-AU-WilliamMultilingualNeural</code></span>
+                    <span class='param-tag'>Pitch: <code>+12Hz</code></span>
+                    <span class='param-tag'>Rate: <code>+8%</code></span>
+                    
+                </div>
+
+                <div class="samples-container">
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s1">Sample 1: Mystery Hook</span>
+                            <span class="sample-dur">12.55s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_07_william_aussie/ym_07_william_aussie_sample_01.wav"></audio>
+                    </div>
+
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s2">Sample 2: Fast Lore/Action</span>
+                            <span class="sample-dur">13.03s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_07_william_aussie/ym_07_william_aussie_sample_02.wav"></audio>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="voice-card" data-accent="New Zealand" data-engine="Edge-TTS">
+                <div class="card-header">
+                    <div class="voice-title-row">
+                        <span class="voice-num">#08</span>
+                        <h3 class="voice-name">Mitchell (Quidditch Fanatic)</h3>
+                        <span class="age-pill">19–20 yrs</span>
+                    </div>
+                    <div class="badges-row">
+                        <span class="badge badge-edge">Edge-TTS</span>
+                        <span class="badge badge-accent">New Zealand</span>
+                        <span class="badge badge-mood">Breezy / Excited / Candid</span>
+                    </div>
+                </div>
+
+                <p class="vibe-desc">Casual, fast-paced sports and broomstick breakdown style.</p>
+
+                <div class="tuning-info">
+                    <span class="param-tag">Base: <code>en-NZ-MitchellNeural</code></span>
+                    <span class='param-tag'>Pitch: <code>+14Hz</code></span>
+                    <span class='param-tag'>Rate: <code>+9%</code></span>
+                    
+                </div>
+
+                <div class="samples-container">
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s1">Sample 1: Mystery Hook</span>
+                            <span class="sample-dur">14.64s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_08_mitchell_kiwi/ym_08_mitchell_kiwi_sample_01.wav"></audio>
+                    </div>
+
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s2">Sample 2: Fast Lore/Action</span>
+                            <span class="sample-dur">15.12s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_08_mitchell_kiwi/ym_08_mitchell_kiwi_sample_02.wav"></audio>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="voice-card" data-accent="American" data-engine="Edge-TTS">
+                <div class="card-header">
+                    <div class="voice-title-row">
+                        <span class="voice-num">#09</span>
+                        <h3 class="voice-name">Andrew (Viral Shorts Host)</h3>
+                        <span class="age-pill">18–19 yrs</span>
+                    </div>
+                    <div class="badges-row">
+                        <span class="badge badge-edge">Edge-TTS</span>
+                        <span class="badge badge-accent">American</span>
+                        <span class="badge badge-mood">Punchy / Engaging / Viral Hook</span>
+                    </div>
+                </div>
+
+                <p class="vibe-desc">Classic high-retention YouTube Shorts presenter; enthusiastic & clear.</p>
+
+                <div class="tuning-info">
+                    <span class="param-tag">Base: <code>en-US-AndrewNeural</code></span>
+                    <span class='param-tag'>Pitch: <code>+14Hz</code></span>
+                    <span class='param-tag'>Rate: <code>+10%</code></span>
+                    
+                </div>
+
+                <div class="samples-container">
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s1">Sample 1: Mystery Hook</span>
+                            <span class="sample-dur">12.26s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_09_andrew_creator/ym_09_andrew_creator_sample_01.wav"></audio>
+                    </div>
+
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s2">Sample 2: Fast Lore/Action</span>
+                            <span class="sample-dur">12.98s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_09_andrew_creator/ym_09_andrew_creator_sample_02.wav"></audio>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="voice-card" data-accent="American" data-engine="Edge-TTS">
+                <div class="card-header">
+                    <div class="voice-title-row">
+                        <span class="voice-num">#10</span>
+                        <h3 class="voice-name">Andrew (Duel Commentator)</h3>
+                        <span class="age-pill">18 yrs</span>
+                    </div>
+                    <div class="badges-row">
+                        <span class="badge badge-edge">Edge-TTS</span>
+                        <span class="badge badge-accent">American</span>
+                        <span class="badge badge-mood">Electrifying / High Tempo</span>
+                    </div>
+                </div>
+
+                <p class="vibe-desc">Rapid-fire excitement breaking down intense spell duels.</p>
+
+                <div class="tuning-info">
+                    <span class="param-tag">Base: <code>en-US-AndrewNeural</code></span>
+                    <span class='param-tag'>Pitch: <code>+24Hz</code></span>
+                    <span class='param-tag'>Rate: <code>+14%</code></span>
+                    
+                </div>
+
+                <div class="samples-container">
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s1">Sample 1: Mystery Hook</span>
+                            <span class="sample-dur">11.83s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_10_andrew_hype/ym_10_andrew_hype_sample_01.wav"></audio>
+                    </div>
+
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s2">Sample 2: Fast Lore/Action</span>
+                            <span class="sample-dur">12.53s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_10_andrew_hype/ym_10_andrew_hype_sample_02.wav"></audio>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="voice-card" data-accent="American" data-engine="Edge-TTS">
+                <div class="card-header">
+                    <div class="voice-title-row">
+                        <span class="voice-num">#11</span>
+                        <h3 class="voice-name">Brian (The Book Fanatic)</h3>
+                        <span class="age-pill">19–20 yrs</span>
+                    </div>
+                    <div class="badges-row">
+                        <span class="badge badge-edge">Edge-TTS</span>
+                        <span class="badge badge-accent">American</span>
+                        <span class="badge badge-mood">Relatable / Honest / Candid</span>
+                    </div>
+                </div>
+
+                <p class="vibe-desc">Friendly 'movies vs books' debunker who talks straight to the camera.</p>
+
+                <div class="tuning-info">
+                    <span class="param-tag">Base: <code>en-US-BrianNeural</code></span>
+                    <span class='param-tag'>Pitch: <code>+10Hz</code></span>
+                    <span class='param-tag'>Rate: <code>+6%</code></span>
+                    
+                </div>
+
+                <div class="samples-container">
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s1">Sample 1: Mystery Hook</span>
+                            <span class="sample-dur">14.02s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_11_brian_conversational/ym_11_brian_conversational_sample_01.wav"></audio>
+                    </div>
+
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s2">Sample 2: Fast Lore/Action</span>
+                            <span class="sample-dur">14.42s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_11_brian_conversational/ym_11_brian_conversational_sample_02.wav"></audio>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="voice-card" data-accent="American" data-engine="Edge-TTS">
+                <div class="card-header">
+                    <div class="voice-title-row">
+                        <span class="voice-num">#12</span>
+                        <h3 class="voice-name">Brian (Horcrux Hunter)</h3>
+                        <span class="age-pill">19 yrs</span>
+                    </div>
+                    <div class="badges-row">
+                        <span class="badge badge-edge">Edge-TTS</span>
+                        <span class="badge badge-accent">American</span>
+                        <span class="badge badge-mood">Tense / Urgent Suspense</span>
+                    </div>
+                </div>
+
+                <p class="vibe-desc">High-stakes mystery narration with gripping dramatic pauses.</p>
+
+                <div class="tuning-info">
+                    <span class="param-tag">Base: <code>en-US-BrianNeural</code></span>
+                    <span class='param-tag'>Pitch: <code>+16Hz</code></span>
+                    <span class='param-tag'>Rate: <code>+9%</code></span>
+                    
+                </div>
+
+                <div class="samples-container">
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s1">Sample 1: Mystery Hook</span>
+                            <span class="sample-dur">13.66s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_12_brian_suspense/ym_12_brian_suspense_sample_01.wav"></audio>
+                    </div>
+
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s2">Sample 2: Fast Lore/Action</span>
+                            <span class="sample-dur">14.04s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_12_brian_suspense/ym_12_brian_suspense_sample_02.wav"></audio>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="voice-card" data-accent="American" data-engine="Edge-TTS">
+                <div class="card-header">
+                    <div class="voice-title-row">
+                        <span class="voice-num">#13</span>
+                        <h3 class="voice-name">Chris (Fireside Storyteller)</h3>
+                        <span class="age-pill">19–20 yrs</span>
+                    </div>
+                    <div class="badges-row">
+                        <span class="badge badge-edge">Edge-TTS</span>
+                        <span class="badge badge-accent">American</span>
+                        <span class="badge badge-mood">Chill / Smooth / Intimate</span>
+                    </div>
+                </div>
+
+                <p class="vibe-desc">Late-night Gryffindor common room campfire storytelling.</p>
+
+                <div class="tuning-info">
+                    <span class="param-tag">Base: <code>en-US-ChristopherNeural</code></span>
+                    <span class='param-tag'>Pitch: <code>+8Hz</code></span>
+                    <span class='param-tag'>Rate: <code>+3%</code></span>
+                    
+                </div>
+
+                <div class="samples-container">
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s1">Sample 1: Mystery Hook</span>
+                            <span class="sample-dur">14.88s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_13_christopher_chill/ym_13_christopher_chill_sample_01.wav"></audio>
+                    </div>
+
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s2">Sample 2: Fast Lore/Action</span>
+                            <span class="sample-dur">15.43s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_13_christopher_chill/ym_13_christopher_chill_sample_02.wav"></audio>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="voice-card" data-accent="American" data-engine="Edge-TTS">
+                <div class="card-header">
+                    <div class="voice-title-row">
+                        <span class="voice-num">#14</span>
+                        <h3 class="voice-name">Chris (Fast-Fact Machine)</h3>
+                        <span class="age-pill">18–19 yrs</span>
+                    </div>
+                    <div class="badges-row">
+                        <span class="badge badge-edge">Edge-TTS</span>
+                        <span class="badge badge-accent">American</span>
+                        <span class="badge badge-mood">Snappy / Rhythmic / Quick</span>
+                    </div>
+                </div>
+
+                <p class="vibe-desc">Fast-paced TikTok lore countdowns and rapid discoveries.</p>
+
+                <div class="tuning-info">
+                    <span class="param-tag">Base: <code>en-US-ChristopherNeural</code></span>
+                    <span class='param-tag'>Pitch: <code>+20Hz</code></span>
+                    <span class='param-tag'>Rate: <code>+12%</code></span>
+                    
+                </div>
+
+                <div class="samples-container">
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s1">Sample 1: Mystery Hook</span>
+                            <span class="sample-dur">13.7s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_14_christopher_snappy/ym_14_christopher_snappy_sample_01.wav"></audio>
+                    </div>
+
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s2">Sample 2: Fast Lore/Action</span>
+                            <span class="sample-dur">14.18s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_14_christopher_snappy/ym_14_christopher_snappy_sample_02.wav"></audio>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="voice-card" data-accent="American" data-engine="Edge-TTS">
+                <div class="card-header">
+                    <div class="voice-title-row">
+                        <span class="voice-num">#15</span>
+                        <h3 class="voice-name">Eric (Wandmaker's Apprentice)</h3>
+                        <span class="age-pill">18 yrs</span>
+                    </div>
+                    <div class="badges-row">
+                        <span class="badge badge-edge">Edge-TTS</span>
+                        <span class="badge badge-accent">American</span>
+                        <span class="badge badge-mood">Eager / Bright / Focused</span>
+                    </div>
+                </div>
+
+                <p class="vibe-desc">Passionate 18yo detailing core woods, phoenix feathers, and magic rules.</p>
+
+                <div class="tuning-info">
+                    <span class="param-tag">Base: <code>en-US-EricNeural</code></span>
+                    <span class='param-tag'>Pitch: <code>+16Hz</code></span>
+                    <span class='param-tag'>Rate: <code>+10%</code></span>
+                    
+                </div>
+
+                <div class="samples-container">
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s1">Sample 1: Mystery Hook</span>
+                            <span class="sample-dur">14.26s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_15_eric_apprentice/ym_15_eric_apprentice_sample_01.wav"></audio>
+                    </div>
+
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s2">Sample 2: Fast Lore/Action</span>
+                            <span class="sample-dur">14.66s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_15_eric_apprentice/ym_15_eric_apprentice_sample_02.wav"></audio>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="voice-card" data-accent="American" data-engine="Edge-TTS">
+                <div class="card-header">
+                    <div class="voice-title-row">
+                        <span class="voice-num">#16</span>
+                        <h3 class="voice-name">Steffan (Dumbledore's Army Underdog)</h3>
+                        <span class="age-pill">19 yrs</span>
+                    </div>
+                    <div class="badges-row">
+                        <span class="badge badge-edge">Edge-TTS</span>
+                        <span class="badge badge-accent">American</span>
+                        <span class="badge badge-mood">Edgy / Defiant / Intense</span>
+                    </div>
+                </div>
+
+                <p class="vibe-desc">Passionate resistance fighter standing up to Umbridge and Death Eaters.</p>
+
+                <div class="tuning-info">
+                    <span class="param-tag">Base: <code>en-US-SteffanNeural</code></span>
+                    <span class='param-tag'>Pitch: <code>+14Hz</code></span>
+                    <span class='param-tag'>Rate: <code>+8%</code></span>
+                    
+                </div>
+
+                <div class="samples-container">
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s1">Sample 1: Mystery Hook</span>
+                            <span class="sample-dur">13.8s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_16_steffan_rebel/ym_16_steffan_rebel_sample_01.wav"></audio>
+                    </div>
+
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s2">Sample 2: Fast Lore/Action</span>
+                            <span class="sample-dur">14.45s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_16_steffan_rebel/ym_16_steffan_rebel_sample_02.wav"></audio>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="voice-card" data-accent="American" data-engine="Edge-TTS">
+                <div class="card-header">
+                    <div class="voice-title-row">
+                        <span class="voice-num">#17</span>
+                        <h3 class="voice-name">Guy (Sarcastic Slytherin)</h3>
+                        <span class="age-pill">19–20 yrs</span>
+                    </div>
+                    <div class="badges-row">
+                        <span class="badge badge-edge">Edge-TTS</span>
+                        <span class="badge badge-accent">American</span>
+                        <span class="badge badge-mood">Witty / Sarcastic / Confident</span>
+                    </div>
+                </div>
+
+                <p class="vibe-desc">Playful, arrogant-fun commentary pointing out foolish wizard errors.</p>
+
+                <div class="tuning-info">
+                    <span class="param-tag">Base: <code>en-US-GuyNeural</code></span>
+                    <span class='param-tag'>Pitch: <code>+14Hz</code></span>
+                    <span class='param-tag'>Rate: <code>+9%</code></span>
+                    
+                </div>
+
+                <div class="samples-container">
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s1">Sample 1: Mystery Hook</span>
+                            <span class="sample-dur">12.91s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_17_guy_witty/ym_17_guy_witty_sample_01.wav"></audio>
+                    </div>
+
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s2">Sample 2: Fast Lore/Action</span>
+                            <span class="sample-dur">13.7s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_17_guy_witty/ym_17_guy_witty_sample_02.wav"></audio>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="voice-card" data-accent="American Youth" data-engine="Kokoro-82M">
+                <div class="card-header">
+                    <div class="voice-title-row">
+                        <span class="voice-num">#18</span>
+                        <h3 class="voice-name">Puck (The Young Marauder)</h3>
+                        <span class="age-pill">18 yrs</span>
+                    </div>
+                    <div class="badges-row">
+                        <span class="badge badge-kokoro">Kokoro-82M</span>
+                        <span class="badge badge-accent">American Youth</span>
+                        <span class="badge badge-mood">Youthful Mischief / Snappy</span>
+                    </div>
+                </div>
+
+                <p class="vibe-desc">Brisk, teenage boy vocal texture, playful and quick.</p>
+
+                <div class="tuning-info">
+                    <span class="param-tag">Base: <code>am_puck</code></span>
+                    
+                    
+                    <span class='param-tag'>Speed: <code>1.12x</code></span>
+                </div>
+
+                <div class="samples-container">
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s1">Sample 1: Mystery Hook</span>
+                            <span class="sample-dur">12.76s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_18_kokoro_puck/ym_18_kokoro_puck_sample_01.wav"></audio>
+                    </div>
+
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s2">Sample 2: Fast Lore/Action</span>
+                            <span class="sample-dur">13.31s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_18_kokoro_puck/ym_18_kokoro_puck_sample_02.wav"></audio>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="voice-card" data-accent="American Youth" data-engine="Kokoro-82M">
+                <div class="card-header">
+                    <div class="voice-title-row">
+                        <span class="voice-num">#19</span>
+                        <h3 class="voice-name">Liam (Freshman Theorist)</h3>
+                        <span class="age-pill">18–19 yrs</span>
+                    </div>
+                    <div class="badges-row">
+                        <span class="badge badge-kokoro">Kokoro-82M</span>
+                        <span class="badge badge-accent">American Youth</span>
+                        <span class="badge badge-mood">Fresh / Modern / Analytical</span>
+                    </div>
+                </div>
+
+                <p class="vibe-desc">Clean, crisp teen tone with strong modern relatability.</p>
+
+                <div class="tuning-info">
+                    <span class="param-tag">Base: <code>am_liam</code></span>
+                    
+                    
+                    <span class='param-tag'>Speed: <code>1.1x</code></span>
+                </div>
+
+                <div class="samples-container">
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s1">Sample 1: Mystery Hook</span>
+                            <span class="sample-dur">11.24s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_19_kokoro_liam/ym_19_kokoro_liam_sample_01.wav"></audio>
+                    </div>
+
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s2">Sample 2: Fast Lore/Action</span>
+                            <span class="sample-dur">11.63s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_19_kokoro_liam/ym_19_kokoro_liam_sample_02.wav"></audio>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="voice-card" data-accent="American Youth" data-engine="Kokoro-82M">
+                <div class="card-header">
+                    <div class="voice-title-row">
+                        <span class="voice-num">#20</span>
+                        <h3 class="voice-name">Echo (The Thoughtful Seeker)</h3>
+                        <span class="age-pill">19–20 yrs</span>
+                    </div>
+                    <div class="badges-row">
+                        <span class="badge badge-kokoro">Kokoro-82M</span>
+                        <span class="badge badge-accent">American Youth</span>
+                        <span class="badge badge-mood">Smooth / Mellow / Curious</span>
+                    </div>
+                </div>
+
+                <p class="vibe-desc">Relaxed young adult voice with natural vocal warmth.</p>
+
+                <div class="tuning-info">
+                    <span class="param-tag">Base: <code>am_echo</code></span>
+                    
+                    
+                    <span class='param-tag'>Speed: <code>1.08x</code></span>
+                </div>
+
+                <div class="samples-container">
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s1">Sample 1: Mystery Hook</span>
+                            <span class="sample-dur">11.61s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_20_kokoro_echo/ym_20_kokoro_echo_sample_01.wav"></audio>
+                    </div>
+
+                    <div class="sample-item">
+                        <div class="sample-meta">
+                            <span class="sample-badge s2">Sample 2: Fast Lore/Action</span>
+                            <span class="sample-dur">11.93s</span>
+                        </div>
+                        <audio controls preload="none" src="ym_20_kokoro_echo/ym_20_kokoro_echo_sample_02.wav"></audio>
+                    </div>
+                </div>
+            </div>
+            
+    </div>
+
+    <script>
+        function filterCards(accent) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            const cards = document.querySelectorAll('.voice-card');
+            cards.forEach(c => {
+                if (accent === 'all') {
+                    c.style.display = 'flex';
+                } else {
+                    const cardAccent = c.getAttribute('data-accent');
+                    if (cardAccent.includes(accent)) {
+                        c.style.display = 'flex';
+                    } else {
+                        c.style.display = 'none';
+                    }
+                }
+            });
+        }
+
+        function filterEngine(eng) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            const cards = document.querySelectorAll('.voice-card');
+            cards.forEach(c => {
+                const cardEng = c.getAttribute('data-engine');
+                if (cardEng.includes(eng)) {
+                    c.style.display = 'flex';
+                } else {
+                    c.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

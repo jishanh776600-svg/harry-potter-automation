@@ -1,0 +1,578 @@
+{
+  "title": "Harry Potter Automation - Young Male Voice Audition (18-20yo)",
+  "total_voices": 20,
+  "voices": [
+    {
+      "id": "ym_01_ryan_energetic",
+      "name": "Ryan (Gryffindor Seeker)",
+      "age": "18\u201319",
+      "engine": "Edge-TTS",
+      "base_voice": "en-GB-RyanNeural",
+      "accent": "British (UK)",
+      "pitch": "+18Hz",
+      "rate": "+12%",
+      "mood": "High Energy / Urgent Hook",
+      "vibe": "Energetic 19yo British narrator with breathless revelation and fast hook.",
+      "type": "edge",
+      "samples": {
+        "sample_01": {
+          "title": "Novel Hook: Harry's True Eyes",
+          "category": "Mystery / Hook",
+          "duration_sec": 12.86,
+          "relative_path": "ym_01_ryan_energetic/ym_01_ryan_energetic_sample_01.wav"
+        },
+        "sample_02": {
+          "title": "Fast Lore: The Elder Wand Myth",
+          "category": "Lore / Action",
+          "duration_sec": 13.75,
+          "relative_path": "ym_01_ryan_energetic/ym_01_ryan_energetic_sample_02.wav"
+        }
+      }
+    },
+    {
+      "id": "ym_02_ryan_curious",
+      "name": "Ryan (Restricted Section Sleuth)",
+      "age": "18\u201319",
+      "engine": "Edge-TTS",
+      "base_voice": "en-GB-RyanNeural",
+      "accent": "British (UK)",
+      "pitch": "+10Hz",
+      "rate": "+5%",
+      "mood": "Intrigued / Conspiratorial",
+      "vibe": "Curious 18yo Hogwarts student uncovering forbidden midnight secrets.",
+      "type": "edge",
+      "samples": {
+        "sample_01": {
+          "title": "Novel Hook: Harry's True Eyes",
+          "category": "Mystery / Hook",
+          "duration_sec": 13.73,
+          "relative_path": "ym_02_ryan_curious/ym_02_ryan_curious_sample_01.wav"
+        },
+        "sample_02": {
+          "title": "Fast Lore: The Elder Wand Myth",
+          "category": "Lore / Action",
+          "duration_sec": 14.66,
+          "relative_path": "ym_02_ryan_curious/ym_02_ryan_curious_sample_02.wav"
+        }
+      }
+    },
+    {
+      "id": "ym_03_blend_marauder",
+      "name": "Leo (Marauder Mischief)",
+      "age": "18\u201319",
+      "engine": "Kokoro Blended",
+      "base_voice": "0.65*am_puck + 0.35*bm_lewis",
+      "accent": "British Blend",
+      "speed": 1.12,
+      "lang": "en-gb",
+      "mood": "Playful / Smirking / Rebel",
+      "vibe": "Fred & George prankster energy with a sharp teenage British bite.",
+      "type": "kokoro_blend",
+      "blend": [
+        [
+          "am_puck",
+          0.65
+        ],
+        [
+          "bm_lewis",
+          0.35
+        ]
+      ],
+      "samples": {
+        "sample_01": {
+          "title": "Novel Hook: Harry's True Eyes",
+          "category": "Mystery / Hook",
+          "duration_sec": 12.78,
+          "relative_path": "ym_03_blend_marauder/ym_03_blend_marauder_sample_01.wav"
+        },
+        "sample_02": {
+          "title": "Fast Lore: The Elder Wand Myth",
+          "category": "Lore / Action",
+          "duration_sec": 13.21,
+          "relative_path": "ym_03_blend_marauder/ym_03_blend_marauder_sample_02.wav"
+        }
+      }
+    },
+    {
+      "id": "ym_04_blend_prodigy",
+      "name": "Julian (Ravenclaw Prodigy)",
+      "age": "18\u201319",
+      "engine": "Kokoro Blended",
+      "base_voice": "0.70*am_liam + 0.30*bm_daniel",
+      "accent": "British Blend",
+      "speed": 1.1,
+      "lang": "en-gb",
+      "mood": "Articulate / Clever / Fast",
+      "vibe": "Sharp 18yo wizarding scholar breaking down advanced spell lore.",
+      "type": "kokoro_blend",
+      "blend": [
+        [
+          "am_liam",
+          0.7
+        ],
+        [
+          "bm_daniel",
+          0.3
+        ]
+      ],
+      "samples": {
+        "sample_01": {
+          "title": "Novel Hook: Harry's True Eyes",
+          "category": "Mystery / Hook",
+          "duration_sec": 11.37,
+          "relative_path": "ym_04_blend_prodigy/ym_04_blend_prodigy_sample_01.wav"
+        },
+        "sample_02": {
+          "title": "Fast Lore: The Elder Wand Myth",
+          "category": "Lore / Action",
+          "duration_sec": 11.56,
+          "relative_path": "ym_04_blend_prodigy/ym_04_blend_prodigy_sample_02.wav"
+        }
+      }
+    },
+    {
+      "id": "ym_05_connor_celtic",
+      "name": "Connor (Gryffindor Firebrand)",
+      "age": "19",
+      "engine": "Edge-TTS",
+      "base_voice": "en-IE-ConnorNeural",
+      "accent": "Irish (Celtic)",
+      "pitch": "+16Hz",
+      "rate": "+10%",
+      "mood": "Fiery / Spirited / Spunky",
+      "vibe": "Seamus Finnigan spirited energy; passionate Celtic storytelling.",
+      "type": "edge",
+      "samples": {
+        "sample_01": {
+          "title": "Novel Hook: Harry's True Eyes",
+          "category": "Mystery / Hook",
+          "duration_sec": 13.37,
+          "relative_path": "ym_05_connor_celtic/ym_05_connor_celtic_sample_01.wav"
+        },
+        "sample_02": {
+          "title": "Fast Lore: The Elder Wand Myth",
+          "category": "Lore / Action",
+          "duration_sec": 13.49,
+          "relative_path": "ym_05_connor_celtic/ym_05_connor_celtic_sample_02.wav"
+        }
+      }
+    },
+    {
+      "id": "ym_06_liam_canadian",
+      "name": "Liam (Exchange Student)",
+      "age": "19\u201320",
+      "engine": "Edge-TTS",
+      "base_voice": "en-CA-LiamNeural",
+      "accent": "Canadian",
+      "pitch": "+14Hz",
+      "rate": "+8%",
+      "mood": "Charismatic / Natural / Clear",
+      "vibe": "Ultra-clean modern articulation; approachable young adult creator.",
+      "type": "edge",
+      "samples": {
+        "sample_01": {
+          "title": "Novel Hook: Harry's True Eyes",
+          "category": "Mystery / Hook",
+          "duration_sec": 12.94,
+          "relative_path": "ym_06_liam_canadian/ym_06_liam_canadian_sample_01.wav"
+        },
+        "sample_02": {
+          "title": "Fast Lore: The Elder Wand Myth",
+          "category": "Lore / Action",
+          "duration_sec": 13.42,
+          "relative_path": "ym_06_liam_canadian/ym_06_liam_canadian_sample_02.wav"
+        }
+      }
+    },
+    {
+      "id": "ym_07_william_aussie",
+      "name": "William (Creatures Explorer)",
+      "age": "19\u201320",
+      "engine": "Edge-TTS",
+      "base_voice": "en-AU-WilliamMultilingualNeural",
+      "accent": "Australian",
+      "pitch": "+12Hz",
+      "rate": "+8%",
+      "mood": "Adventurous / Upbeat",
+      "vibe": "Daring young adventurer tracking down dangerous magical beasts.",
+      "type": "edge",
+      "samples": {
+        "sample_01": {
+          "title": "Novel Hook: Harry's True Eyes",
+          "category": "Mystery / Hook",
+          "duration_sec": 12.55,
+          "relative_path": "ym_07_william_aussie/ym_07_william_aussie_sample_01.wav"
+        },
+        "sample_02": {
+          "title": "Fast Lore: The Elder Wand Myth",
+          "category": "Lore / Action",
+          "duration_sec": 13.03,
+          "relative_path": "ym_07_william_aussie/ym_07_william_aussie_sample_02.wav"
+        }
+      }
+    },
+    {
+      "id": "ym_08_mitchell_kiwi",
+      "name": "Mitchell (Quidditch Fanatic)",
+      "age": "19\u201320",
+      "engine": "Edge-TTS",
+      "base_voice": "en-NZ-MitchellNeural",
+      "accent": "New Zealand",
+      "pitch": "+14Hz",
+      "rate": "+9%",
+      "mood": "Breezy / Excited / Candid",
+      "vibe": "Casual, fast-paced sports and broomstick breakdown style.",
+      "type": "edge",
+      "samples": {
+        "sample_01": {
+          "title": "Novel Hook: Harry's True Eyes",
+          "category": "Mystery / Hook",
+          "duration_sec": 14.64,
+          "relative_path": "ym_08_mitchell_kiwi/ym_08_mitchell_kiwi_sample_01.wav"
+        },
+        "sample_02": {
+          "title": "Fast Lore: The Elder Wand Myth",
+          "category": "Lore / Action",
+          "duration_sec": 15.12,
+          "relative_path": "ym_08_mitchell_kiwi/ym_08_mitchell_kiwi_sample_02.wav"
+        }
+      }
+    },
+    {
+      "id": "ym_09_andrew_creator",
+      "name": "Andrew (Viral Shorts Host)",
+      "age": "18\u201319",
+      "engine": "Edge-TTS",
+      "base_voice": "en-US-AndrewNeural",
+      "accent": "American",
+      "pitch": "+14Hz",
+      "rate": "+10%",
+      "mood": "Punchy / Engaging / Viral Hook",
+      "vibe": "Classic high-retention YouTube Shorts presenter; enthusiastic & clear.",
+      "type": "edge",
+      "samples": {
+        "sample_01": {
+          "title": "Novel Hook: Harry's True Eyes",
+          "category": "Mystery / Hook",
+          "duration_sec": 12.26,
+          "relative_path": "ym_09_andrew_creator/ym_09_andrew_creator_sample_01.wav"
+        },
+        "sample_02": {
+          "title": "Fast Lore: The Elder Wand Myth",
+          "category": "Lore / Action",
+          "duration_sec": 12.98,
+          "relative_path": "ym_09_andrew_creator/ym_09_andrew_creator_sample_02.wav"
+        }
+      }
+    },
+    {
+      "id": "ym_10_andrew_hype",
+      "name": "Andrew (Duel Commentator)",
+      "age": "18",
+      "engine": "Edge-TTS",
+      "base_voice": "en-US-AndrewNeural",
+      "accent": "American",
+      "pitch": "+24Hz",
+      "rate": "+14%",
+      "mood": "Electrifying / High Tempo",
+      "vibe": "Rapid-fire excitement breaking down intense spell duels.",
+      "type": "edge",
+      "samples": {
+        "sample_01": {
+          "title": "Novel Hook: Harry's True Eyes",
+          "category": "Mystery / Hook",
+          "duration_sec": 11.83,
+          "relative_path": "ym_10_andrew_hype/ym_10_andrew_hype_sample_01.wav"
+        },
+        "sample_02": {
+          "title": "Fast Lore: The Elder Wand Myth",
+          "category": "Lore / Action",
+          "duration_sec": 12.53,
+          "relative_path": "ym_10_andrew_hype/ym_10_andrew_hype_sample_02.wav"
+        }
+      }
+    },
+    {
+      "id": "ym_11_brian_conversational",
+      "name": "Brian (The Book Fanatic)",
+      "age": "19\u201320",
+      "engine": "Edge-TTS",
+      "base_voice": "en-US-BrianNeural",
+      "accent": "American",
+      "pitch": "+10Hz",
+      "rate": "+6%",
+      "mood": "Relatable / Honest / Candid",
+      "vibe": "Friendly 'movies vs books' debunker who talks straight to the camera.",
+      "type": "edge",
+      "samples": {
+        "sample_01": {
+          "title": "Novel Hook: Harry's True Eyes",
+          "category": "Mystery / Hook",
+          "duration_sec": 14.02,
+          "relative_path": "ym_11_brian_conversational/ym_11_brian_conversational_sample_01.wav"
+        },
+        "sample_02": {
+          "title": "Fast Lore: The Elder Wand Myth",
+          "category": "Lore / Action",
+          "duration_sec": 14.42,
+          "relative_path": "ym_11_brian_conversational/ym_11_brian_conversational_sample_02.wav"
+        }
+      }
+    },
+    {
+      "id": "ym_12_brian_suspense",
+      "name": "Brian (Horcrux Hunter)",
+      "age": "19",
+      "engine": "Edge-TTS",
+      "base_voice": "en-US-BrianNeural",
+      "accent": "American",
+      "pitch": "+16Hz",
+      "rate": "+9%",
+      "mood": "Tense / Urgent Suspense",
+      "vibe": "High-stakes mystery narration with gripping dramatic pauses.",
+      "type": "edge",
+      "samples": {
+        "sample_01": {
+          "title": "Novel Hook: Harry's True Eyes",
+          "category": "Mystery / Hook",
+          "duration_sec": 13.66,
+          "relative_path": "ym_12_brian_suspense/ym_12_brian_suspense_sample_01.wav"
+        },
+        "sample_02": {
+          "title": "Fast Lore: The Elder Wand Myth",
+          "category": "Lore / Action",
+          "duration_sec": 14.04,
+          "relative_path": "ym_12_brian_suspense/ym_12_brian_suspense_sample_02.wav"
+        }
+      }
+    },
+    {
+      "id": "ym_13_christopher_chill",
+      "name": "Chris (Fireside Storyteller)",
+      "age": "19\u201320",
+      "engine": "Edge-TTS",
+      "base_voice": "en-US-ChristopherNeural",
+      "accent": "American",
+      "pitch": "+8Hz",
+      "rate": "+3%",
+      "mood": "Chill / Smooth / Intimate",
+      "vibe": "Late-night Gryffindor common room campfire storytelling.",
+      "type": "edge",
+      "samples": {
+        "sample_01": {
+          "title": "Novel Hook: Harry's True Eyes",
+          "category": "Mystery / Hook",
+          "duration_sec": 14.88,
+          "relative_path": "ym_13_christopher_chill/ym_13_christopher_chill_sample_01.wav"
+        },
+        "sample_02": {
+          "title": "Fast Lore: The Elder Wand Myth",
+          "category": "Lore / Action",
+          "duration_sec": 15.43,
+          "relative_path": "ym_13_christopher_chill/ym_13_christopher_chill_sample_02.wav"
+        }
+      }
+    },
+    {
+      "id": "ym_14_christopher_snappy",
+      "name": "Chris (Fast-Fact Machine)",
+      "age": "18\u201319",
+      "engine": "Edge-TTS",
+      "base_voice": "en-US-ChristopherNeural",
+      "accent": "American",
+      "pitch": "+20Hz",
+      "rate": "+12%",
+      "mood": "Snappy / Rhythmic / Quick",
+      "vibe": "Fast-paced TikTok lore countdowns and rapid discoveries.",
+      "type": "edge",
+      "samples": {
+        "sample_01": {
+          "title": "Novel Hook: Harry's True Eyes",
+          "category": "Mystery / Hook",
+          "duration_sec": 13.7,
+          "relative_path": "ym_14_christopher_snappy/ym_14_christopher_snappy_sample_01.wav"
+        },
+        "sample_02": {
+          "title": "Fast Lore: The Elder Wand Myth",
+          "category": "Lore / Action",
+          "duration_sec": 14.18,
+          "relative_path": "ym_14_christopher_snappy/ym_14_christopher_snappy_sample_02.wav"
+        }
+      }
+    },
+    {
+      "id": "ym_15_eric_apprentice",
+      "name": "Eric (Wandmaker's Apprentice)",
+      "age": "18",
+      "engine": "Edge-TTS",
+      "base_voice": "en-US-EricNeural",
+      "accent": "American",
+      "pitch": "+16Hz",
+      "rate": "+10%",
+      "mood": "Eager / Bright / Focused",
+      "vibe": "Passionate 18yo detailing core woods, phoenix feathers, and magic rules.",
+      "type": "edge",
+      "samples": {
+        "sample_01": {
+          "title": "Novel Hook: Harry's True Eyes",
+          "category": "Mystery / Hook",
+          "duration_sec": 14.26,
+          "relative_path": "ym_15_eric_apprentice/ym_15_eric_apprentice_sample_01.wav"
+        },
+        "sample_02": {
+          "title": "Fast Lore: The Elder Wand Myth",
+          "category": "Lore / Action",
+          "duration_sec": 14.66,
+          "relative_path": "ym_15_eric_apprentice/ym_15_eric_apprentice_sample_02.wav"
+        }
+      }
+    },
+    {
+      "id": "ym_16_steffan_rebel",
+      "name": "Steffan (Dumbledore's Army Underdog)",
+      "age": "19",
+      "engine": "Edge-TTS",
+      "base_voice": "en-US-SteffanNeural",
+      "accent": "American",
+      "pitch": "+14Hz",
+      "rate": "+8%",
+      "mood": "Edgy / Defiant / Intense",
+      "vibe": "Passionate resistance fighter standing up to Umbridge and Death Eaters.",
+      "type": "edge",
+      "samples": {
+        "sample_01": {
+          "title": "Novel Hook: Harry's True Eyes",
+          "category": "Mystery / Hook",
+          "duration_sec": 13.8,
+          "relative_path": "ym_16_steffan_rebel/ym_16_steffan_rebel_sample_01.wav"
+        },
+        "sample_02": {
+          "title": "Fast Lore: The Elder Wand Myth",
+          "category": "Lore / Action",
+          "duration_sec": 14.45,
+          "relative_path": "ym_16_steffan_rebel/ym_16_steffan_rebel_sample_02.wav"
+        }
+      }
+    },
+    {
+      "id": "ym_17_guy_witty",
+      "name": "Guy (Sarcastic Slytherin)",
+      "age": "19\u201320",
+      "engine": "Edge-TTS",
+      "base_voice": "en-US-GuyNeural",
+      "accent": "American",
+      "pitch": "+14Hz",
+      "rate": "+9%",
+      "mood": "Witty / Sarcastic / Confident",
+      "vibe": "Playful, arrogant-fun commentary pointing out foolish wizard errors.",
+      "type": "edge",
+      "samples": {
+        "sample_01": {
+          "title": "Novel Hook: Harry's True Eyes",
+          "category": "Mystery / Hook",
+          "duration_sec": 12.91,
+          "relative_path": "ym_17_guy_witty/ym_17_guy_witty_sample_01.wav"
+        },
+        "sample_02": {
+          "title": "Fast Lore: The Elder Wand Myth",
+          "category": "Lore / Action",
+          "duration_sec": 13.7,
+          "relative_path": "ym_17_guy_witty/ym_17_guy_witty_sample_02.wav"
+        }
+      }
+    },
+    {
+      "id": "ym_18_kokoro_puck",
+      "name": "Puck (The Young Marauder)",
+      "age": "18",
+      "engine": "Kokoro-82M",
+      "base_voice": "am_puck",
+      "accent": "American Youth",
+      "speed": 1.12,
+      "lang": "en-us",
+      "mood": "Youthful Mischief / Snappy",
+      "vibe": "Brisk, teenage boy vocal texture, playful and quick.",
+      "type": "kokoro",
+      "samples": {
+        "sample_01": {
+          "title": "Novel Hook: Harry's True Eyes",
+          "category": "Mystery / Hook",
+          "duration_sec": 12.76,
+          "relative_path": "ym_18_kokoro_puck/ym_18_kokoro_puck_sample_01.wav"
+        },
+        "sample_02": {
+          "title": "Fast Lore: The Elder Wand Myth",
+          "category": "Lore / Action",
+          "duration_sec": 13.31,
+          "relative_path": "ym_18_kokoro_puck/ym_18_kokoro_puck_sample_02.wav"
+        }
+      }
+    },
+    {
+      "id": "ym_19_kokoro_liam",
+      "name": "Liam (Freshman Theorist)",
+      "age": "18\u201319",
+      "engine": "Kokoro-82M",
+      "base_voice": "am_liam",
+      "accent": "American Youth",
+      "speed": 1.1,
+      "lang": "en-us",
+      "mood": "Fresh / Modern / Analytical",
+      "vibe": "Clean, crisp teen tone with strong modern relatability.",
+      "type": "kokoro",
+      "samples": {
+        "sample_01": {
+          "title": "Novel Hook: Harry's True Eyes",
+          "category": "Mystery / Hook",
+          "duration_sec": 11.24,
+          "relative_path": "ym_19_kokoro_liam/ym_19_kokoro_liam_sample_01.wav"
+        },
+        "sample_02": {
+          "title": "Fast Lore: The Elder Wand Myth",
+          "category": "Lore / Action",
+          "duration_sec": 11.63,
+          "relative_path": "ym_19_kokoro_liam/ym_19_kokoro_liam_sample_02.wav"
+        }
+      }
+    },
+    {
+      "id": "ym_20_kokoro_echo",
+      "name": "Echo (The Thoughtful Seeker)",
+      "age": "19\u201320",
+      "engine": "Kokoro-82M",
+      "base_voice": "am_echo",
+      "accent": "American Youth",
+      "speed": 1.08,
+      "lang": "en-us",
+      "mood": "Smooth / Mellow / Curious",
+      "vibe": "Relaxed young adult voice with natural vocal warmth.",
+      "type": "kokoro",
+      "samples": {
+        "sample_01": {
+          "title": "Novel Hook: Harry's True Eyes",
+          "category": "Mystery / Hook",
+          "duration_sec": 11.61,
+          "relative_path": "ym_20_kokoro_echo/ym_20_kokoro_echo_sample_01.wav"
+        },
+        "sample_02": {
+          "title": "Fast Lore: The Elder Wand Myth",
+          "category": "Lore / Action",
+          "duration_sec": 11.93,
+          "relative_path": "ym_20_kokoro_echo/ym_20_kokoro_echo_sample_02.wav"
+        }
+      }
+    }
+  ],
+  "scripts": {
+    "sample_01": {
+      "title": "Novel Hook: Harry's True Eyes",
+      "category": "Mystery / Hook",
+      "text": "Wait, did you realize what the movies completely cut about Harry's eyes? In the books, Harry didn't just have green eyes\u2014every single person who knew Lily saw her fiery defiance living on inside him. That changes everything."
+    },
+    "sample_02": {
+      "title": "Fast Lore: The Elder Wand Myth",
+      "category": "Lore / Action",
+      "text": "Everyone thinks the Elder Wand was unbeatable, but they're totally wrong! The original book canon proves it changed hands not by invincible power, but through betrayal, stealth, and sheer arrogance. Look at what happened in the Death Chamber!"
+    }
+  }
+}
