@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Harry Potter Voice Audition — 20 Voices (10 Men, 10 Women)</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --gold: #d4af37;
+      --accent: #8b949e;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 30px 20px;
+    }
+    .container { max-width: 1300px; margin: 0 auto; }
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+    }
+    h1 { color: var(--gold); font-size: 2.2rem; margin-bottom: 8px; }
+    .sub { color: #8b949e; font-size: 1rem; }
+    .section-title {
+      font-size: 1.6rem;
+      color: #f0f6fc;
+      margin: 35px 0 15px;
+      padding-left: 10px;
+      border-left: 4px solid var(--gold);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(580px, 1fr));
+      gap: 20px;
+    }
+    .voice-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+      transition: border-color 0.15s ease;
+    }
+    .voice-card:hover { border-color: var(--gold); }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .v-title { font-size: 1.15rem; font-weight: 600; color: #f0f6fc; }
+    .v-badges { display: flex; gap: 6px; }
+    .badge {
+      font-size: 0.72rem;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .badge-model { background: #1f6feb; color: white; }
+    .badge-accent { background: #238636; color: white; }
+    .v-mood {
+      font-size: 0.85rem;
+      color: #d29922;
+      margin-bottom: 14px;
+      font-style: italic;
+    }
+    .samples { display: flex; flex-direction: column; gap: 12px; }
+    .s-block {
+      background: #0d1117;
+      border: 1px solid #21262d;
+      border-radius: 6px;
+      padding: 10px 12px;
+    }
+    .s-label { font-size: 0.75rem; color: #8b949e; margin-bottom: 4px; font-weight: 600; }
+    .s-text { font-size: 0.88rem; color: #e6edf3; margin-bottom: 8px; font-style: italic; }
+    audio { width: 100%; height: 32px; filter: invert(0.88) hue-rotate(180deg); }
+    @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>⚡ Harry Potter Voice Audition Gallery</h1>
+      <p class="sub">
+        <strong>20 Distinct Voices (10 Men & 10 Women)</strong> across <strong>Kokoro-82M</strong> and <strong>Edge-TTS Neural</strong>.<br>
+        Covering British, American, and Celtic accents with diverse moods and tones. All normalized to <strong>-15.5 LUFS</strong>.
+      </p>
+    </header>
+
+    <h2 class="section-title">👩 10 Female Voices</h2>
+    <div class="grid">
+      
+                <div class="voice-card">
+                  <div class="card-header">
+                    <div class="v-title">Alice — Headmistress Authority</div>
+                    <div class="v-badges">
+                      <span class="badge badge-model">Kokoro-82M</span>
+                      <span class="badge badge-accent">British (UK)</span>
+                    </div>
+                  </div>
+                  <div class="v-mood">🎭 Dignified, intellectual, serene</div>
+                  <div class="samples">
+                    <div class="s-block">
+                      <div class="s-label">Sample 1 (Cinematic Storytelling):</div>
+                      <div class="s-text">"Hogwarts castle has guarded its ancient mysteries for a thousand years, waiting for those worthy to understand them."</div>
+                      <audio controls preload="none">
+                        <source src="female/bf_alice/bf_alice_sample_01.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                    <div class="s-block">
+                      <div class="s-label">Sample 2 (Discovery Lore & Secrets):</div>
+                      <div class="s-text">"Here is a curious truth the films overlooked: Ravenclaw's common room requires answering a philosophical riddle before the door will open."</div>
+                      <audio controls preload="none">
+                        <source src="female/bf_alice/bf_alice_sample_02.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="voice-card">
+                  <div class="card-header">
+                    <div class="v-title">Emma — Hermionesque Scholar</div>
+                    <div class="v-badges">
+                      <span class="badge badge-model">Kokoro-82M</span>
+                      <span class="badge badge-accent">British (UK)</span>
+                    </div>
+                  </div>
+                  <div class="v-mood">🎭 Bright, energetic, articulate</div>
+                  <div class="samples">
+                    <div class="s-block">
+                      <div class="s-label">Sample 1 (Cinematic Storytelling):</div>
+                      <div class="s-text">"Harry turned the heavy brass doorknob, stepping into the forbidden third-floor corridor where three giant heads snarled in the dark."</div>
+                      <audio controls preload="none">
+                        <source src="female/bf_emma/bf_emma_sample_01.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                    <div class="s-block">
+                      <div class="s-label">Sample 2 (Discovery Lore & Secrets):</div>
+                      <div class="s-text">"Did you know that in the novels, Hermione actually founded an entire organization to fight for house-elf freedom during her fourth year?"</div>
+                      <audio controls preload="none">
+                        <source src="female/bf_emma/bf_emma_sample_02.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="voice-card">
+                  <div class="card-header">
+                    <div class="v-title">Isabella — Cinematic Lore Master</div>
+                    <div class="v-badges">
+                      <span class="badge badge-model">Kokoro-82M</span>
+                      <span class="badge badge-accent">British (UK)</span>
+                    </div>
+                  </div>
+                  <div class="v-mood">🎭 Deep, atmospheric, cinematic warmth</div>
+                  <div class="samples">
+                    <div class="s-block">
+                      <div class="s-label">Sample 1 (Cinematic Storytelling):</div>
+                      <div class="s-text">"Rain hammered the leaded glass of the astronomy tower as lightning illuminated the forbidden forest below."</div>
+                      <audio controls preload="none">
+                        <source src="female/bf_isabella/bf_isabella_sample_01.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                    <div class="s-block">
+                      <div class="s-label">Sample 2 (Discovery Lore & Secrets):</div>
+                      <div class="s-text">"The Marauder's Map never lied because it was enchanted with the homunculus charm, tracking the living soul rather than physical appearance."</div>
+                      <audio controls preload="none">
+                        <source src="female/bf_isabella/bf_isabella_sample_02.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="voice-card">
+                  <div class="card-header">
+                    <div class="v-title">Lily — Enchanting & Nostalgic</div>
+                    <div class="v-badges">
+                      <span class="badge badge-model">Kokoro-82M</span>
+                      <span class="badge badge-accent">British (UK)</span>
+                    </div>
+                  </div>
+                  <div class="v-mood">🎭 Gentle, nostalgic, magical warmth</div>
+                  <div class="samples">
+                    <div class="s-block">
+                      <div class="s-label">Sample 1 (Cinematic Storytelling):</div>
+                      <div class="s-text">"Sitting beside the crackling Gryffindor fire with a warm mug of butterbeer, Harry finally felt he had found a home."</div>
+                      <audio controls preload="none">
+                        <source src="female/bf_lily/bf_lily_sample_01.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                    <div class="s-block">
+                      <div class="s-label">Sample 2 (Discovery Lore & Secrets):</div>
+                      <div class="s-text">"In the book, Mrs. Weasley sent Harry a handmade emerald jumper every single winter, making sure he never felt forgotten."</div>
+                      <audio controls preload="none">
+                        <source src="female/bf_lily/bf_lily_sample_02.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="voice-card">
+                  <div class="card-header">
+                    <div class="v-title">Sarah — Modern Conversational Explainer</div>
+                    <div class="v-badges">
+                      <span class="badge badge-model">Kokoro-82M</span>
+                      <span class="badge badge-accent">American (US)</span>
+                    </div>
+                  </div>
+                  <div class="v-mood">🎭 Engaging, conversational, curiosity-driven</div>
+                  <div class="samples">
+                    <div class="s-block">
+                      <div class="s-label">Sample 1 (Cinematic Storytelling):</div>
+                      <div class="s-text">"So here is the secret about Ollivander that completely changes how you view wandlore in the wizarding world."</div>
+                      <audio controls preload="none">
+                        <source src="female/af_sarah/af_sarah_sample_01.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                    <div class="s-block">
+                      <div class="s-label">Sample 2 (Discovery Lore & Secrets):</div>
+                      <div class="s-text">"The movies made Ron look clueless, but in the original books, Ron was actually the wizarding world expert who guided Harry through everything."</div>
+                      <audio controls preload="none">
+                        <source src="female/af_sarah/af_sarah_sample_02.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="voice-card">
+                  <div class="card-header">
+                    <div class="v-title">Nicole — Grounded Storyteller</div>
+                    <div class="v-badges">
+                      <span class="badge badge-model">Kokoro-82M</span>
+                      <span class="badge badge-accent">American (US)</span>
+                    </div>
+                  </div>
+                  <div class="v-mood">🎭 Smooth, authentic, rich narrative presence</div>
+                  <div class="samples">
+                    <div class="s-block">
+                      <div class="s-label">Sample 1 (Cinematic Storytelling):</div>
+                      <div class="s-text">"Ten years in the dark cupboard under the stairs had prepared Harry for hardship, but nothing could prepare him for the letters."</div>
+                      <audio controls preload="none">
+                        <source src="female/af_nicole/af_nicole_sample_01.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                    <div class="s-block">
+                      <div class="s-label">Sample 2 (Discovery Lore & Secrets):</div>
+                      <div class="s-text">"Look closely at the portrait of Phineas Nigellus Black, because he was secretly spying for Dumbledore the entire time."</div>
+                      <audio controls preload="none">
+                        <source src="female/af_nicole/af_nicole_sample_02.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="voice-card">
+                  <div class="card-header">
+                    <div class="v-title">Sky — Fast-Paced Action Punch</div>
+                    <div class="v-badges">
+                      <span class="badge badge-model">Kokoro-82M</span>
+                      <span class="badge badge-accent">American (US)</span>
+                    </div>
+                  </div>
+                  <div class="v-mood">🎭 Upbeat, rapid, high-retention hook</div>
+                  <div class="samples">
+                    <div class="s-block">
+                      <div class="s-label">Sample 1 (Cinematic Storytelling):</div>
+                      <div class="s-text">"Three seconds left on the clock, Harry dives straight down through the rain, dodges a bludger, and snatches the snitch!"</div>
+                      <audio controls preload="none">
+                        <source src="female/af_sky/af_sky_sample_01.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                    <div class="s-block">
+                      <div class="s-label">Sample 2 (Discovery Lore & Secrets):</div>
+                      <div class="s-text">"Boom! Hagrid breaks the wooden door off its hinges, bends Vernon's shotgun into a knot, and hands Harry a birthday cake!"</div>
+                      <audio controls preload="none">
+                        <source src="female/af_sky/af_sky_sample_02.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="voice-card">
+                  <div class="card-header">
+                    <div class="v-title">Sonia — BBC Documentary Investigator</div>
+                    <div class="v-badges">
+                      <span class="badge badge-model">Edge-TTS Neural</span>
+                      <span class="badge badge-accent">British (UK)</span>
+                    </div>
+                  </div>
+                  <div class="v-mood">🎭 Authoritative, serious, investigative</div>
+                  <div class="samples">
+                    <div class="s-block">
+                      <div class="s-label">Sample 1 (Cinematic Storytelling):</div>
+                      <div class="s-text">"Beneath the surface of the wizarding ministry lies the Department of Mysteries, where the fundamental forces of death and time are studied."</div>
+                      <audio controls preload="none">
+                        <source src="female/en_gb_sonianeural/en_gb_sonianeural_sample_01.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                    <div class="s-block">
+                      <div class="s-label">Sample 2 (Discovery Lore & Secrets):</div>
+                      <div class="s-text">"Historical archives confirm that the Triwizard Tournament was banned for over two centuries due to its catastrophic casualty rate."</div>
+                      <audio controls preload="none">
+                        <source src="female/en_gb_sonianeural/en_gb_sonianeural_sample_02.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="voice-card">
+                  <div class="card-header">
+                    <div class="v-title">Libby — Classic English Storybook</div>
+                    <div class="v-badges">
+                      <span class="badge badge-model">Edge-TTS Neural</span>
+                      <span class="badge badge-accent">British (UK)</span>
+                    </div>
+                  </div>
+                  <div class="v-mood">🎭 Lyrical, expressive, fairytale enchantment</div>
+                  <div class="samples">
+                    <div class="s-block">
+                      <div class="s-label">Sample 1 (Cinematic Storytelling):</div>
+                      <div class="s-text">"Once upon an October night, a tiny bundle was left on the doorstep of number four Privet Drive under the golden streetlamps."</div>
+                      <audio controls preload="none">
+                        <source src="female/en_gb_libbyneural/en_gb_libbyneural_sample_01.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                    <div class="s-block">
+                      <div class="s-label">Sample 2 (Discovery Lore & Secrets):</div>
+                      <div class="s-text">"The Great Hall was dressed for Christmas, with twelve towering fir trees sparkling with live fairies and frosted pinecones."</div>
+                      <audio controls preload="none">
+                        <source src="female/en_gb_libbyneural/en_gb_libbyneural_sample_02.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="voice-card">
+                  <div class="card-header">
+                    <div class="v-title">Aria — Dramatic Movie Trailer</div>
+                    <div class="v-badges">
+                      <span class="badge badge-model">Edge-TTS Neural</span>
+                      <span class="badge badge-accent">American (US)</span>
+                    </div>
+                  </div>
+                  <div class="v-mood">🎭 Intense, cinematic, suspenseful</div>
+                  <div class="samples">
+                    <div class="s-block">
+                      <div class="s-label">Sample 1 (Cinematic Storytelling):</div>
+                      <div class="s-text">"Darkness was returning to the wizarding world, and inside the graveyard at Little Hangleton, the shadows began to whisper."</div>
+                      <audio controls preload="none">
+                        <source src="female/en_us_arianeural/en_us_arianeural_sample_01.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                    <div class="s-block">
+                      <div class="s-label">Sample 2 (Discovery Lore & Secrets):</div>
+                      <div class="s-text">"Every prophecy locked in the Hall of Prophecies tells a story, but only one determined the fate of the boy who lived."</div>
+                      <audio controls preload="none">
+                        <source src="female/en_us_arianeural/en_us_arianeural_sample_02.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                  </div>
+                </div>
+                
+    </div>
+
+    <h2 class="section-title">👨 10 Male Voices</h2>
+    <div class="grid">
+      
+                <div class="voice-card">
+                  <div class="card-header">
+                    <div class="v-title">Daniel — Classical Oxford Narrator</div>
+                    <div class="v-badges">
+                      <span class="badge badge-model">Kokoro-82M</span>
+                      <span class="badge badge-accent">British (UK)</span>
+                    </div>
+                  </div>
+                  <div class="v-mood">🎭 Cultured, articulate, warm authority</div>
+                  <div class="samples">
+                    <div class="s-block">
+                      <div class="s-label">Sample 1 (Cinematic Storytelling):</div>
+                      <div class="s-text">"The Hogwarts Express pulled away from platform nine and three-quarters, carrying Harry toward an unimaginable magical destiny."</div>
+                      <audio controls preload="none">
+                        <source src="male/bm_daniel/bm_daniel_sample_01.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                    <div class="s-block">
+                      <div class="s-label">Sample 2 (Discovery Lore & Secrets):</div>
+                      <div class="s-text">"In wizarding tradition, ancient wands remember the spells of past masters, creating an unbreakable legacy of sorcery."</div>
+                      <audio controls preload="none">
+                        <source src="male/bm_daniel/bm_daniel_sample_02.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="voice-card">
+                  <div class="card-header">
+                    <div class="v-title">George — Dark Arts & Ominous Lore</div>
+                    <div class="v-badges">
+                      <span class="badge badge-model">Kokoro-82M</span>
+                      <span class="badge badge-accent">British (UK)</span>
+                    </div>
+                  </div>
+                  <div class="v-mood">🎭 Deep, ominous, brooding, menacing</div>
+                  <div class="samples">
+                    <div class="s-block">
+                      <div class="s-label">Sample 1 (Cinematic Storytelling):</div>
+                      <div class="s-text">"Deep in the misty alleys of Knockturn Alley, dark wizards traded in cursed necklaces and withered hands that crawled in the shadows."</div>
+                      <audio controls preload="none">
+                        <source src="male/bm_george/bm_george_sample_01.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                    <div class="s-block">
+                      <div class="s-label">Sample 2 (Discovery Lore & Secrets):</div>
+                      <div class="s-text">"The basilisk had slithered through the plumbing of Hogwarts for a thousand years, waiting for the true heir of Slytherin to command it."</div>
+                      <audio controls preload="none">
+                        <source src="male/bm_george/bm_george_sample_02.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="voice-card">
+                  <div class="card-header">
+                    <div class="v-title">Lewis — Adventurous Gryffindor</div>
+                    <div class="v-badges">
+                      <span class="badge badge-model">Kokoro-82M</span>
+                      <span class="badge badge-accent">British (UK)</span>
+                    </div>
+                  </div>
+                  <div class="v-mood">🎭 Youthful, bold, spirited, adventurous</div>
+                  <div class="samples">
+                    <div class="s-block">
+                      <div class="s-label">Sample 1 (Cinematic Storytelling):</div>
+                      <div class="s-text">"Harry mounted his Nimbus Two Thousand, felt the sudden surge of wind beneath his boots, and rocketed into the clouds."</div>
+                      <audio controls preload="none">
+                        <source src="male/bm_lewis/bm_lewis_sample_01.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                    <div class="s-block">
+                      <div class="s-label">Sample 2 (Discovery Lore & Secrets):</div>
+                      <div class="s-text">"Fred and George Weasley didn't just leave Hogwarts; they turned the entire east wing into a swamp and flew away on brooms!"</div>
+                      <audio controls preload="none">
+                        <source src="male/bm_lewis/bm_lewis_sample_02.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="voice-card">
+                  <div class="card-header">
+                    <div class="v-title">Fable — Theatrical & Wry Storyteller</div>
+                    <div class="v-badges">
+                      <span class="badge badge-model">Kokoro-82M</span>
+                      <span class="badge badge-accent">British (UK)</span>
+                    </div>
+                  </div>
+                  <div class="v-mood">🎭 Expressive, witty, slightly sardonic</div>
+                  <div class="samples">
+                    <div class="s-block">
+                      <div class="s-label">Sample 1 (Cinematic Storytelling):</div>
+                      <div class="s-text">"Uncle Vernon truly believed that locking a young boy in a cupboard beneath the stairs would permanently cure magical talent."</div>
+                      <audio controls preload="none">
+                        <source src="male/bm_fable/bm_fable_sample_01.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                    <div class="s-block">
+                      <div class="s-label">Sample 2 (Discovery Lore & Secrets):</div>
+                      <div class="s-text">"Gilderoy Lockhart was undeniably the most accomplished fraudulent author ever to charm his way into a teaching post."</div>
+                      <audio controls preload="none">
+                        <source src="male/bm_fable/bm_fable_sample_02.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="voice-card">
+                  <div class="card-header">
+                    <div class="v-title">Adam — Epic Baritone Narrator</div>
+                    <div class="v-badges">
+                      <span class="badge badge-model">Kokoro-82M</span>
+                      <span class="badge badge-accent">American (US)</span>
+                    </div>
+                  </div>
+                  <div class="v-mood">🎭 Deep, commanding, cinematic power</div>
+                  <div class="samples">
+                    <div class="s-block">
+                      <div class="s-label">Sample 1 (Cinematic Storytelling):</div>
+                      <div class="s-text">"When the dark lord struck Godric's Hollow, a mother's ancient protection forged an impenetrable shield that defied all dark sorcery."</div>
+                      <audio controls preload="none">
+                        <source src="male/am_adam/am_adam_sample_01.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                    <div class="s-block">
+                      <div class="s-label">Sample 2 (Discovery Lore & Secrets):</div>
+                      <div class="s-text">"The sword of Gryffindor only presents itself to a true Gryffindor in moments of supreme peril and unwavering courage."</div>
+                      <audio controls preload="none">
+                        <source src="male/am_adam/am_adam_sample_02.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="voice-card">
+                  <div class="card-header">
+                    <div class="v-title">Michael — Documentary Analyst</div>
+                    <div class="v-badges">
+                      <span class="badge badge-model">Kokoro-82M</span>
+                      <span class="badge badge-accent">American (US)</span>
+                    </div>
+                  </div>
+                  <div class="v-mood">🎭 Clean, crisp, investigative, matter-of-fact</div>
+                  <div class="samples">
+                    <div class="s-block">
+                      <div class="s-label">Sample 1 (Cinematic Storytelling):</div>
+                      <div class="s-text">"Declassified records show that the wizarding prison of Azkaban was constructed on a fortress surrounded by endless freezing sea waters."</div>
+                      <audio controls preload="none">
+                        <source src="male/am_michael/am_michael_sample_01.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                    <div class="s-block">
+                      <div class="s-label">Sample 2 (Discovery Lore & Secrets):</div>
+                      <div class="s-text">"Here is the exact magical rule: polyjuice potion allows complete physical transformation, but cannot replicate magical animagus powers."</div>
+                      <audio controls preload="none">
+                        <source src="male/am_michael/am_michael_sample_02.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="voice-card">
+                  <div class="card-header">
+                    <div class="v-title">Fenrir — Gritty & Dark Fantasy</div>
+                    <div class="v-badges">
+                      <span class="badge badge-model">Kokoro-82M</span>
+                      <span class="badge badge-accent">American (US)</span>
+                    </div>
+                  </div>
+                  <div class="v-mood">🎭 Husky, raw, tense, atmospheric edge</div>
+                  <div class="samples">
+                    <div class="s-block">
+                      <div class="s-label">Sample 1 (Cinematic Storytelling):</div>
+                      <div class="s-text">"The shrieking shack groaned in the howling wind as the full moon rose above the jagged horizon of Hogsmeade."</div>
+                      <audio controls preload="none">
+                        <source src="male/am_fenrir/am_fenrir_sample_01.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                    <div class="s-block">
+                      <div class="s-label">Sample 2 (Discovery Lore & Secrets):</div>
+                      <div class="s-text">"Dementors do not merely cause cold; they drain every happy memory from your soul until you are left with only despair."</div>
+                      <audio controls preload="none">
+                        <source src="male/am_fenrir/am_fenrir_sample_02.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="voice-card">
+                  <div class="card-header">
+                    <div class="v-title">Ryan — Modern British Explainer</div>
+                    <div class="v-badges">
+                      <span class="badge badge-model">Edge-TTS Neural</span>
+                      <span class="badge badge-accent">British (UK)</span>
+                    </div>
+                  </div>
+                  <div class="v-mood">🎭 Charismatic, relatable, punchy creator</div>
+                  <div class="samples">
+                    <div class="s-block">
+                      <div class="s-label">Sample 1 (Cinematic Storytelling):</div>
+                      <div class="s-text">"Right then, here is the craziest thing about Peeves the Poltergeist that the movies completely robbed us of seeing."</div>
+                      <audio controls preload="none">
+                        <source src="male/en_gb_ryanneural/en_gb_ryanneural_sample_01.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                    <div class="s-block">
+                      <div class="s-label">Sample 2 (Discovery Lore & Secrets):</div>
+                      <div class="s-text">"In the books, Harry didn't snap the Elder Wand at all; he used it to repair his original phoenix feather wand and put it back in Dumbledore's tomb!"</div>
+                      <audio controls preload="none">
+                        <source src="male/en_gb_ryanneural/en_gb_ryanneural_sample_02.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="voice-card">
+                  <div class="card-header">
+                    <div class="v-title">Thomas — Venerable Hogwarts Professor</div>
+                    <div class="v-badges">
+                      <span class="badge badge-model">Edge-TTS Neural</span>
+                      <span class="badge badge-accent">British (UK)</span>
+                    </div>
+                  </div>
+                  <div class="v-mood">🎭 Wise, stately, gentle elder cadence</div>
+                  <div class="samples">
+                    <div class="s-block">
+                      <div class="s-label">Sample 1 (Cinematic Storytelling):</div>
+                      <div class="s-text">"Words are, in my not-so-humble opinion, our most inexhaustible source of magic, capable of both inflicting injury and remedying it."</div>
+                      <audio controls preload="none">
+                        <source src="male/en_gb_thomasneural/en_gb_thomasneural_sample_01.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                    <div class="s-block">
+                      <div class="s-label">Sample 2 (Discovery Lore & Secrets):</div>
+                      <div class="s-text">"The Mirror of Erised shows us neither knowledge nor truth, but simply the deepest and most desperate desire of our hearts."</div>
+                      <audio controls preload="none">
+                        <source src="male/en_gb_thomasneural/en_gb_thomasneural_sample_02.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="voice-card">
+                  <div class="card-header">
+                    <div class="v-title">Connor — Celtic Lore Keeper</div>
+                    <div class="v-badges">
+                      <span class="badge badge-model">Edge-TTS Neural</span>
+                      <span class="badge badge-accent">Irish (IE)</span>
+                    </div>
+                  </div>
+                  <div class="v-mood">🎭 Lyrical Irish cadence, mystical, enchanting</div>
+                  <div class="samples">
+                    <div class="s-block">
+                      <div class="s-label">Sample 1 (Cinematic Storytelling):</div>
+                      <div class="s-text">"Across the emerald hills of the British isles, magical creatures lived unseen alongside mortals for untold generations."</div>
+                      <audio controls preload="none">
+                        <source src="male/en_ie_connorneural/en_ie_connorneural_sample_01.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                    <div class="s-block">
+                      <div class="s-label">Sample 2 (Discovery Lore & Secrets):</div>
+                      <div class="s-text">"Seamus Finnigan had an uncanny knack for pyrotechnics, but the Irish Quidditch team was renowned for pure, unbridled aerial wizardry."</div>
+                      <audio controls preload="none">
+                        <source src="male/en_ie_connorneural/en_ie_connorneural_sample_02.wav" type="audio/wav">
+                      </audio>
+                    </div>
+                  </div>
+                </div>
+                
+    </div>
+  </div>
+</body>
+</html>
