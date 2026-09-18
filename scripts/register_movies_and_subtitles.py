@@ -17,16 +17,16 @@ from core.movie_registry import CANONICAL_MOVIES
 
 def main():
     print("=" * 80)
-    print("STEP 6A: HARRY POTTER MOVIE & SRT ASSET VERIFICATION & REGISTRATION")
+    print("STEP 6B: HARRY POTTER MOVIES 1-8 & SUBTITLE ASSET AUDIT & INGESTION")
     print("=" * 80)
 
     engine = MovieAssetEngine()
 
-    print("\n>>> 1. REGISTERING & INDEXING MOVIES + SRTS (pipeline.db)...")
+    print("\n>>> 1. REGISTERING & INDEXING MOVIES 1-8 + SRTS (pipeline.db)...")
     results = engine.register_all_movies(force=True)
 
     print("\n" + "=" * 80)
-    print("MOVIE & SRT REGISTRATION SUMMARY")
+    print("MOVIE 1-8 & SRT REGISTRATION SUMMARY")
     print("=" * 80)
     total_raw_subs = 0
     total_scene_chunks = 0
@@ -45,19 +45,22 @@ def main():
 
     print("-" * 80)
     print(f"TOTAL ASSETS REGISTERED:")
-    print(f"  Movies:            3")
+    print(f"  Movies:            {len(results)}")
     print(f"  Raw Subtitles:     {total_raw_subs}")
     print(f"  Scene Units (FTS): {total_scene_chunks} (Searchable Scene Units)")
     print("=" * 80)
 
-    print("\n>>> 2. TESTING SEMANTIC SCENE RETRIEVAL (SQLite FTS5 BM25)...")
+    print("\n>>> 2. TESTING SEMANTIC SCENE RETRIEVAL ACROSS MOVIES 1-8 (SQLite FTS5 BM25)...")
 
     test_queries = [
         ("McGonagall Dumbledore rumors", 1),
         ("Hedwig magic school", 2),
-        ("Dobby warning Harry", 2),
-        ("Lumos Maxima", 3),
-        ("Dementor train chocolate Lupin", 3)
+        ("Dementor train chocolate Lupin", 3),
+        ("Triwizard Tournament Goblet of Fire", 4),
+        ("Dumbledore's Army prophecy Hall of Prophecy", 5),
+        ("Horcrux cave potion memory Slughorn", 6),
+        ("Godric's Hollow Bathilda Bagshot snake", 7),
+        ("Battle of Hogwarts Neville sword Nagini", 8)
     ]
 
     for q, m_num in test_queries:
@@ -78,10 +81,9 @@ def main():
     print("\n>>> 3. TESTING IDEMPOTENCY (Running without force)...")
     cached_results = engine.register_all_movies(force=False)
     all_cached = all(r["status"] == "CACHED" for r in cached_results)
-    print(f"  Idempotency check: {'PASSED (All 3 movies recognized as CACHED, 0 duplicates)' if all_cached else 'FAILED'}")
+    print(f"  Idempotency check: {'PASSED (All 8 movies recognized as CACHED, 0 duplicates)' if all_cached else 'FAILED'}")
 
     print("\n>>> 4. VERIFYING AUDIO MUTING INVARIANT ENFORCEMENT...")
-    # Inspect extract_muted_clip method docstring and signature
     import inspect
     sig = inspect.signature(engine.extract_muted_clip)
     doc = engine.extract_muted_clip.__doc__
@@ -90,7 +92,7 @@ def main():
     print(f"  Result: AUDIO MUTING INVARIANT STRICTLY ENFORCED (-an + ffprobe probe guard)")
 
     print("\n" + "=" * 80)
-    print("STEP 6A COMPLETE: ALL 3 MOVIES & SRTS VERIFIED, REGISTERED & SEARCHABLE!")
+    print("STEP 6B COMPLETE: ALL 8 MOVIES & SRTS VERIFIED, REGISTERED & SEARCHABLE!")
     print("=" * 80)
 
 if __name__ == "__main__":

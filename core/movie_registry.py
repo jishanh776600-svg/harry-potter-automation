@@ -1,7 +1,7 @@
 """
-Harry Potter Movie & Subtitle Canonical Registry (Step 6A)
+Harry Potter Movie & Subtitle Canonical Registry (Step 6B)
 ================================================================================
-Deterministic pairing of existing Harry Potter movie assets and their
+Deterministic pairing of existing Harry Potter movie assets (Movies 1–8) and their
 corresponding English SRT subtitle files.
 
 Source Location: Google Drive Vault `Yt_harry_potter_automation` (jishanh760@gmail.com)
@@ -23,8 +23,8 @@ CANONICAL_MOVIES = [
         "width": 1920,
         "height": 800,
         "srt_filename": "harry-potter-and-the-sorcerers-stone-yify-english-en.srt",
-        "srt_archive_name": "Harry_potter_srt.7z",
-        "srt_archive_drive_id": "1uQ5T-BO-sW_ARYcqLL6QljeZidslwDGq",
+        "srt_source_type": "7z_archive",
+        "srt_source_container": "Harry_potter_srt.7z",
     },
     {
         "movie_number": 2,
@@ -38,8 +38,8 @@ CANONICAL_MOVIES = [
         "width": 1920,
         "height": 800,
         "srt_filename": "harry-potter-and-the-chamber-of-secrets-yify-english-en.srt",
-        "srt_archive_name": "Harry_potter_srt.7z",
-        "srt_archive_drive_id": "1uQ5T-BO-sW_ARYcqLL6QljeZidslwDGq",
+        "srt_source_type": "7z_archive",
+        "srt_source_container": "Harry_potter_srt.7z",
     },
     {
         "movie_number": 3,
@@ -53,9 +53,84 @@ CANONICAL_MOVIES = [
         "width": 1920,
         "height": 800,
         "srt_filename": "Harry Potter and the Prisoner of Azkaban-en.srt",
-        "srt_archive_name": "Harry_potter_srt.7z",
-        "srt_archive_drive_id": "1uQ5T-BO-sW_ARYcqLL6QljeZidslwDGq",
-    }
+        "srt_source_type": "7z_archive",
+        "srt_source_container": "Harry_potter_srt.7z",
+    },
+    {
+        "movie_number": 4,
+        "title": "Harry Potter and the Goblet of Fire",
+        "alt_title": "Harry Potter and the Goblet of Fire",
+        "year": 2005,
+        "video_filename": "Harry Potter And The Goblet Of Fire 2005 BluRay 720p Dual Audio Hindi.mkv",
+        "video_drive_id": "1EmxX84TQW6CpxIdXtgTTe9u7Cc7HkDoQ",
+        "video_file_size_bytes": 1230299496,
+        "video_duration_seconds": 9426.0,  # 157.1 min
+        "width": 1280,
+        "height": 534,
+        "srt_filename": "Harry Potter and the Goblet of Fire 2005 720p BrRip x264 YIFY-English.srt",
+        "srt_source_type": "zip_archive",
+        "srt_source_container": "harry-potter-and-the-goblet-of-fire-2005-english-yify-106488.zip",
+    },
+    {
+        "movie_number": 5,
+        "title": "Harry Potter and the Order of the Phoenix",
+        "alt_title": "Harry Potter and the Order of the Phoenix",
+        "year": 2007,
+        "video_filename": "Harry Potter And The Order Of The Phoenix 2007 Dual Audio Hindi 720p BluRay.mkv",
+        "video_drive_id": "1pB-V9DdpiF6a1LwC23svVpg_D7esAKwA",
+        "video_file_size_bytes": 1062728845,
+        "video_duration_seconds": 7800.0,  # 130.0 min
+        "width": 1280,
+        "height": 528,
+        "srt_filename": "Harry.Potter.and.the.Order.of.the.Phoenix.2007.1080p.BrRip.x264.YIFY-en.srt",
+        "srt_source_type": "plain_srt",
+        "srt_source_container": None,
+    },
+    {
+        "movie_number": 6,
+        "title": "Harry Potter and the Half-Blood Prince",
+        "alt_title": "Harry Potter and the Half-Blood Prince",
+        "year": 2009,
+        "video_filename": "Harry Potter And The Half Blood Prince 2009 BluRay 720p Dual Audio Hindi.mkv",
+        "video_drive_id": "12034RFo4SR-x1qIwNNw2S-EUEL4rL7jk",
+        "video_file_size_bytes": 1337612655,
+        "video_duration_seconds": 9210.0,  # 153.5 min
+        "width": 1280,
+        "height": 542,
+        "srt_filename": "Harry Potter 6 and the Half-Blood Prince-en.srt",
+        "srt_source_type": "plain_srt",
+        "srt_source_container": None,
+    },
+    {
+        "movie_number": 7,
+        "title": "Harry Potter and the Deathly Hallows - Part 1",
+        "alt_title": "Harry Potter and the Deathly Hallows Part 1",
+        "year": 2010,
+        "video_filename": "Harry Potter And The Deathly Hallows Part 1 2010 Dual Audio Hindi 720p BluRay.mkv",
+        "video_drive_id": "1V8UTs2fnFZBI-ToDpQQfeKZhveRHRXE-",
+        "video_file_size_bytes": 1092871009,
+        "video_duration_seconds": 8286.0,  # 138.1 min
+        "width": 1280,
+        "height": 528,
+        "srt_filename": "Harry.Potter.and.the.Deathly.Hallows-.Part.1.2010.1080p.720p.BluRay.x264.[YTS.MX]-English-en.srt",
+        "srt_source_type": "plain_srt",
+        "srt_source_container": None,
+    },
+    {
+        "movie_number": 8,
+        "title": "Harry Potter and the Deathly Hallows - Part 2",
+        "alt_title": "Harry Potter and the Deathly Hallows Part 2",
+        "year": 2011,
+        "video_filename": "Harry Potter and the Deathly Hallows Part 2 2011 Dual Audio Hindi 720p BluRay (1).mkv",
+        "video_drive_id": "1GHpEuPlHh8wFdXOKPYoWnyFx6d2dSOff",
+        "video_file_size_bytes": 1070982599,
+        "video_duration_seconds": 7818.0,  # 130.3 min
+        "width": 1280,
+        "height": 528,
+        "srt_filename": "Harry Potter and the Deathly Hallows Part 2-en.srt",
+        "srt_source_type": "embedded_mkv_stream",
+        "srt_source_container": "Harry Potter and the Deathly Hallows Part 2 2011 Dual Audio Hindi 720p BluRay (1).mkv",
+    },
 ]
 
 

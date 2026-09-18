@@ -341,7 +341,7 @@ class MovieAssetEngine:
         }
 
     def register_all_movies(self, force: bool = False) -> List[Dict[str, Any]]:
-        """Registers all 3 available Harry Potter movies and their subtitles."""
+        """Registers all 8 available Harry Potter movies and their subtitles."""
         results = []
         for m_meta in CANONICAL_MOVIES:
             res = self.register_movie(m_meta, force=force)

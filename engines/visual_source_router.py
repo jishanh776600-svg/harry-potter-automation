@@ -1,49 +1,20 @@
 """
 Visual Source Router — Harry Potter Automation
 ============================================================
-ARCHITECTURE: Movie footage is ALWAYS attempt #1 for every visual beat.
+HARD INVARIANT - VISUAL POLICY: Movie footage ONLY.
+No AI visuals, stock footage, Pexels, or book images.
 
-Per-beat retrieval cascade (applied to EACH narration sentence / visual requirement):
-
+Per-beat retrieval:
     Narration sentence / visual beat
             ↓
-    [1] Movie Clip Retrieval  ← ALWAYS FIRST
+    [1] Movie Clip Retrieval (SRT-indexed dialogue/scene match)
             ↓  found?
-            ├── YES  →  use movie clip
-            └── NO
-                 ↓
-    [2] Book Image / Canonical Illustration
-                 ↓  found?
-                 ├── YES  →  use book image
-                 └── NO
-                      ↓
-    [3] AI-Generated Visual (NVIDIA / Pollinations fallback)
-                      ↓  found?
-                      ├── YES  →  use AI image
-                      └── NO
-                           ↓
-    [4] Stock / Archival / Wikimedia
-                           ↓  found?
-                           ├── YES  →  use stock image
-                           └── NO
-                                ↓
-    [5] Pexels  ← ABSOLUTE LAST RESORT
-                                ↓  found?
-                                ├── YES  →  use pexels asset
-                                └── NO
-                                     ↓
-    [6] Procedural neutral fallback canvas
+            ├── YES  →  use movie clip (strictly audio-muted via -an)
+            └── NO   →  fail/flag beat (NO AI, NO STOCK, NO PEXELS FALLBACKS)
 
-The FINAL Short therefore uses as much relevant movie footage as realistically
-available, with image/AI/stock only where a suitable movie clip cannot be found.
-
-Movie Source Directories (populated separately):
-  data/movies/           → MP4 files for HP films 1-3 (and more)
-  data/movie_subtitles/  → SRT files for each movie
-
-The SRT-based semantic clip retrieval engine will be built in a later step.
-This router provides the interface that the storyboard/render engine will call,
-so all downstream code already uses the correct movie-first contract.
+Movie Source Directories:
+  data/movies/           → MP4/MKV files for HP films 1-8
+  data/movie_subtitles/  → SRT files for HP films 1-8
 """
 
 import os
@@ -219,8 +190,9 @@ class VisualSourceRouter:
 
     def __init__(self):
         self.movie_retriever = MovieClipRetriever()
-        self.priority = VISUAL_SOURCE_PRIORITY
-        logger.info(f"[VISUAL_ROUTER] Visual source priority: {self.priority}")
+        # HARD INVARIANT: Movie footage ONLY. No AI visuals, stock footage, Pexels, or book images.
+        self.priority = [SOURCE_MOVIE_CLIP]
+        logger.info(f"[VISUAL_ROUTER] Visual source policy: MOVIE FOOTAGE ONLY. Priority: {self.priority}")
         logger.info(f"[VISUAL_ROUTER] Movies available: {self.movie_retriever.movies_available}")
         if self.movie_retriever.movies_available:
             for m in self.movie_retriever.movie_index:
@@ -233,87 +205,37 @@ class VisualSourceRouter:
         visual_cue: str = "",
         duration_target_sec: float = 4.0,
         db=None
-    ) -> VisualSourceResult:
+    ) -> Optional[VisualSourceResult]:
         """
-        Resolves the best visual asset for a narration beat, following the
-        movie-first cascade defined in VISUAL_SOURCE_PRIORITY.
+        Resolves the best visual asset for a narration beat.
+        HARD INVARIANT: Only movie footage from Harry Potter Films 1-8 is permitted.
+        Fallbacks to AI images, stock footage, Pexels, or book images are strictly forbidden.
 
         Args:
             narration_sentence: The narration text for this beat.
             visual_cue:         A descriptive search query for the visual requirement.
-            duration_target_sec: Target clip duration (used for video sources).
-            db:                  SQLAlchemy session (optional, for dedup checking).
+            duration_target_sec: Target clip duration.
+            db:                  SQLAlchemy session (optional).
 
         Returns:
-            VisualSourceResult with the best available visual for this beat.
+            VisualSourceResult with the matching movie clip (audio muted), or None if no match found.
         """
         query = visual_cue or narration_sentence
 
-        for source_type in self.priority:
+        try:
+            result = self.movie_retriever.retrieve_clip_for_beat(
+                narration_sentence=narration_sentence,
+                visual_cue=visual_cue,
+                duration_target_sec=duration_target_sec
+            )
+            if result:
+                logger.info(f"[VISUAL_ROUTER] ✅ MOVIE CLIP resolved for: '{query[:50]}'")
+                return result
+            logger.warning(f"[VISUAL_ROUTER] ⚠️ No movie clip found for: '{query[:50]}' — visual policy forbids non-movie fallbacks.")
+        except Exception as e:
+            logger.error(f"[VISUAL_ROUTER] Movie clip retrieval error: {e}")
 
-            # ─── 1. MOVIE CLIP — ALWAYS FIRST ─────────────────────────────────
-            if source_type == SOURCE_MOVIE_CLIP:
-                try:
-                    result = self.movie_retriever.retrieve_clip_for_beat(
-                        narration_sentence=narration_sentence,
-                        visual_cue=visual_cue,
-                        duration_target_sec=duration_target_sec
-                    )
-                    if result:
-                        logger.info(f"[VISUAL_ROUTER] ✅ MOVIE CLIP for: '{query[:50]}'")
-                        return result
-                    logger.debug(f"[VISUAL_ROUTER] No movie clip found for: '{query[:50]}' — falling through.")
-                except Exception as e:
-                    logger.warning(f"[VISUAL_ROUTER] Movie clip retrieval error: {e}")
-
-            # ─── 2. BOOK IMAGE / CANONICAL ILLUSTRATION ──────────────────────
-            elif source_type == SOURCE_BOOK_IMAGE:
-                try:
-                    result = self._try_book_image(query)
-                    if result:
-                        logger.info(f"[VISUAL_ROUTER] ✅ BOOK IMAGE for: '{query[:50]}'")
-                        return result
-                except Exception as e:
-                    logger.warning(f"[VISUAL_ROUTER] Book image error: {e}")
-
-            # ─── 3. AI GENERATED VISUAL ──────────────────────────────────────
-            elif source_type == SOURCE_AI_GENERATED:
-                try:
-                    result = self._try_ai_image(query)
-                    if result:
-                        logger.info(f"[VISUAL_ROUTER] ✅ AI IMAGE for: '{query[:50]}'")
-                        return result
-                except Exception as e:
-                    logger.warning(f"[VISUAL_ROUTER] AI image error: {e}")
-
-            # ─── 4. STOCK FOOTAGE ─────────────────────────────────────────────
-            elif source_type == SOURCE_STOCK:
-                try:
-                    result = self._try_stock(query)
-                    if result:
-                        logger.info(f"[VISUAL_ROUTER] ✅ STOCK for: '{query[:50]}'")
-                        return result
-                except Exception as e:
-                    logger.warning(f"[VISUAL_ROUTER] Stock footage error: {e}")
-
-            # ─── 5. PEXELS — ABSOLUTE LAST RESORT ────────────────────────────
-            elif source_type == SOURCE_PEXELS:
-                try:
-                    result = self._try_pexels(query)
-                    if result:
-                        logger.info(f"[VISUAL_ROUTER] ✅ PEXELS (last resort) for: '{query[:50]}'")
-                        return result
-                except Exception as e:
-                    logger.warning(f"[VISUAL_ROUTER] Pexels error: {e}")
-
-        # ─── 6. PROCEDURAL FALLBACK ──────────────────────────────────────────
-        logger.warning(f"[VISUAL_ROUTER] All sources exhausted for: '{query[:50]}' — using procedural canvas.")
-        return VisualSourceResult(
-            source_type=SOURCE_PROCEDURAL,
-            is_video=False,
-            query=query,
-            license="cc0"
-        )
+        return None
 
     # ──────────────────────────────────────────────────────────────────────────
     # --------------------------------------------------------------------------
