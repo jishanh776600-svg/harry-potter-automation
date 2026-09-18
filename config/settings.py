@@ -118,11 +118,13 @@ def get_content_mix_allocation(total_shorts: int | None = None) -> dict[str, int
     }
 
 
-# TTS Settings — Configurable Bella Narration Profile (Audition-ready, not permanently locked)
-TTS_PROVIDER = os.getenv("TTS_PROVIDER", "kokoro")  # kokoro, edge, piper
-KOKORO_VOICE = os.getenv("KOKORO_VOICE", "af_bella")
-BELLA_VOICE_PROFILE = os.getenv("BELLA_VOICE_PROFILE", "BELLA_CINEMATIC")
-APPROVED_PRODUCTION_VOICES = ["af_bella"]
+# TTS Settings — Andrew Hype (en-US-AndrewNeural) — Permanent Production Voice
+# Youthful 18yo American male, high-energy +24Hz pitch, +14% rate — selected after audition
+TTS_PROVIDER = os.getenv("TTS_PROVIDER", "edge")  # edge — Andrew Hype is Edge-TTS Neural
+KOKORO_VOICE = os.getenv("KOKORO_VOICE", "en-US-AndrewNeural")  # N/A for Edge-only voice; kept for schema compat
+ACTIVE_VOICE_PITCH = os.getenv("ACTIVE_VOICE_PITCH", "+24Hz")
+ACTIVE_VOICE_RATE = os.getenv("ACTIVE_VOICE_RATE", "+14%")
+APPROVED_PRODUCTION_VOICES = ["en-US-AndrewNeural"]
 KOKORO_MODEL_PATH = DATA_DIR / "kokoro-v1.0.onnx"
 KOKORO_VOICES_PATH = DATA_DIR / "voices-v1.0.bin"
 

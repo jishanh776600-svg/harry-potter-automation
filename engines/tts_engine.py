@@ -29,20 +29,23 @@ logger = logging.getLogger(__name__)
 KOKORO_MODEL_URL = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx"
 KOKORO_VOICES_URL = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin"
 
-APPROVED_PRODUCTION_VOICES = ["af_bella"]
+APPROVED_PRODUCTION_VOICES = ["en-US-AndrewNeural"]
 
 AVAILABLE_VOICES = [
     {
-        "id": "af_bella",
-        "display_name": "Bella (US Female)",
-        "engine": "Kokoro-82M ONNX / Edge-TTS",
-        "description": "Clear, authoritative, and engaging narration. Authentic pacing for mystery and science storytelling.",
-        "style": "Authoritative / Engaging",
-        "gender": "Female",
+        "id": "en-US-AndrewNeural",
+        "display_name": "Andrew Hype (Young US Male)",
+        "engine": "Edge-TTS Neural",
+        "description": "High-energy 18yo American voice with rapid-fire excitement. Youthful pitch (+24Hz) and electrifying tempo (+14%) — ideal for Harry Potter duels, lore drops, and high-retention YouTube Shorts hooks.",
+        "style": "Electrifying / High Tempo / Youth",
+        "gender": "Male",
         "accent": "American",
-        "kokoro_voice": "af_bella",
-        "edge_voice": "en-US-JennyNeural",
-        "delivery_profile": "BELLA_CANONICAL",
+        "age": "18",
+        "kokoro_voice": None,
+        "edge_voice": "en-US-AndrewNeural",
+        "edge_pitch": "+24Hz",
+        "edge_rate": "+14%",
+        "delivery_profile": "ANDREW_HYPE",
         "available": True
     }
 ]
@@ -53,7 +56,7 @@ def resolve_voice_config(voice_id: str) -> dict:
     Authoritative voice configuration resolver.
     Returns the canonical voice entry for any supported voice_id, ensuring
     both Kokoro and Edge-TTS providers resolve to the exact intended voice profile.
-    Restricted strictly to APPROVED_PRODUCTION_VOICES (af_bella).
+    Restricted strictly to APPROVED_PRODUCTION_VOICES (en-US-AndrewNeural / Andrew Hype).
     """
     for v in AVAILABLE_VOICES:
         if v["id"] == voice_id and v.get("available", False):
@@ -71,7 +74,7 @@ def get_active_voice(db: Optional[Session] = None) -> str:
                 return cfg.value
         except Exception:
             pass
-    return "af_bella"
+    return "en-US-AndrewNeural"
 
 
 def select_voice_by_policy(category: str = "", title: str = "", script_text: str = "") -> str:
@@ -168,11 +171,11 @@ class TTSEngine:
             logger.warning(f"Kokoro synthesis error: {e}")
             return False, 0.0
 
-    async def _generate_edge_tts_async(self, text: str, output_path: Path, voice: str = "en-US-ChristopherNeural") -> Tuple[bool, float]:
-        """Edge TTS fallback synthesis with resilient duration calculation."""
+    async def _generate_edge_tts_async(self, text: str, output_path: Path, voice: str = "en-US-AndrewNeural", pitch: str = "+24Hz", rate: str = "+14%") -> Tuple[bool, float]:
+        """Edge TTS synthesis with pitch/rate tuning and resilient duration calculation."""
         try:
             import edge_tts
-            communicate = edge_tts.Communicate(text, voice)
+            communicate = edge_tts.Communicate(text, voice, pitch=pitch, rate=rate)
             await communicate.save(str(output_path))
             
             if not output_path.exists() or output_path.stat().st_size == 0:
@@ -342,18 +345,20 @@ class TTSEngine:
         Generates full narration audio using the persistent active voice setting (or explicit run voice),
         adjusts speed if needed to fit 22-25s, and saves AssetRecord with verified license.
         Guarantees that active voice resolution is 100% identical to the preview path.
-        Enforces APPROVED_PRODUCTION_VOICES lock (af_bella).
+        Enforces APPROVED_PRODUCTION_VOICES lock (en-US-AndrewNeural — Andrew Hype).
         """
         asset_id = f"aud_{uuid.uuid4().hex[:12]}"
         wav_path = self.voice_dir / f"{asset_id}.wav"
 
         active_voice = voice or get_active_voice(db)
         if active_voice not in APPROVED_PRODUCTION_VOICES:
-            logger.warning(f"[TTS_ENGINE] Voice '{active_voice}' not approved for production. Defaulting to 'af_bella'.")
-            active_voice = "af_bella"
+            logger.warning(f"[TTS_ENGINE] Voice '{active_voice}' not approved for production. Defaulting to 'en-US-AndrewNeural'.")
+            active_voice = "en-US-AndrewNeural"
         v_cfg = resolve_voice_config(active_voice)
         kokoro_v = v_cfg.get("kokoro_voice", active_voice)
-        edge_v = v_cfg.get("edge_voice", "en-US-JennyNeural")
+        edge_v = v_cfg.get("edge_voice", "en-US-AndrewNeural")
+        edge_pitch = v_cfg.get("edge_pitch", "+24Hz")
+        edge_rate = v_cfg.get("edge_rate", "+14%")
 
         # Extract delivery parameters if delivery_spec is provided (calibrated natural breathing pauses)
         synthesize_text = delivery_spec.prepared_text if (delivery_spec and getattr(delivery_spec, "prepared_text", None)) else text
@@ -379,7 +384,7 @@ class TTSEngine:
             except RuntimeError:
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
-            success, duration = loop.run_until_complete(self._generate_edge_tts_async(synthesize_text, mp3_path, voice=edge_v))
+            success, duration = loop.run_until_complete(self._generate_edge_tts_async(synthesize_text, mp3_path, voice=edge_v, pitch=edge_pitch, rate=edge_rate))
             if success:
                 wav_path = mp3_path
                 tts_source = "edge_tts"
@@ -407,7 +412,7 @@ class TTSEngine:
             except RuntimeError:
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
-            success, duration = loop.run_until_complete(self._generate_edge_tts_async(synthesize_text, mp3_path, voice=edge_v))
+            success, duration = loop.run_until_complete(self._generate_edge_tts_async(synthesize_text, mp3_path, voice=edge_v, pitch=edge_pitch, rate=edge_rate))
             if success:
                 wav_path = mp3_path
                 tts_source = "edge_tts"
