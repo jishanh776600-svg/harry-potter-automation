@@ -709,3 +709,136 @@ class MovieSubtitleChunk(Base):
     movie = relationship("MovieAssetRecord", back_populates="subtitles")
 
 
+# ==============================================================================
+# HARRY POTTER STEP 7: CONTENT PLANNING DATA MODELS
+# Novel Story Candidates, Discovery Candidates, Chronology State.
+# These are PLANNING records only — no final scripts, narration, or renders.
+# ==============================================================================
+
+class ChronologyState(Base):
+    """
+    Tracks the current chronological frontier across the 7 novels.
+    Ensures the Novel Story Planner advances through the story without skipping
+    or repeating segments. One row per state key ('novel_story_progress').
+    """
+    __tablename__ = "chronology_state"
+
+    id = Column(String(64), primary_key=True)  # "novel_story_progress"
+    last_planned_global_index = Column(Integer, default=0, nullable=False)
+    last_planned_book_number = Column(Integer, default=0, nullable=False)
+    last_planned_chapter_number = Column(Integer, default=0, nullable=False)
+    total_candidates_generated = Column(Integer, default=0, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class NovStoryCandidate(Base):
+    """
+    Structured content plan for a Novel Story Short (~25-30 seconds).
+    Grounded in canonical HP novel text. Does NOT contain final narration.
+    Fully traceable: Book -> Chapter -> Chunk range -> Global Chronology Index.
+    Visual policy: MOVIE FOOTAGE ONLY. No AI, stock, Pexels, or images.
+    """
+    __tablename__ = "nov_story_candidates"
+
+    id = Column(String(64), primary_key=True)   # "ns_b1c01_gc001_003"
+    content_type = Column(String(32), default="novel_story", nullable=False)
+
+    # Novel Source Traceability
+    book_number = Column(Integer, nullable=False, index=True)
+    book_title = Column(String(255), nullable=False)
+    chapter_number = Column(Integer, nullable=False, index=True)
+    chapter_title = Column(String(255), nullable=False)
+    chunk_id_start = Column(String(64), nullable=False)
+    chunk_id_end = Column(String(64), nullable=False)
+    global_chronology_start = Column(Integer, nullable=False, index=True)
+    global_chronology_end = Column(Integer, nullable=False, index=True)
+    source_location = Column(String(255), nullable=False)
+    source_text_preview = Column(Text, nullable=True)
+
+    # Story Planning Fields (NOT final narration)
+    story_event_summary = Column(Text, nullable=False)
+    characters_json = Column(Text, nullable=True)
+    locations_json = Column(Text, nullable=True)
+    objects_events_json = Column(Text, nullable=True)
+    beginning_context = Column(Text, nullable=True)
+    central_development = Column(Text, nullable=True)
+    payoff_conclusion = Column(Text, nullable=True)
+    hook_concept = Column(Text, nullable=True)
+    narration_complexity = Column(String(32), default="MODERATE", nullable=False)
+    short_duration_feasibility = Column(String(32), default="FEASIBLE", nullable=False)
+
+    # Visual Feasibility (Movie Footage ONLY)
+    visual_beats_json = Column(Text, nullable=True)
+    overall_visual_feasibility = Column(String(32), default="PENDING", nullable=False)
+
+    # Candidate Status
+    status = Column(String(32), default="ELIGIBLE", nullable=False, index=True)
+
+    # Deduplication
+    content_fingerprint = Column(String(64), unique=True, nullable=False, index=True)
+
+    # Batch / Launch Assignment
+    is_launch_candidate = Column(Boolean, default=False, nullable=False, index=True)
+    batch_slot = Column(Integer, nullable=True)
+    batch_date = Column(String(32), nullable=True)
+
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class DiscoveryCandidate(Base):
+    """
+    Structured content plan for a Discovery Short (~25-30 seconds).
+    Grounded in HP novel-vs-film differences. Does NOT contain final narration.
+    Every fact is verifiable in the novel FTS index.
+    Visual policy: MOVIE FOOTAGE ONLY. No AI, stock, Pexels, or images.
+    """
+    __tablename__ = "discovery_candidates"
+
+    id = Column(String(64), primary_key=True)   # "disc_peeves_b1c08"
+    content_type = Column(String(32), default="discovery", nullable=False)
+
+    # Discovery Classification
+    discovery_type = Column(String(64), nullable=False, index=True)
+    # BOOK_ONLY_DETAIL / BOOK_VS_MOVIE_DIFFERENCE / CHARACTER_DEPTH /
+    # LORE_DETAIL / MOTIVATION_REVEALED / NOVEL_ONLY_SCENE
+
+    # Novel Source Traceability
+    book_number = Column(Integer, nullable=False, index=True)
+    book_title = Column(String(255), nullable=False)
+    chapter_number = Column(Integer, nullable=False, index=True)
+    chapter_title = Column(String(255), nullable=False)
+    chunk_id_primary = Column(String(64), nullable=False)
+    chunk_ids_supporting = Column(Text, nullable=True)
+    novel_fact_summary = Column(Text, nullable=False)
+    novel_evidence_text = Column(Text, nullable=True)
+
+    # Movie Comparison
+    corresponding_movie_number = Column(Integer, nullable=True)
+    corresponding_movie_title = Column(String(255), nullable=True)
+    movie_chunk_id = Column(String(64), nullable=True)
+    movie_shows = Column(Text, nullable=True)
+    movie_omits_or_changes = Column(Text, nullable=True)
+
+    # Planning Fields (NOT final narration)
+    why_interesting = Column(Text, nullable=True)
+    hook_concept = Column(Text, nullable=True)
+    short_duration_feasibility = Column(String(32), default="FEASIBLE", nullable=False)
+
+    # Visual Feasibility (Movie Footage ONLY)
+    visual_beats_json = Column(Text, nullable=True)
+    overall_visual_feasibility = Column(String(32), default="PENDING", nullable=False)
+
+    # Candidate Status
+    status = Column(String(32), default="ELIGIBLE", nullable=False, index=True)
+
+    # Deduplication
+    content_fingerprint = Column(String(64), unique=True, nullable=False, index=True)
+
+    # Batch / Launch Assignment
+    is_launch_candidate = Column(Boolean, default=False, nullable=False, index=True)
+    batch_slot = Column(Integer, nullable=True)
+    batch_date = Column(String(32), nullable=True)
+
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
