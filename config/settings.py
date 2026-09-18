@@ -79,7 +79,56 @@ PEXELS_API_KEY = os.getenv("PEXELS_API_KEY", "")
 YOUTUBE_CLIENT_ID = os.getenv("YOUTUBE_CLIENT_ID", "")
 YOUTUBE_CLIENT_SECRET = os.getenv("YOUTUBE_CLIENT_SECRET", "")
 YOUTUBE_REFRESH_TOKEN = os.getenv("YOUTUBE_REFRESH_TOKEN", "")
-CLIENT_SECRETS_FILE = os.getenv("CLIENT_SECRETS_FILE", str(PROJECT_ROOT / "client_secret.json"))
+# Publishing Safety — Hard Gate
+# PUBLISHING_ENABLED and UPLOAD_ENABLED must both be True to permit any YouTube upload.
+# These default to False and must be explicitly set to True in .env only for the launch step.
+PUBLISHING_ENABLED = os.getenv("PUBLISHING_ENABLED", "false").lower() == "true"
+UPLOAD_ENABLED = os.getenv("UPLOAD_ENABLED", "false").lower() == "true"
+
+# Google OAuth credential file paths (isolated to Harry Potter project — NEVER AL AMR paths)
+TOKEN_PATH = PROJECT_ROOT / os.getenv("TOKEN_PATH", "credentials/hp_token.json")
+CLIENT_SECRETS_PATH = PROJECT_ROOT / os.getenv("CLIENT_SECRETS_PATH", "credentials/hp_client_secret.json")
+# Legacy alias kept for code that still references CLIENT_SECRETS_FILE
+CLIENT_SECRETS_FILE = str(CLIENT_SECRETS_PATH)
+
+# YouTube Channel Identity Safety Gate
+# The automation will verify that the authenticated channel matches this before enabling publishing.
+# Leave empty — the auth script will populate these after OAuth verification.
+HP_YOUTUBE_CHANNEL_ID = os.getenv("HP_YOUTUBE_CHANNEL_ID", "")
+HP_YOUTUBE_CHANNEL_NAME = os.getenv("HP_YOUTUBE_CHANNEL_NAME", "")
+
+# Google Account Isolation
+GOOGLE_ACCOUNT_EMAIL = "jishanh760@gmail.com"  # Harry Potter project account ONLY
+
+# NVIDIA Image Generation
+NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY", "")
+NVIDIA_IMAGE_MODEL = os.getenv("NVIDIA_IMAGE_MODEL", "nvidia/consistory")
+NVIDIA_IMAGE_BASE_URL = os.getenv("NVIDIA_IMAGE_BASE_URL", "https://ai.api.nvidia.com/v1/genai")
+
+# ==============================================================================
+# VISUAL SOURCE PRIORITY — MOVIE FOOTAGE IS ATTEMPT #1 FOR EVERY VISUAL BEAT
+# The system tries movie clip first for each narration sentence/visual requirement.
+# Images/AI/stock are per-beat fallbacks when no suitable movie clip can be found.
+# ==============================================================================
+VISUAL_SOURCE_PRIORITY = [
+    s.strip() for s in os.getenv(
+        "VISUAL_SOURCE_PRIORITY",
+        "movie_footage,book_imagery,ai_generated,stock_footage,pexels"
+    ).split(",") if s.strip()
+]
+# Ensure movie_footage is always first — enforce programmatically as well as in env
+if "movie_footage" not in VISUAL_SOURCE_PRIORITY:
+    VISUAL_SOURCE_PRIORITY.insert(0, "movie_footage")
+elif VISUAL_SOURCE_PRIORITY[0] != "movie_footage":
+    VISUAL_SOURCE_PRIORITY.remove("movie_footage")
+    VISUAL_SOURCE_PRIORITY.insert(0, "movie_footage")
+# Pexels is last resort — ensure it remains at the end
+if "pexels" in VISUAL_SOURCE_PRIORITY and VISUAL_SOURCE_PRIORITY[-1] != "pexels":
+    VISUAL_SOURCE_PRIORITY.remove("pexels")
+    VISUAL_SOURCE_PRIORITY.append("pexels")
+
+PART_MARKER_ENABLED = os.getenv("PART_MARKER_ENABLED", "true").lower() == "true"
+PART_MARKER_FORMAT = os.getenv("PART_MARKER_FORMAT", "PART {:02d}")
 
 # Channel & Content Configuration (Harry Potter)
 NICHE = os.getenv("NICHE", "Harry Potter")
@@ -90,16 +139,8 @@ DISCOVERY_SHORTS_PER_DAY = int(os.getenv("DISCOVERY_SHORTS_PER_DAY", "2"))
 TARGET_RESERVE_BUFFER = int(os.getenv("TARGET_RESERVE_BUFFER", "8"))
 SCHEDULING_HORIZON_HOURS = int(os.getenv("SCHEDULING_HORIZON_HOURS", "48"))
 PUBLISHING_PLATFORMS = [
-    p.strip() for p in os.getenv("PUBLISHING_PLATFORMS", "youtube,instagram,facebook").split(",") if p.strip()
+    p.strip() for p in os.getenv("PUBLISHING_PLATFORMS", "youtube").split(",") if p.strip()
 ]
-VISUAL_SOURCE_PRIORITY = [
-    s.strip() for s in os.getenv(
-        "VISUAL_SOURCE_PRIORITY",
-        "movie_footage,book_imagery,ai_generated,stock_footage,pexels"
-    ).split(",") if s.strip()
-]
-PART_MARKER_ENABLED = os.getenv("PART_MARKER_ENABLED", "true").lower() == "true"
-PART_MARKER_FORMAT = os.getenv("PART_MARKER_FORMAT", "PART {:02d}")
 
 
 def get_content_mix_allocation(total_shorts: int | None = None) -> dict[str, int]:

@@ -77,10 +77,10 @@ def is_valid_ready_short(
             if topic_id.startswith(("top_test_", "test_")):
                 return False, f"Test artifact topic_id: '{topic_id}'"
 
-        # Voice property check
+        # Voice property check — must match current production voice (Andrew Hype)
         v_prop = props.get("voice")
-        if v_prop and v_prop not in ("af_bella", "bella"):
-            return False, f"Non-authoritative voice '{v_prop}' in properties (af_bella required)"
+        if v_prop and v_prop not in ("en-US-AndrewNeural", "andrew_hype"):
+            return False, f"Non-authoritative voice '{v_prop}' in properties (en-US-AndrewNeural required)"
 
         # RenderedVideoRecord check for cloud manifests
         if db and name.startswith("short_man_"):
@@ -91,8 +91,8 @@ def is_valid_ready_short(
                     (RenderedVideoRecord.cloud_storage_path.ilike(f"%{name}%"))
                 ).first()
                 if r:
-                    if r.voice_id != "af_bella":
-                        return False, f"Non-authoritative voice '{r.voice_id}' (af_bella required)"
+                    if r.voice_id != "en-US-AndrewNeural":
+                        return False, f"Non-authoritative voice '{r.voice_id}' (en-US-AndrewNeural required)"
                     if r.qa_status != "PASSED":
                         return False, f"RenderedVideoRecord QA status is '{r.qa_status}'"
             except Exception as r_err:
@@ -171,8 +171,8 @@ def is_valid_ready_short(
                     (RenderedVideoRecord.cloud_storage_path.ilike(f"%{name}%"))
                 ).first()
                 if r:
-                    if r.voice_id != "af_bella":
-                        return False, f"Non-authoritative voice '{r.voice_id}' (af_bella required)"
+                    if r.voice_id != "en-US-AndrewNeural":
+                        return False, f"Non-authoritative voice '{r.voice_id}' (en-US-AndrewNeural required)"
                     if r.qa_status != "PASSED":
                         return False, f"RenderedVideoRecord QA status is '{r.qa_status}'"
             except Exception as r_err:
@@ -205,7 +205,9 @@ class DriveVaultEngine:
     """Manages YouTube Shorts cloud video vault using Google Drive API v3."""
 
     def __init__(self, token_path: Optional[Path] = None, offline_mode: Optional[bool] = None):
-        self.token_path = token_path or (PROJECT_ROOT / "token.json")
+        # Default to Harry Potter-isolated credential path (gitignored, never AL AMR)
+        from config.settings import TOKEN_PATH
+        self.token_path = token_path or TOKEN_PATH
         self._drive_service = None
         self._vault_cache: Dict[str, str] = {}  # Cache of folder_name -> folder_id
         self.offline_mode = offline_mode

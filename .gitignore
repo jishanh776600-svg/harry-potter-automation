@@ -7,13 +7,41 @@ __pycache__/
 env/
 venv/
 
-# Secrets (Protected - Injected via GitHub Secrets in Cloud)
+# ==============================================================================
+# CREDENTIALS & SECRETS — ALL GITIGNORED — NEVER COMMIT
+# Harry Potter project uses: credentials/hp_token.json + credentials/hp_client_secret.json
+# ==============================================================================
+# OAuth tokens (all patterns)
 token.json
+hp_token.json
+*_token.json
+credentials/hp_token.json
+credentials/*.json
+
+# OAuth client secrets (all patterns)
 client_secret.json
+hp_client_secret.json
+*client_secret*.json
+credentials/hp_client_secret.json
+
+# Environment secrets
 .env
+.env.local
+.env.production
 show_secrets.py
 
-# Large Model Weights (Downloaded on-the-fly by Kokoro / HF)
+# API key files
+*.key
+*.pem
+*.p12
+
+# Google service account credentials
+service_account*.json
+gcp_credentials*.json
+
+# ==============================================================================
+# LARGE MODEL WEIGHTS (Downloaded on-the-fly by Kokoro / HF)
+# ==============================================================================
 data/*.onnx
 data/*.bin
 *.onnx
@@ -49,6 +77,7 @@ data/database/*
 !data/database/.gitkeep
 !assets/music/*.wav
 !assets/music/*.mp3
+!credentials/.gitkeep
 
 # Runtime locks & temporary cache
 data/locks/

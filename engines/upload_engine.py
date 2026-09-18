@@ -330,12 +330,21 @@ class UploadEngine:
             return None, f"ORPHAN_CHECK_ERROR:{e}"
 
     def get_youtube_service(self):
-        """Constructs and returns authenticated Google YouTube Data API v3 service."""
+        """
+        Constructs and returns authenticated Google YouTube Data API v3 service.
+        Uses ONLY the Harry Potter-isolated credential file: credentials/hp_token.json
+        NEVER uses AL AMR token.json or any other project's credentials.
+        """
         from googleapiclient.discovery import build
         from google.oauth2.credentials import Credentials
-        token_path = PROJECT_ROOT / "token.json"
+        from config.settings import TOKEN_PATH
+        # Isolated HP token path — gitignored, never committed
+        token_path = TOKEN_PATH
         if not token_path.exists():
-            raise FileNotFoundError(f"OAuth token.json not found at {token_path}. Run authentication setup.")
+            raise FileNotFoundError(
+                f"Harry Potter OAuth token not found at {token_path}. "
+                "Run: python scripts/auth_google.py to authenticate jishanh760@gmail.com."
+            )
         creds = Credentials.from_authorized_user_file(str(token_path))
         return build("youtube", "v3", credentials=creds)
 
@@ -361,7 +370,23 @@ class UploadEngine:
         """
         Uploads and schedules a YouTube Short to be automatically published by YouTube
         at the specified scheduled_publish_at UTC timestamp.
+
+        PUBLISHING SAFETY GATE:
+        PUBLISHING_ENABLED and UPLOAD_ENABLED must both be set to True in .env
+        before any upload can proceed. They default to False and remain False
+        until the explicit launch step is authorized by the user.
         """
+        # Hard publishing safety gate — prevents any accidental upload
+        from config.settings import PUBLISHING_ENABLED, UPLOAD_ENABLED
+        if not PUBLISHING_ENABLED or not UPLOAD_ENABLED:
+            raise PermissionError(
+                "[PUBLISHING_BLOCKED] Upload rejected by safety gate. "
+                "PUBLISHING_ENABLED and UPLOAD_ENABLED must both be set to True in .env. "
+                "These are only enabled during the explicit launch step. "
+                "This ensures the Harry Potter automation cannot accidentally publish "
+                "to the AL AMR channel or any channel before authorization."
+            )
+
         upload_id = f"upl_{uuid.uuid4().hex[:12]}"
         video_path = Path(render.video_path)
 
