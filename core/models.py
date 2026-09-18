@@ -919,18 +919,22 @@ class HPMovieClip(Base):
     """
     __tablename__ = "hp_movie_clips"
 
-    id = Column(String(64), primary_key=True)  # e.g. "clip_hps_ns_b1c01_gc0001_0003_beat_1"
+    id = Column(String(64), primary_key=True)  # e.g. "clip_hps_ns_b1c01_gc0001_0003_beat_1_shot_1"
     script_id = Column(String(64), ForeignKey("hp_scripts.id"), nullable=False, index=True)
     beat_id = Column(String(32), nullable=False, index=True)
+    shot_id = Column(String(32), default="shot_1", nullable=False, index=True)  # shot_1, shot_2, shot_3
+    shot_index = Column(Integer, default=1, nullable=False)
 
-    # Movie Source Identity
+    # Movie Source Identity & Cloud Resolution
     movie_id = Column(String(64), nullable=False, index=True)
     movie_number = Column(Integer, nullable=False, index=True)
     movie_title = Column(String(255), nullable=False)
     source_asset_id = Column(String(64), nullable=True)
+    source_drive_id = Column(String(128), nullable=True)  # Canonical Google Drive File ID
+    source_mode = Column(String(32), default="CLOUD_RESOLVABLE", nullable=False)  # CLOUD_RESOLVABLE, CLOUD_MATERIALIZED, LOCAL_DEV_CACHE
     subtitle_chunk_id = Column(String(64), nullable=True)
 
-    # Timecodes & Duration
+    # Timecodes & Rapid-Fire Duration (Target 1.5s - 3.0s)
     source_start_seconds = Column(Float, nullable=False)
     source_end_seconds = Column(Float, nullable=False)
     clip_start_seconds = Column(Float, nullable=False)

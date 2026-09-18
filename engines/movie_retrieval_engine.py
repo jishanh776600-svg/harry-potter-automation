@@ -2,29 +2,19 @@
 Harry Potter Movie Visual Retrieval & Cloud-Safe Clip Extraction Engine (Step 9)
 ================================================================================
 Transforms structured visual beats from Step 8 (hp_scripts) into verified,
-audio-muted movie clips from Harry Potter Movies 1-8.
+rapid-fire, audio-muted movie shots from Harry Potter Movies 1–8.
 
-Pipeline Stage:
-  hp_scripts (visual beats)
-    -> Visual Beat Query Construction
-    -> Movie Subtitle FTS5 Search
-    -> Timestamp Candidate Discovery
-    -> Candidate Context Expansion (adjacent subtitle chunks)
-    -> Multi-Factor Reranking (Characters, Keywords, Location, BM25, Preferred Movie, Duration)
-    -> Confidence Gate (>= 50.0 -> ACCEPTED; < 50.0 -> REJECTED)
-    -> Movie Source Resolution (Local Cache / On-Demand Cloud Download)
-    -> Exact Clip Extraction (ffmpeg -an, 9:16 vertical crop)
-    -> Post-Extraction FFprobe Verification (assert 0 audio streams)
-    -> Persistence to hp_movie_clips Table
-    -> Ready for Step 10
-
-Hard Invariants:
-  1. ABSOLUTE ISOLATION: Zero interaction with AL AMR.
-  2. MOVIE FOOTAGE ONLY: Strictly Movies 1-8. No AI imagery, no stock footage, no Pexels.
-  3. AUDIO MUTING INVARIANT: Extracted clips must have audio stripped (-an).
+Pacing & Architectural Invariants:
+  1. RAPID-FIRE PACING:
+     - Target shot duration: 2.0s – 2.5s (range: 1.5s – 3.0s).
+     - 1 visual beat -> multiple rapid movie shots (typically 2–3 shots per beat).
+     - A 25–30s Short naturally utilizes 8–12+ rapid movie shots.
+  2. ABSOLUTE ISOLATION: Zero interaction with AL AMR.
+  3. MOVIE FOOTAGE ONLY: Strictly Movies 1–8. No AI imagery, no stock footage, no Pexels.
+  4. AUDIO MUTING INVARIANT: Extracted clips must have audio stripped (-an).
      FFprobe verification must confirm 0 audio streams or raise RuntimeError.
-  4. CLOUD-RUNNER COMPATIBILITY: Single movie on-demand download, disk space checks,
-     safe ephemeral runner operation without exhausting disk.
+  5. CLOUD-RUNNER COMPATIBILITY: Single movie on-demand download, disk space checks,
+     safe ephemeral runner operation. All 8 movies resolve via Google Drive vault IDs.
 """
 
 import os
@@ -55,13 +45,16 @@ CREDENTIALS_DIR = PROJECT_ROOT / "credentials"
 HP_TOKEN_PATH = CREDENTIALS_DIR / "hp_token.json"
 
 MIN_CONFIDENCE_THRESHOLD = 50.0
+DEFAULT_TARGET_SHOT_DURATION = 2.2  # Seconds
+MIN_SHOT_DURATION = 1.5
+MAX_SHOT_DURATION = 3.0
 
 
 class MovieRetrievalEngine:
     """
     End-to-end engine for retrieving movie scenes from subtitle indexes,
-    scoring candidates against visual beat requirements, gating on confidence,
-    and extracting verified audio-muted clips.
+    scoring candidates against visual beat requirements, decomposing beats
+    into rapid-fire shot units (1.5–3.0s), and extracting verified audio-muted clips.
     """
 
     def __init__(
@@ -89,7 +82,6 @@ class MovieRetrievalEngine:
         """
         Generates prioritized search queries for a visual beat.
         Combines retrieval hints, character names, location, and action keywords.
-        Returns a list of search queries from most specific to broad fallback.
         """
         queries = []
         hints = beat.get("retrieval_hints", [])
@@ -98,7 +90,7 @@ class MovieRetrievalEngine:
         action = beat.get("action", "")
         req = beat.get("visual_requirement", "")
 
-        # Query 1: Cleaned specific retrieval hints
+        # 1. Cleaned specific retrieval hints
         if hints:
             clean_hints = [re.sub(r"[^a-zA-Z0-9\s]", "", h).strip() for h in hints if h]
             clean_hints = [h for h in clean_hints if len(h) >= 3]
@@ -108,7 +100,7 @@ class MovieRetrievalEngine:
                     if h not in queries:
                         queries.append(h)
 
-        # Query 2: Character names (first/last name tokens)
+        # 2. Character names (tokens and full names)
         for char in characters:
             clean_char = re.sub(r"[^a-zA-Z0-9\s]", "", char).strip()
             if clean_char:
@@ -119,7 +111,7 @@ class MovieRetrievalEngine:
                 if clean_char not in queries:
                     queries.append(clean_char)
 
-        # Query 3: Salient action / location nouns
+        # 3. Salient action / location nouns
         salient_words = []
         for text_source in (location, action, req):
             words = re.findall(r"[a-zA-Z]{4,}", text_source)
@@ -138,7 +130,6 @@ class MovieRetrievalEngine:
                 if sw not in queries:
                     queries.append(sw)
 
-        # Ensure uniqueness while preserving order
         unique_queries = []
         for q in queries:
             q_clean = q.strip()
@@ -153,17 +144,17 @@ class MovieRetrievalEngine:
     def search_candidates_for_beat(
         self,
         beat: Dict[str, Any],
-        max_candidates: int = 10
+        max_candidates: int = 15
     ) -> List[Dict[str, Any]]:
         """
         Queries the movie subtitles FTS5 index across generated queries.
-        Prioritizes the beat's preferred_movie_number, then falls back to other movies.
+        Prioritizes the beat's preferred_movie_number, then falls back globally.
         """
         queries = self.build_queries_for_beat(beat)
         preferred_m = beat.get("preferred_movie_number")
         candidates_by_id = {}
 
-        # Round 1: Search preferred movie with all queries
+        # Round 1: Preferred movie search
         if preferred_m:
             for q in queries:
                 matches = self.asset_engine.search_movie_scenes(q, movie_number=preferred_m, limit=max_candidates)
@@ -172,8 +163,8 @@ class MovieRetrievalEngine:
                         m["matched_query"] = q
                         candidates_by_id[m["chunk_id"]] = m
 
-        # Round 2: If insufficient candidates, search globally across all movies
-        if len(candidates_by_id) < 3:
+        # Round 2: Fallback global search if fewer than 5 candidates
+        if len(candidates_by_id) < 5:
             for q in queries:
                 matches = self.asset_engine.search_movie_scenes(q, movie_number=None, limit=5)
                 for m in matches:
@@ -189,10 +180,7 @@ class MovieRetrievalEngine:
     # 3. CANDIDATE CONTEXT EXPANSION
     # --------------------------------------------------------------------------
     def expand_candidate_context(self, candidate: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Expands candidate context by fetching surrounding subtitle chunks
-        (previous and next sequence entries) for the same movie.
-        """
+        """Expands candidate context by fetching preceding and succeeding subtitle chunks."""
         chunk_id = candidate["chunk_id"]
         movie_num = candidate["movie_number"]
 
@@ -235,7 +223,7 @@ class MovieRetrievalEngine:
         return candidate
 
     # --------------------------------------------------------------------------
-    # 4. MULTI-FACTOR RERANKING & CONFIDENCE SCORING
+    # 4. MULTI-FACTOR RERANKING & SCORING
     # --------------------------------------------------------------------------
     def score_candidate(
         self,
@@ -244,14 +232,12 @@ class MovieRetrievalEngine:
     ) -> Dict[str, Any]:
         """
         Multi-Factor Scoring (0 to 100 points):
-          1. Character Match (0 - 30 pts): Character names mentioned in scene/context text.
-          2. Action / Keyword Match (0 - 25 pts): Actions/hints appearing in dialogue or scene.
-          3. Location / Object Match (0 - 15 pts): Location/object keywords match.
-          4. Lexical BM25 (0 - 15 pts): Direct query rank from SQLite FTS5.
-          5. Preferred Movie Match (0 - 15 pts): Candidate belongs to preferred movie.
-          6. Duration Suitability (0 - 10 pts): Scene duration falls within 3.0s - 12.0s.
-
-        Total Score = sum of components (clamped 0 to 100).
+          1. Character Match (0 - 30 pts)
+          2. Action / Keyword Match (0 - 25 pts)
+          3. Location / Object Match (0 - 15 pts)
+          4. Lexical BM25 (0 - 15 pts)
+          5. Preferred Movie Match (0 - 15 pts)
+          6. Duration Suitability (0 - 10 pts)
         """
         text = candidate.get("text", "").lower()
         context = candidate.get("expanded_context", "").lower()
@@ -301,12 +287,10 @@ class MovieRetrievalEngine:
 
         # 6. Duration Suitability (0-10 pts)
         duration = float(candidate.get("duration_seconds", 0.0))
-        if 3.0 <= duration <= 12.0:
+        if 2.0 <= duration <= 15.0:
             dur_score = 10.0
-        elif 2.0 <= duration <= 16.0:
-            dur_score = 6.0
         else:
-            dur_score = 2.0
+            dur_score = 5.0
         score_details["duration_score"] = dur_score
 
         total_score = char_score + action_score + loc_score + bm25_score + movie_score + dur_score
@@ -331,73 +315,168 @@ class MovieRetrievalEngine:
     # --------------------------------------------------------------------------
     def evaluate_confidence_gate(
         self,
-        top_candidate: Optional[Dict[str, Any]],
+        candidate: Optional[Dict[str, Any]],
         threshold: float = MIN_CONFIDENCE_THRESHOLD
     ) -> Tuple[bool, str, str]:
         """
-        Validates whether the retrieved movie candidate satisfies the confidence gate.
-        Returns: (is_accepted, match_status, reason)
-        
-        Strict Policies:
-          - No AI imagery, no stock footage, no Pexels.
-          - Only Harry Potter Movies 1-8.
-          - Score must meet or exceed the threshold (default 50.0).
+        Validates candidate against confidence threshold and strict MOVIE FOOTAGE ONLY policy.
         """
-        if top_candidate is None:
+        if candidate is None:
             return False, "REJECTED", "NO_CANDIDATE_FOUND"
 
-        m_num = top_candidate.get("movie_number")
+        m_num = candidate.get("movie_number")
         if not m_num or m_num < 1 or m_num > 8:
             return False, "REJECTED", "NON_CANONICAL_MOVIE_NUMBER"
 
-        score = float(top_candidate.get("score", 0.0))
+        score = float(candidate.get("score", 0.0))
         if score >= threshold:
             return True, "ACCEPTED", "HIGH_CONFIDENCE_MOVIE_MATCH"
         else:
             return False, "REJECTED", f"LOW_RETRIEVAL_CONFIDENCE (Score {score:.1f} < {threshold:.1f})"
 
     # --------------------------------------------------------------------------
-    # 6. MOVIE SOURCE MANAGEMENT (LOCAL & CLOUD ON-DEMAND)
+    # 6. BEAT -> RAPID-FIRE SHOT UNITS RESOLUTION
+    # --------------------------------------------------------------------------
+    def resolve_beat_to_shots(
+        self,
+        beat: Dict[str, Any],
+        ranked_candidates: List[Dict[str, Any]],
+        target_shots_per_beat: int = 2
+    ) -> List[Dict[str, Any]]:
+        """
+        ARCHITECTURAL ADVANCEMENT:
+        Decomposes 1 visual beat into 2 to 3 rapid-fire movie shot units (1.5s - 3.0s each).
+        Uses distinct high-confidence scene candidates or sub-cuts from focal scenes.
+        NEVER uses unrelated footage.
+        """
+        valid_candidates = [
+            c for c in ranked_candidates
+            if c.get("score", 0.0) >= MIN_CONFIDENCE_THRESHOLD
+        ]
+
+        if not valid_candidates:
+            # Fallback placeholder to record rejection
+            return []
+
+        shots = []
+        shot_idx = 1
+
+        # Strategy A: Select top distinct high-confidence candidates for the beat
+        if len(valid_candidates) >= 2:
+            for cand in valid_candidates[:target_shots_per_beat]:
+                src_start = float(cand["start_seconds"])
+                src_end = float(cand["end_seconds"])
+                # Pacing: clamp shot to 1.5s - 3.0s (default ~2.2s)
+                shot_duration = min(MAX_SHOT_DURATION, max(MIN_SHOT_DURATION, src_end - src_start))
+                if shot_duration > MAX_SHOT_DURATION:
+                    shot_duration = DEFAULT_TARGET_SHOT_DURATION
+
+                clip_start = src_start
+                clip_end = clip_start + shot_duration
+
+                shots.append({
+                    "shot_id": f"shot_{shot_idx}",
+                    "shot_index": shot_idx,
+                    "candidate": cand,
+                    "source_start_seconds": round(src_start, 3),
+                    "source_end_seconds": round(src_end, 3),
+                    "clip_start_seconds": round(clip_start, 3),
+                    "clip_end_seconds": round(clip_end, 3),
+                    "duration_seconds": round(shot_duration, 3),
+                    "sub_role": "FOCAL_ACTION" if shot_idx == 1 else "REACTION_OR_LOCATION"
+                })
+                shot_idx += 1
+
+        # Strategy B: If only 1 distinct scene candidate is valid, decompose it into 2 rapid cuts
+        else:
+            primary = valid_candidates[0]
+            src_start = float(primary["start_seconds"])
+            src_end = float(primary["end_seconds"])
+            total_dur = src_end - src_start
+
+            if total_dur >= 4.0:
+                # Cut 1: Initial focus / reaction (2.2s)
+                dur_1 = min(2.5, total_dur / 2.0)
+                dur_1 = max(MIN_SHOT_DURATION, dur_1)
+                shots.append({
+                    "shot_id": "shot_1",
+                    "shot_index": 1,
+                    "candidate": primary,
+                    "source_start_seconds": round(src_start, 3),
+                    "source_end_seconds": round(src_end, 3),
+                    "clip_start_seconds": round(src_start, 3),
+                    "clip_end_seconds": round(src_start + dur_1, 3),
+                    "duration_seconds": round(dur_1, 3),
+                    "sub_role": "ESTABLISHING_OR_ACTION"
+                })
+                # Cut 2: Follow-through / dialogue payoff (2.2s)
+                dur_2 = min(MAX_SHOT_DURATION, max(MIN_SHOT_DURATION, total_dur - dur_1))
+                start_2 = src_start + dur_1
+                shots.append({
+                    "shot_id": "shot_2",
+                    "shot_index": 2,
+                    "candidate": primary,
+                    "source_start_seconds": round(src_start, 3),
+                    "source_end_seconds": round(src_end, 3),
+                    "clip_start_seconds": round(start_2, 3),
+                    "clip_end_seconds": round(start_2 + dur_2, 3),
+                    "duration_seconds": round(dur_2, 3),
+                    "sub_role": "DIALOGUE_PAYOFF"
+                })
+            else:
+                # Single rapid shot
+                dur = min(MAX_SHOT_DURATION, max(MIN_SHOT_DURATION, total_dur))
+                shots.append({
+                    "shot_id": "shot_1",
+                    "shot_index": 1,
+                    "candidate": primary,
+                    "source_start_seconds": round(src_start, 3),
+                    "source_end_seconds": round(src_end, 3),
+                    "clip_start_seconds": round(src_start, 3),
+                    "clip_end_seconds": round(src_start + dur, 3),
+                    "duration_seconds": round(dur, 3),
+                    "sub_role": "FOCAL_ACTION"
+                })
+
+        return shots
+
+    # --------------------------------------------------------------------------
+    # 7. MOVIE SOURCE MANAGEMENT (GOOGLE DRIVE VAULT & DISK CHECK)
     # --------------------------------------------------------------------------
     def resolve_movie_file(
         self,
         movie_number: int,
         allow_download: bool = False
-    ) -> Optional[Path]:
+    ) -> Tuple[Optional[Path], str, Optional[str]]:
         """
-        Resolves the local video file path for a canonical Harry Potter movie.
-        If missing and allow_download=True, downloads on-demand from Google Drive.
-        Checks disk space before download to ensure ephemeral runner safety.
+        Resolves movie video file path and cloud Drive metadata.
+        Returns: (local_path_if_present, source_mode, drive_id)
+        
+        Invariant:
+          Movie 8 is treated as cloud-resolvable. The local file is development cache only.
+          Production execution retrieves on-demand from Google Drive vault.
         """
         meta = get_movie_by_number(movie_number)
         if not meta:
             logger.error(f"Unknown movie number: {movie_number}")
-            return None
+            return None, "UNRESOLVABLE", None
 
         video_filename = meta["video_filename"]
+        drive_id = meta["video_drive_id"]
         local_path = self.movies_dir / video_filename
 
         if local_path.exists() and local_path.stat().st_size > 0:
-            return local_path
+            return local_path, "LOCAL_DEV_CACHE", drive_id
 
         if not allow_download:
-            logger.warning(
-                f"Movie {movie_number} ({video_filename}) is not cached locally. "
-                "allow_download=False; skipping cloud download."
-            )
-            return None
+            return None, "CLOUD_RESOLVABLE", drive_id
 
+        # Cloud on-demand single-movie download with disk check
         free_bytes = shutil.disk_usage(self.movies_dir).free
         required_bytes = meta.get("video_file_size_bytes", 3 * 1024 * 1024 * 1024)
         if free_bytes < required_bytes + (1024 * 1024 * 1024):
-            logger.error(
-                f"Insufficient disk space to download Movie {movie_number}: "
-                f"Free {free_bytes / (1024**3):.2f} GB < Required {(required_bytes + 1024**3)/(1024**3):.2f} GB"
-            )
-            return None
-
-        drive_id = meta["video_drive_id"]
-        logger.info(f"Downloading Movie {movie_number} ({video_filename}) on-demand from Drive ({drive_id})...")
+            logger.error(f"Insufficient disk space for Movie {movie_number}: Free {free_bytes/(1024**3):.2f} GB")
+            return None, "INSUFFICIENT_DISK", drive_id
 
         try:
             from google.oauth2.credentials import Credentials
@@ -405,62 +484,51 @@ class MovieRetrievalEngine:
             from googleapiclient.http import MediaIoBaseDownload
 
             if not HP_TOKEN_PATH.exists():
-                logger.error(f"Drive token not found at {HP_TOKEN_PATH}")
-                return None
+                return None, "NO_DRIVE_TOKEN", drive_id
 
             creds = Credentials.from_authorized_user_file(str(HP_TOKEN_PATH))
             drive = build("drive", "v3", credentials=creds)
 
+            logger.info(f"Downloading Movie {movie_number} ({video_filename}) from Drive ID {drive_id}...")
             req = drive.files().get_media(fileId=drive_id)
             with open(local_path, "wb") as f:
                 downloader = MediaIoBaseDownload(f, req, chunksize=10 * 1024 * 1024)
                 done = False
                 while not done:
                     status, done = downloader.next_chunk()
-                    if status:
-                        logger.info(f"Movie {movie_number} download: {int(status.progress() * 100)}%")
 
-            logger.info(f"Movie {movie_number} downloaded successfully to {local_path} ({local_path.stat().st_size} bytes)")
-            return local_path
+            logger.info(f"Movie {movie_number} materialized successfully.")
+            return local_path, "CLOUD_MATERIALIZED", drive_id
         except Exception as e:
-            logger.error(f"Failed to download Movie {movie_number} from Drive: {e}")
+            logger.error(f"Drive download failed for Movie {movie_number}: {e}")
             local_path.unlink(missing_ok=True)
-            return None
+            return None, "DOWNLOAD_FAILED", drive_id
 
     # --------------------------------------------------------------------------
-    # 7. EXACT MUTED CLIP EXTRACTION & FFPROBE VERIFICATION
+    # 8. EXACT MUTED CLIP EXTRACTION & FFPROBE VALIDATION
     # --------------------------------------------------------------------------
-    def extract_clip(
+    def extract_rapid_shot(
         self,
-        candidate: Dict[str, Any],
+        shot: Dict[str, Any],
         script_id: str,
         beat_id: str,
-        movie_path: Path,
-        padding_sec: float = 0.8,
-        min_duration: float = 2.5,
-        max_duration: float = 8.0
+        movie_path: Path
     ) -> Dict[str, Any]:
         """
-        Extracts an exact, audio-muted (-an) 9:16 vertical clip from the resolved movie file.
-        Verifies via ffprobe that ZERO audio streams are present in the output.
-        Computes SHA256 checksum and dimensions.
+        Extracts an exact, audio-muted (-an) 9:16 vertical clip (1.5s - 3.0s).
+        Asserts via ffprobe that ZERO audio streams are present.
         """
-        src_start = float(candidate["start_seconds"])
-        src_end = float(candidate["end_seconds"])
-        raw_duration = src_end - src_start
+        clip_start = shot["clip_start_seconds"]
+        clip_dur = shot["duration_seconds"]
+        shot_id = shot["shot_id"]
 
-        clip_start = max(0.0, src_start - padding_sec)
-        clip_duration = raw_duration + (2.0 * padding_sec)
-        clip_duration = max(min_duration, min(max_duration, clip_duration))
-        clip_end = clip_start + clip_duration
-
-        output_filename = f"{script_id}_{beat_id}.mp4"
+        output_filename = f"{script_id}_{beat_id}_{shot_id}.mp4"
         output_path = self.clips_dir / output_filename
 
         self.asset_engine.extract_muted_clip(
             video_input_path=movie_path,
             start_seconds=clip_start,
-            duration_seconds=clip_duration,
+            duration_seconds=clip_dur,
             output_clip_path=output_path,
             target_width=1080,
             target_height=1920
@@ -472,6 +540,7 @@ class MovieRetrievalEngine:
                 sha.update(chunk)
         clip_hash = sha.hexdigest()
 
+        # FFprobe verification
         probe_cmd = [
             "ffprobe", "-v", "error",
             "-show_entries", "stream=index,codec_type,codec_name,width,height",
@@ -488,7 +557,7 @@ class MovieRetrievalEngine:
         if len(audio_streams) > 0:
             output_path.unlink(missing_ok=True)
             raise RuntimeError(
-                f"[INVARIANT VIOLATION] Extracted clip {output_filename} has audio stream count {len(audio_streams)}! Must be 0."
+                f"[INVARIANT VIOLATION] Extracted shot {output_filename} contains audio streams! Must be 0."
             )
 
         width = video_streams[0].get("width", 1080) if video_streams else 1080
@@ -502,44 +571,45 @@ class MovieRetrievalEngine:
             "width": width,
             "height": height,
             "audio_stream_count": 0,
-            "source_start_seconds": round(src_start, 3),
-            "source_end_seconds": round(src_end, 3),
-            "clip_start_seconds": round(clip_start, 3),
-            "clip_end_seconds": round(clip_end, 3),
-            "duration_seconds": round(clip_duration, 3),
+            "clip_start_seconds": clip_start,
+            "clip_end_seconds": shot["clip_end_seconds"],
+            "duration_seconds": clip_dur,
             "extraction_status": "VERIFIED_MUTED"
         }
 
     # --------------------------------------------------------------------------
-    # 8. PERSISTENCE LAYER (HPMovieClip)
+    # 9. PERSISTENCE LAYER (HPMovieClip)
     # --------------------------------------------------------------------------
-    def persist_clip_record(
+    def persist_shot_record(
         self,
         script_id: str,
         beat_id: str,
+        shot_id: str,
+        shot_index: int,
         candidate: Dict[str, Any],
+        shot_timing: Dict[str, Any],
         match_status: str,
+        source_mode: str,
+        source_drive_id: Optional[str] = None,
         rejection_reason: Optional[str] = None,
         extraction_meta: Optional[Dict[str, Any]] = None
     ) -> HPMovieClip:
-        """
-        Idempotently persists or updates the HPMovieClip record in SQLite.
-        """
-        clip_id = f"clip_{script_id}_{beat_id}"
+        """Persists or updates an individual HPMovieClip shot record in SQLite."""
+        clip_pk = f"clip_{script_id}_{beat_id}_{shot_id}"
 
         with self.Session() as session:
-            existing = session.query(HPMovieClip).filter_by(id=clip_id).first()
+            existing = session.query(HPMovieClip).filter_by(id=clip_pk).first()
 
             src_asset_id = f"hp_movie_{candidate.get('movie_number', 1)}"
             sub_id = candidate.get("chunk_id")
             m_num = candidate.get("movie_number", 1)
             m_title = candidate.get("movie_title", "")
 
-            src_start = extraction_meta["source_start_seconds"] if extraction_meta else float(candidate.get("start_seconds", 0.0))
-            src_end = extraction_meta["source_end_seconds"] if extraction_meta else float(candidate.get("end_seconds", 0.0))
-            clip_start = extraction_meta["clip_start_seconds"] if extraction_meta else src_start
-            clip_end = extraction_meta["clip_end_seconds"] if extraction_meta else src_end
-            duration = extraction_meta["duration_seconds"] if extraction_meta else round(src_end - src_start, 3)
+            src_start = shot_timing.get("source_start_seconds", 0.0)
+            src_end = shot_timing.get("source_end_seconds", 0.0)
+            clip_start = shot_timing.get("clip_start_seconds", 0.0)
+            clip_end = shot_timing.get("clip_end_seconds", 0.0)
+            duration = shot_timing.get("duration_seconds", DEFAULT_TARGET_SHOT_DURATION)
 
             file_path = extraction_meta.get("file_path") if extraction_meta else None
             file_size = extraction_meta.get("file_size_bytes") if extraction_meta else None
@@ -548,6 +618,8 @@ class MovieRetrievalEngine:
             height = extraction_meta.get("height", 1920) if extraction_meta else None
 
             if existing:
+                existing.shot_id = shot_id
+                existing.shot_index = shot_index
                 existing.source_start_seconds = src_start
                 existing.source_end_seconds = src_end
                 existing.clip_start_seconds = clip_start
@@ -559,6 +631,8 @@ class MovieRetrievalEngine:
                 existing.confidence = candidate.get("score", 0.0)
                 existing.match_status = match_status
                 existing.rejection_reason = rejection_reason
+                existing.source_drive_id = source_drive_id
+                existing.source_mode = source_mode
                 existing.file_path = file_path
                 existing.file_size_bytes = file_size
                 existing.sha256 = sha256
@@ -570,13 +644,17 @@ class MovieRetrievalEngine:
                 rec = existing
             else:
                 rec = HPMovieClip(
-                    id=clip_id,
+                    id=clip_pk,
                     script_id=script_id,
                     beat_id=beat_id,
+                    shot_id=shot_id,
+                    shot_index=shot_index,
                     movie_id=src_asset_id,
                     movie_number=m_num,
                     movie_title=m_title,
                     source_asset_id=src_asset_id,
+                    source_drive_id=source_drive_id,
+                    source_mode=source_mode,
                     subtitle_chunk_id=sub_id,
                     source_start_seconds=src_start,
                     source_end_seconds=src_end,
@@ -603,20 +681,19 @@ class MovieRetrievalEngine:
                 session.add(rec)
 
             session.commit()
-            logger.info(f"Persisted clip record {clip_id}: status={match_status}, score={candidate.get('score', 0.0)}")
             return rec
 
     # --------------------------------------------------------------------------
-    # 9. FULL SCRIPT BEAT PIPELINE EXECUTION
+    # 10. FULL SCRIPT EXECUTION (1 BEAT -> MULTIPLE SHOTS)
     # --------------------------------------------------------------------------
-    def process_script_beats(
+    def process_script_shots(
         self,
         script_id: str,
         allow_download: bool = False
     ) -> List[Dict[str, Any]]:
         """
-        Executes Step 9 for all visual beats of a given script.
-        Returns a list of per-beat results with clip metadata and verification details.
+        Executes Step 9 for all visual beats of a given script,
+        resolving each beat into 2–3 rapid-fire shot units.
         """
         with self.Session() as session:
             script = session.query(HarryPotterScript).filter_by(id=script_id).first()
@@ -624,111 +701,122 @@ class MovieRetrievalEngine:
                 raise ValueError(f"Script not found: {script_id}")
             beats = json.loads(script.visual_beats_json)
 
-        results = []
+        script_shots = []
+
         for beat in beats:
             beat_id = beat.get("beat_id", "beat_1")
-            logger.info(f"Processing {script_id} -> {beat_id}...")
 
             # 1. Search candidates
             candidates = self.search_candidates_for_beat(beat)
 
-            # 2. Expand context for candidates
+            # 2. Context expansion
             for c in candidates:
                 self.expand_candidate_context(c)
 
             # 3. Score & Rerank
             ranked = self.rerank_candidates(beat, candidates)
-            top_cand = ranked[0] if ranked else None
 
-            # 4. Confidence Gate & Policy Check
-            is_accepted, match_status, reason = self.evaluate_confidence_gate(top_cand)
+            # 4. Decompose beat into rapid-fire shots (1.5s - 3.0s each)
+            shots = self.resolve_beat_to_shots(beat, ranked, target_shots_per_beat=2)
 
-            extraction_meta = None
-            if is_accepted and top_cand:
-                m_num = top_cand["movie_number"]
-                movie_file = self.resolve_movie_file(m_num, allow_download=allow_download)
+            if not shots:
+                # No candidate met the gate; record rejected shot
+                top_cand = ranked[0] if ranked else {}
+                _, match_status, reason = self.evaluate_confidence_gate(top_cand or None)
+                self.persist_shot_record(
+                    script_id=script_id,
+                    beat_id=beat_id,
+                    shot_id="shot_1",
+                    shot_index=1,
+                    candidate=top_cand,
+                    shot_timing={"source_start_seconds": 0.0, "source_end_seconds": 0.0, "duration_seconds": 0.0},
+                    match_status="REJECTED",
+                    source_mode="CLOUD_RESOLVABLE",
+                    rejection_reason=reason
+                )
+                continue
+
+            for shot in shots:
+                cand = shot["candidate"]
+                shot_id = shot["shot_id"]
+                shot_idx = shot["shot_index"]
+                m_num = cand["movie_number"]
+
+                # Resolve movie source
+                movie_file, source_mode, drive_id = self.resolve_movie_file(m_num, allow_download=allow_download)
+
+                extraction_meta = None
+                match_status = "ACCEPTED"
+                reason = None
 
                 if movie_file and movie_file.exists():
                     try:
-                        extraction_meta = self.extract_clip(
-                            candidate=top_cand,
+                        extraction_meta = self.extract_rapid_shot(
+                            shot=shot,
                             script_id=script_id,
                             beat_id=beat_id,
                             movie_path=movie_file
                         )
-                        logger.info(f"Extracted verified clip for {script_id} {beat_id}: {extraction_meta['file_name']}")
                     except Exception as e:
-                        logger.error(f"Clip extraction failed for {script_id} {beat_id}: {e}")
+                        logger.error(f"Clip extraction failed for {script_id} {beat_id} {shot_id}: {e}")
                         match_status = "EXTRACTION_FAILED"
                         reason = str(e)
                 else:
-                    logger.info(
-                        f"Clip extraction deferred for {script_id} {beat_id}: "
-                        f"Movie {m_num} source not available locally."
-                    )
-                    reason = f"MOVIE_{m_num}_SOURCE_PENDING_DOWNLOAD"
+                    reason = f"MOVIE_{m_num}_SOURCE_PENDING_CLOUD_DOWNLOAD"
 
-            # 5. Persist to SQLite
-            cand_to_persist = top_cand or {
-                "chunk_id": None,
-                "movie_number": beat.get("preferred_movie_number", 1),
-                "movie_title": "Unknown",
-                "score": 0.0,
-                "text": None,
-                "matched_query": None
-            }
-            self.persist_clip_record(
-                script_id=script_id,
-                beat_id=beat_id,
-                candidate=cand_to_persist,
-                match_status=match_status,
-                rejection_reason=reason if match_status != "ACCEPTED" else None,
-                extraction_meta=extraction_meta
-            )
+                self.persist_shot_record(
+                    script_id=script_id,
+                    beat_id=beat_id,
+                    shot_id=shot_id,
+                    shot_index=shot_idx,
+                    candidate=cand,
+                    shot_timing=shot,
+                    match_status=match_status,
+                    source_mode=source_mode,
+                    source_drive_id=drive_id,
+                    rejection_reason=reason if match_status != "ACCEPTED" else None,
+                    extraction_meta=extraction_meta
+                )
 
-            results.append({
-                "script_id": script_id,
-                "beat_id": beat_id,
-                "beat_requirement": beat.get("visual_requirement"),
-                "preferred_movie": beat.get("preferred_movie_number"),
-                "top_candidate": top_cand,
-                "match_status": match_status,
-                "reason": reason,
-                "extraction_meta": extraction_meta
-            })
+                script_shots.append({
+                    "script_id": script_id,
+                    "beat_id": beat_id,
+                    "shot_id": shot_id,
+                    "movie_number": m_num,
+                    "duration_seconds": shot["duration_seconds"],
+                    "confidence": cand.get("score", 0.0),
+                    "match_status": match_status,
+                    "source_mode": source_mode,
+                    "source_drive_id": drive_id,
+                    "extraction_meta": extraction_meta
+                })
 
-        return results
+        return script_shots
 
     def process_launch_batch(self, allow_download: bool = False) -> Dict[str, Any]:
-        """
-        Executes Step 9 visual retrieval across all 4 launch batch scripts.
-        """
+        """Executes Step 9 rapid-fire shot retrieval across all 4 launch batch scripts."""
         with self.Session() as session:
             scripts = session.query(HarryPotterScript).order_by(HarryPotterScript.id.asc()).all()
             script_ids = [s.id for s in scripts]
 
         batch_summary = {
             "total_scripts": len(script_ids),
-            "total_beats": 0,
-            "accepted_beats": 0,
-            "rejected_beats": 0,
-            "extracted_clips": 0,
-            "scripts_processed": []
+            "total_shots_resolved": 0,
+            "accepted_shots": 0,
+            "extracted_shots": 0,
+            "shot_durations": [],
+            "scripts": {}
         }
 
         for sid in script_ids:
-            beat_results = self.process_script_beats(sid, allow_download=allow_download)
-            batch_summary["scripts_processed"].append({
-                "script_id": sid,
-                "beats": beat_results
-            })
-            for br in beat_results:
-                batch_summary["total_beats"] += 1
-                if br["match_status"] == "ACCEPTED":
-                    batch_summary["accepted_beats"] += 1
-                else:
-                    batch_summary["rejected_beats"] += 1
-                if br.get("extraction_meta"):
-                    batch_summary["extracted_clips"] += 1
+            shots = self.process_script_shots(sid, allow_download=allow_download)
+            batch_summary["scripts"][sid] = shots
+            for sh in shots:
+                batch_summary["total_shots_resolved"] += 1
+                if sh["match_status"] == "ACCEPTED":
+                    batch_summary["accepted_shots"] += 1
+                if sh.get("extraction_meta"):
+                    batch_summary["extracted_shots"] += 1
+                batch_summary["shot_durations"].append(sh["duration_seconds"])
 
         return batch_summary
