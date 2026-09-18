@@ -580,3 +580,76 @@ class ProductionIncidentRecord(Base):
     regression_test = Column(String(128), nullable=True)
     git_commit_sha = Column(String(64), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+# ==============================================================================
+# HARRY POTTER NOVEL KNOWLEDGE BASE MODELS (Step 6)
+# Authoritative text source of truth for the entire automated pipeline.
+# ==============================================================================
+
+class NovelBook(Base):
+    """Authoritative record for each of the 7 Harry Potter novels."""
+    __tablename__ = "novel_books"
+
+    id = Column(String(64), primary_key=True)  # hp_book_1 .. hp_book_7
+    book_number = Column(Integer, unique=True, nullable=False, index=True)
+    title = Column(String(255), nullable=False)
+    us_title = Column(String(255), nullable=True)
+    author = Column(String(128), default="J.K. Rowling", nullable=False)
+    total_chapters = Column(Integer, default=0, nullable=False)
+    total_pages = Column(Integer, default=0, nullable=False)
+    total_chunks = Column(Integer, default=0, nullable=False)
+    source_file = Column(String(255), nullable=False)
+    source_drive_id = Column(String(128), nullable=True)
+    file_checksum = Column(String(64), nullable=True)
+    ingested_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    chapters = relationship("NovelChapter", back_populates="book", cascade="all, delete-orphan", order_by="NovelChapter.chapter_number")
+    chunks = relationship("NovelChunk", back_populates="book", cascade="all, delete-orphan", order_by="NovelChunk.global_chronology_index")
+
+
+class NovelChapter(Base):
+    """Chapter boundary and metadata within a Harry Potter novel."""
+    __tablename__ = "novel_chapters"
+
+    id = Column(String(64), primary_key=True)  # hp_b1_c01 ..
+    book_id = Column(String(64), ForeignKey("novel_books.id"), nullable=False, index=True)
+    book_number = Column(Integer, nullable=False, index=True)
+    chapter_number = Column(Integer, nullable=False, index=True)
+    chapter_title = Column(String(255), nullable=False)
+    start_page = Column(Integer, nullable=False)
+    end_page = Column(Integer, nullable=False)
+    total_chunks = Column(Integer, default=0, nullable=False)
+    word_count = Column(Integer, default=0, nullable=False)
+
+    book = relationship("NovelBook", back_populates="chapters")
+    chunks = relationship("NovelChunk", back_populates="chapter", cascade="all, delete-orphan", order_by="NovelChunk.chunk_index")
+
+
+class NovelChunk(Base):
+    """
+    Searchable, contextual story passage preserving strict narrative chronology
+    and exact source-to-page traceability across the 7 novels.
+    """
+    __tablename__ = "novel_chunks"
+
+    id = Column(String(64), primary_key=True)  # hp_b1_c01_chk001 ..
+    book_id = Column(String(64), ForeignKey("novel_books.id"), nullable=False, index=True)
+    book_number = Column(Integer, nullable=False, index=True)
+    book_title = Column(String(255), nullable=False)
+    chapter_id = Column(String(64), ForeignKey("novel_chapters.id"), nullable=False, index=True)
+    chapter_number = Column(Integer, nullable=False, index=True)
+    chapter_title = Column(String(255), nullable=False)
+    page_start = Column(Integer, nullable=False)
+    page_end = Column(Integer, nullable=False)
+    chunk_index = Column(Integer, nullable=False)  # Sequential within chapter
+    global_chronology_index = Column(Integer, nullable=False, unique=True, index=True)  # 1 to N across all 7 books!
+    text = Column(Text, nullable=False)
+    word_count = Column(Integer, nullable=False)
+    source_file = Column(String(255), nullable=False)
+    source_location = Column(String(255), nullable=False)  # "Book 1 Chapter 1 Page 2-3"
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    book = relationship("NovelBook", back_populates="chunks")
+    chapter = relationship("NovelChapter", back_populates="chunks")
+

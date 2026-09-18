@@ -47,13 +47,19 @@ data/*.bin
 *.onnx
 *.bin
 
-# Media Caches (Render outputs are temporary)
+# Media Caches & Local Derived Copies (Drive is authoritative cloud vault)
 data/renders/
 data/voice/
 data/visuals/
 data/assets/
 data/captions/
 data/vault_ready/
+data/books/
+!data/books/.gitkeep
+data/movies/
+!data/movies/.gitkeep
+data/movie_subtitles/
+!data/movie_subtitles/.gitkeep
 
 # Temporary test audio and logs
 *.log
