@@ -13,7 +13,7 @@ from typing import Dict, Any, Optional, List, Tuple
 from dataclasses import dataclass, field
 from sqlalchemy.orm import Session
 
-from config.constants import MIN_WORD_COUNT, MAX_WORD_COUNT, OPTIMAL_WORD_COUNT
+from config.constants import MIN_WORD_COUNT, MAX_WORD_COUNT, OPTIMAL_WORD_COUNT, FORBIDDEN_SPOKEN_PART_PATTERNS
 from config.settings import GEMINI_API_KEY, AI_PROVIDER_AVAILABLE
 from core.models import Topic, ScriptRecord
 from core.content_profile import ContentProfile, get_active_profile
@@ -39,189 +39,63 @@ FORBIDDEN_CLICHES = [
     "this shocking event"
 ]
 
-# High-Retention Curated Seed Scripts (Pre-verified for seed topics)
+# High-Retention Curated Seed Scripts (Pre-verified for Harry Potter storytelling and discovery)
 CURATED_SCRIPTS = {
-    "Red Sea Maritime Chokepoint Crisis": {
-        "hook": "Twelve percent of global seaborne trade is being diverted around an entire continent.",
-        "context": "Commercial shipping through the Bab-el-Mandeb strait faced missile and drone swarms.",
-        "escalation": "Allied naval task forces deployed guided missile destroyers to shoot down inbound threats.",
-        "reveal": "Container freight rates tripled within weeks as giant freighters rerouted around Africa.",
-        "loop_twist": "A single chokepoint twenty miles wide exposed the fragile vulnerability of modern commerce."
+    "The Boy Who Lived Under the Cupboard": {
+        "hook": "Ten years passed in the dark cupboard beneath the stairs before Harry Potter learned the truth.",
+        "context": "To his aunt and uncle, he was an unwanted burden to hide from normal neighbours.",
+        "escalation": "Strange incidents kept happening whenever Harry felt terrified or angry, defying every law of reality.",
+        "reveal": "The Dursleys swore to stamp out the magic inside him, terrified of his true heritage.",
+        "loop_twist": "They never suspected a single letter from Hogwarts would shatter their silent prison forever."
     },
-    "Baltic Undersea Infrastructure Security": {
-        "hook": "Beneath the Baltic Sea, severed data cables triggered an emergency naval response.",
-        "context": "Critical telecommunication lines and energy pipelines were severed in international waters.",
-        "escalation": "Maritime patrol aircraft and mine-countermeasure ships deployed sonar to inspect the seabed.",
-        "reveal": "Investigators tracked suspicious commercial vessels dragging anchors across undersea conduits.",
-        "loop_twist": "Modern hybrid warfare showed that cutting deep sea cables can paralyze nations without firing a shot."
+    "The Vanishing Glass at the Zoo": {
+        "hook": "On Dudley Dursley's eleventh birthday, a Brazilian boa constrictor winked directly at Harry Potter.",
+        "context": "Tapped repeatedly by bored tourists, the giant serpent had ignored everyone all morning.",
+        "escalation": "Harry whispered in sympathy, and to his utter astonishment, the snake actually answered him.",
+        "reveal": "When Dudley shoved Harry aside, the thick glass enclosure vanished completely into thin air.",
+        "loop_twist": "Harry discovered his extraordinary voice long before he ever heard the name Hogwarts."
     },
-    "Strait of Hormuz Naval Interceptions": {
-        "hook": "One fifth of the world's petroleum supply passes through a single twenty-one-mile bottleneck.",
-        "context": "Armed gunboats and naval helicopters shadowed commercial oil tankers entering the Persian Gulf.",
-        "escalation": "Warships deployed electronic countermeasures as boarding teams attempted to seize merchant vessels.",
-        "reveal": "International maritime patrols established guarded transit corridors with continuous air cover.",
-        "loop_twist": "Any escalation in these narrow waters can destabilize global energy markets in minutes."
+    "The Letters from No One": {
+        "hook": "A thick parchment envelope addressed in vivid emerald ink arrived at Privet Drive.",
+        "context": "Uncle Vernon burned the first letter immediately, terrified of who had sent it.",
+        "escalation": "Next morning, three more arrived, followed by dozens tumbling down the chimney and slipping through windows.",
+        "reveal": "Hundreds of owls encircled the roof until Vernon fled with the family to a storm-lashed rock.",
+        "loop_twist": "No matter where they ran, the magical world was already knocking on their door."
     },
-    "Taiwan Strait Freedom of Navigation Patrols": {
-        "hook": "Guided-missile destroyers sailed straight through the world's most contested international waterway.",
-        "context": "Naval forces executed freedom of navigation transits through the hundred-mile-wide Taiwan Strait.",
-        "escalation": "Dozens of fighter aircraft and shadowing frigates tracked every nautical mile of the passage.",
-        "reveal": "High-resolution radar arrays locked coordinates while surveillance drones monitored flight paths.",
-        "loop_twist": "This narrow channel remains the central friction point shaping the global balance of power."
+    "The Keeper of the Keys": {
+        "hook": "At midnight on a barren sea rock, the wooden shack door blasted off its hinges.",
+        "context": "A giant silhouette stepped through the howling storm into the dim room.",
+        "escalation": "Rubeus Hagrid casually bent Uncle Vernon's shotgun into a useless iron knot.",
+        "reveal": "From his oversized coat, he pulled out a slightly squashed chocolate cake and Harry's acceptance letter.",
+        "loop_twist": "With four simple words, Harry's entire reality transformed into an unimaginable wizarding world."
     },
-    "The Kettle War of 1784": {
-        "hook": "In 1784, a European war ended with a shattered soup kettle.",
-        "context": "The Holy Roman Empire sent warships to challenge Dutch ports.",
-        "escalation": "A Dutch flagship fired one warning cannon shot across the harbor.",
-        "reveal": "The shot struck an iron kettle, spraying boiling soup on deck.",
-        "loop_twist": "Terrified, the imperial fleet surrendered without a single casualty."
+    "The Secrets of the Restricted Section": {
+        "hook": "Deep inside the Hogwarts library lies a dark section cordoned off with heavy ropes.",
+        "context": "These chained tomes hold dangerous curses and forbidden magical experiments.",
+        "escalation": "When Harry opened a black book under his invisibility cloak, a piercing scream tore through the silence.",
+        "reveal": "Centuries of dark magic were sealed here, accessible only with a professor's handwritten permission.",
+        "loop_twist": "Some ancient volumes were deliberately written to entrap curious young wizards who dared look."
     },
-    "The Liechtensteiner Army of 1866": {
-        "hook": "An eighty-man army marched to war and returned with eighty-one soldiers.",
-        "context": "In 1866, Liechtenstein sent eighty men to guard an alpine pass.",
-        "escalation": "They patrolled the quiet border without seeing any combat.",
-        "reveal": "Trekking home, they befriended an Italian officer who joined them.",
-        "loop_twist": "They suffered negative one casualties in history's most wholesome war."
+    "Why the Marauders Map Never Lied": {
+        "hook": "Four mischievous Hogwarts students crafted a magical parchment that outsmarted every protective ward in the castle.",
+        "context": "The Marauder's Map revealed every hidden corridor and secret passageway across the grounds.",
+        "escalation": "More importantly, tiny ink footprints tracked every living soul in real time, completely ignoring disguises.",
+        "reveal": "Neither polyjuice potion, invisibility cloaks, nor animal animagus transformations could ever deceive its enchantments.",
+        "loop_twist": "The map simply perceived raw magical identity, proving four teenagers could master supreme tracking sorcery."
     },
-    "The Kentucky Meat Shower of 1876": {
-        "hook": "In 1876, fresh red meat mysteriously rained from a clear sky.",
-        "context": "On a sunny afternoon in Kentucky, a farmer made soap outside.",
-        "escalation": "Suddenly, large chunks of fresh meat fell across the farm.",
-        "reveal": "Scientists concluded startled vultures had regurgitated their meal mid-flight.",
-        "loop_twist": "Two brave locals tasted the sky meat, calling it venison."
+    "How Ollivanders Wands Choose the Wizard": {
+        "hook": "Step inside Ollivanders and you enter a shop where centuries of magical destiny rest in cardboard boxes.",
+        "context": "Garrick Ollivander discovered that wands possess an uncanny, instinctive sentience.",
+        "escalation": "Each core of phoenix feather, dragon heartstring, or unicorn hair reacts instantly to a wizard's inner character.",
+        "reveal": "A mismatched wand will backfire or produce feeble sparks, resisting a clumsy hand.",
+        "loop_twist": "The wand chooses the wizard, establishing an unbreakable bond before a single spell is cast."
     },
-    "The Balloon Duel of Paris (1808)": {
-        "hook": "In 1808, two Frenchmen fought history's only balloon duel.",
-        "context": "Two gentlemen loved the same opera singer and demanded a duel.",
-        "escalation": "They soared two thousand feet above Paris armed with blunderbusses.",
-        "reveal": "One shot punctured his rival's balloon, sending it plunging down.",
-        "loop_twist": "The victor landed safely, yet the singer refused his hand."
-    },
-    "The Cadaver Synod of 897": {
-        "hook": "In 897, a dead pope's rotting corpse was put on trial.",
-        "context": "Pope Stephen ordered the body of Pope Formosus exhumed.",
-        "escalation": "They dressed the decaying corpse in vestments with a defense lawyer.",
-        "reveal": "Found guilty, the corpse had three fingers severed and dumped away.",
-        "loop_twist": "Enraged Roman citizens rioted and threw Pope Stephen into prison."
-    },
-    "The Battle of Karansebes (1788)": {
-        "hook": "In 1788, an army of one hundred thousand men fought itself.",
-        "context": "Austrian cavalry bought schnapps and refused to share with infantry.",
-        "escalation": "A drunken brawl erupted, someone shouted Turks, and panic spread.",
-        "reveal": "Artillery fired into the camp, believing the enemy had struck.",
-        "loop_twist": "When real Turks arrived, they found thousands of dead soldiers."
-    },
-    "The Lake Peigneur Sinkhole (1980)": {
-        "hook": "A thirteen-hundred-acre lake vanished into an underground salt mine.",
-        "context": "In 1980, an oil rig accidentally drilled into a Louisiana salt cavern.",
-        "escalation": "Water dissolved the salt, creating a whirlpool that swallowed eleven barges.",
-        "reveal": "The draining lake temporarily reversed the Gulf of Mexico flow.",
-        "loop_twist": "Miraculously, all fifty-five workers escaped without a single casualty."
-    },
-    "The War of the Stray Dog (1925)": {
-        "hook": "In 1925, Greece and Bulgaria went to war over a runaway dog.",
-        "context": "A Greek soldier chased his stray dog across the border.",
-        "escalation": "Bulgarian sentries shot him, sparking military mobilization on both sides.",
-        "reveal": "Greece invaded before the League of Nations ordered an immediate ceasefire.",
-        "loop_twist": "Greece was fined forty-five thousand pounds for the canine clash."
-    },
-    "The Aroostook War": {
-        "hook": "In 1838, America and Britain mobilized troops over stolen timber.",
-        "context": "Lumberjacks from Maine and New Brunswick clashed in a disputed valley.",
-        "escalation": "Both sides deployed armed militias and prepared for full-scale war.",
-        "reveal": "General Winfield Scott negotiated a truce before shots were fired.",
-        "loop_twist": "The only casualties of the entire war were two men mauled by bears."
-    },
-    "The 38-Minute Anglo-Zanzibar War (1896)": {
-        "hook": "The shortest war in human history lasted less than forty minutes.",
-        "context": "In 1896, a rebel sultan seized power in Zanzibar against British demands.",
-        "escalation": "Three Royal Navy cruisers opened fire on the palace with explosive shells.",
-        "reveal": "In thirty-eight minutes, five hundred defenders fell, and the sultan fled.",
-        "loop_twist": "By morning tea, the war was completely over."
-    },
-    "The Great Stink of London (1858)": {
-        "hook": "In 1858, the smell of London became so toxic it shut down Parliament.",
-        "context": "A scorching heatwave boiled tons of raw sewage in the River Thames.",
-        "escalation": "Lawmakers soaked curtains in lime, but the overwhelming stench caused severe nausea.",
-        "reveal": "Politicians panicked and passed an emergency bill to fund a modern sewer network.",
-        "loop_twist": "That foul summer created the world's first modern sanitation system."
-    },
-    "The Strange Town of Baarle-Hertog": {
-        "hook": "This European town has borders cutting straight through people's living rooms.",
-        "context": "Baarle is split into twenty-four puzzle pieces between Belgium and the Netherlands.",
-        "escalation": "A single house can have its front door in Belgium and its kitchen in Holland.",
-        "reveal": "During lockdowns, Dutch cafes closed while Belgian tables in the same room stayed open.",
-        "loop_twist": "Your nationality literally depends on where your front door opens."
-    },
-    "The London Beer Flood of 1814": {
-        "hook": "In October 1814, a fifteen-foot wave of beer destroyed a London neighborhood.",
-        "context": "At the Meux Brewery, a massive wooden fermentation vat suddenly burst open.",
-        "escalation": "Over three hundred thousand gallons of porter surged through the streets like a tidal wave.",
-        "reveal": "The tsunami collapsed building walls, flooded basements, and claimed eight lives.",
-        "loop_twist": "A jury declared the bizarre catastrophe an unavoidable act of God."
-    },
-    "The Boston Molasses Flood of 1919": {
-        "hook": "A two-million-gallon wave of boiling molasses once destroyed Boston.",
-        "context": "In 1919, a massive fifty-foot steel tank suddenly burst in the North End.",
-        "escalation": "A thirty-five mile per hour sticky tsunami crushed buildings and overturned trains.",
-        "reveal": "Twenty-one people died, and the entire city smelled sweet for decades.",
-        "loop_twist": "On hot summer days, locals swear you can still smell the molasses."
-    },
-    "The Pig War of San Juan Island (1859)": {
-        "hook": "America and Britain almost went to war over a single potato-eating pig.",
-        "context": "In 1859, an American farmer shot a British pig foraging in his garden.",
-        "escalation": "Both nations deployed five warships and nearly two thousand heavily armed troops.",
-        "reveal": "Military commanders refused to fire the first shot over a farm animal.",
-        "loop_twist": "The only casualty in the entire standoff was the pig."
-    },
-    "The Lost Roanoke Colony Mystery": {
-        "hook": "An entire American colony vanished without leaving a single trace.",
-        "context": "In 1587, over one hundred English settlers arrived on Roanoke Island.",
-        "escalation": "When rescue ships returned three years later, every home and person had disappeared.",
-        "reveal": "The only clue was the mysterious word CROATOAN carved into a post.",
-        "loop_twist": "To this day, not a single skeleton has ever been found."
-    },
-    "The Dancing Plague of Strasbourg (1518)": {
-        "hook": "In 1518, hundreds of people danced in the streets until collapsing from exhaustion.",
-        "context": "A woman in Strasbourg began dancing, and within days, four hundred joined her.",
-        "escalation": "Doctors mistakenly prescribed more dancing, hiring musicians to play day and night.",
-        "reveal": "Dozens died before the bizarre frenzy mysteriously vanished.",
-        "loop_twist": "Modern science still cannot explain what drove them to dance."
-    },
-    "The Unsinkable Violet Jessop": {
-        "hook": "This woman survived three of the deadliest shipwreck disasters in history.",
-        "context": "Violet Jessop was a nurse serving aboard White Star Line ocean liners.",
-        "escalation": "She survived the Olympic crash, escaped the sinking Titanic, and survived the Britannic explosion.",
-        "reveal": "Even jumping into propeller blades couldn't end her life.",
-        "loop_twist": "She retired peacefully at eighty-four, nicknamed Miss Unsinkable."
-    },
-    "The Erfurt Latrine Disaster of 1184": {
-        "hook": "In July 1184, sixty European nobles died in the most humiliating disaster in history.",
-        "context": "King Henry VI convened a royal peace summit on the second floor of Erfurt Cathedral.",
-        "escalation": "The heavy wooden floor suddenly snapped under the weight of the assembled nobles.",
-        "reveal": "Dozens plunged straight through into the vast liquid cesspool beneath the building.",
-        "loop_twist": "The king only survived by clinging desperately to an iron window grate."
-    },
-    "The Defenestrations of Prague": {
-        "hook": "Three separate times in European history, politicians were hurled out of castle windows.",
-        "context": "In 1618, Bohemian rebels marched into Prague Castle to confront royal governors.",
-        "escalation": "After a furious argument, they tossed two regents and their secretary seventy feet down.",
-        "reveal": "All three remarkably survived by landing in a massive pile of horse manure.",
-        "loop_twist": "That seventy-foot plunge sparked the catastrophic Thirty Years War."
-    },
-    "The Cataclysmic Explosion of Krakatoa in 1883": {
-        "hook": "In 1883, a volcanic eruption created the loudest sound in history.",
-        "context": "Krakatoa exploded with fifteen thousand times the power of Hiroshima.",
-        "escalation": "Shockwaves circled Earth four times, shattering eardrums forty miles away.",
-        "reveal": "The entire island collapsed into the sea, blacking out the skies.",
-        "loop_twist": "Yet today, an active volcano rises relentlessly from that crater."
-    },
-    "The Great Emu War of 1932": {
-        "hook": "In 1932, Australia declared war on wild birds.",
-        "context": "Soldiers arrived with machine guns against twenty thousand destructive emus.",
-        "escalation": "Yet the birds scattered into split-second ambushes, dodging every heavy volley.",
-        "reveal": "After weeks of humiliating chaos, the army withdrew in defeat.",
-        "loop_twist": "The soldiers retreated, completely outmaneuvered by flightless birds."
+    "The Magic of the Sorting Hat": {
+        "hook": "A frayed, patched wizard's hat has looked inside every young mind entering Hogwarts for a thousand years.",
+        "context": "Created by the four legendary founders, the Sorting Hat reads character, courage, and hidden ambitions.",
+        "escalation": "When placed upon Harry Potter's head, it debated Slytherin greatness before honoring Harry's quiet plea.",
+        "reveal": "The hat honors a student's choice above all else, seeing who they choose to become.",
+        "loop_twist": "It is not our abilities that define us, but the difficult choices we make."
     }
 }
 
@@ -294,6 +168,12 @@ class ScriptCritic:
             if cliche in full_lower:
                 cliches_detected.append(cliche)
                 feedback.append(f"Forbidden AI cliché detected: '{cliche}'. Must be rephrased naturally.")
+
+        # Check Forbidden Spoken Part/Book/Episode numbering patterns (-50 penalty)
+        for pattern in FORBIDDEN_SPOKEN_PART_PATTERNS:
+            if re.search(pattern, full_lower):
+                cliches_detected.append(f"Spoken part pattern: {pattern}")
+                feedback.append(f"Forbidden spoken numbering detected matching pattern '{pattern}'. Narration must be natural storytelling without spoken part or chapter numbers.")
 
         # 2. Hook Quality (20 pts)
         hook_score = 0.0

@@ -62,11 +62,12 @@ class CaptionEngine:
         self,
         audio_path: Path,
         output_path: Optional[Path] = None,
-        editing_plan: Optional[Any] = None
+        editing_plan: Optional[Any] = None,
+        part_marker: Optional[str] = None
     ) -> Path:
         """
-        Builds modern ASS subtitle file with karaoke style active-word highlighting
-        and semantic emphasis in the vertical safe zone.
+        Builds modern ASS subtitle file with karaoke style active-word highlighting,
+        semantic emphasis in the vertical safe zone, and optional top-corner visual part marker.
         """
         words = self.transcribe_words(audio_path)
         if not output_path:
@@ -90,6 +91,7 @@ ScaledBorderAndShadow: yes
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
 Style: Default,Arial Black,86,&H00FFFFFF,&H0000FFFF,&H00000000,&H80000000,-1,0,0,0,100,100,0,0,1,8,4,2,60,60,500,1
 Style: Punch,Arial Black,90,&H0000D7FF,&H00FFFFFF,&H00000000,&H80000000,-1,0,0,0,110,110,0,0,1,9,5,2,60,60,500,1
+Style: PartMarker,Arial Black,42,&H00FFFFFF,&H00FFFFFF,&H00000000,&H80000000,-1,0,0,0,100,100,0,0,1,3,2,7,50,50,55,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -106,12 +108,19 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 csecs = 99
             return f"{hours}:{mins:02d}:{secs:02d}.{csecs:02d}"
 
+        # Harry Potter canonical and storytelling punch keywords
         punch_keywords = {
-            "DISASTER", "EXPLOSION", "WAR", "MYSTERY", "SHOCKING", "SECRET", "DEADLY",
-            "CATACLYSM", "UNBELIEVABLE", "TRAGEDY", "COLLAPSE", "BATTLE", "MASSIVE",
-            "UNEXPLAINED", "CRISIS", "ELECTION", "SABOTAGE", "SUBMARINE", "SURVEILLANCE",
-            "SCANDAL", "ESCORT", "DRILLING", "DISPUTE", "COALITION", "SHOCKWAVES", "NATO", "BERLIN"
+            "HOGWARTS", "MAGIC", "WAND", "SPELL", "POTTER", "DUMBLEDORE", "VOLDEMORT",
+            "GRYFFINDOR", "SLYTHERIN", "SECRET", "DANGER", "CURSE", "PROPHECY", "DISCOVERY",
+            "MYSTERY", "SHOCKING", "UNEXPLAINED", "DEADLY", "REVEALED", "TRUE", "POWERFUL",
+            "HERMIONE", "RON", "SNAPE", "HAGRID", "MALFOY", "SIRIUS", "DOBBY"
         }
+
+        # Visual part marker (Top-corner, visual only, never spoken)
+        if part_marker:
+            total_dur = words[-1]["end"] if words else 30.0
+            end_marker_fmt = fmt_time(total_dur)
+            events.append(f"Dialogue: 1,0:00:00.00,{end_marker_fmt},PartMarker,,0,0,0,,{part_marker.strip().upper()}")
 
         for group in chunks:
             if not group:

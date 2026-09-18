@@ -369,7 +369,19 @@ class ShortsPipeline:
 
         # 6. CAPTION GENERATION (Faster-Whisper + Semantic Word Emphasis)
         voice_path = Path(voice_asset.local_path)
-        ass_path = self.caption_engine.generate_ass_subtitles(voice_path, editing_plan=editing_plan)
+        part_marker = None
+        if hasattr(topic, "part_marker") and topic.part_marker:
+            part_marker = topic.part_marker
+        elif strategy and strategy.get("part_marker"):
+            part_marker = strategy.get("part_marker")
+        elif topic and topic.event_card_json:
+            try:
+                import json
+                ec = json.loads(topic.event_card_json)
+                part_marker = ec.get("part_marker")
+            except Exception:
+                pass
+        ass_path = self.caption_engine.generate_ass_subtitles(voice_path, editing_plan=editing_plan, part_marker=part_marker)
 
         # 7. AUDIO MIXING (Voice + Contextual SFX Layer + Adaptive BGM at -14 LUFS)
         music_asset = self.audio_mixer.get_background_music(

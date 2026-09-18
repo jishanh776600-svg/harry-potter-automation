@@ -20,51 +20,61 @@ logger = logging.getLogger(__name__)
 
 # Curated seed database of high-retention factual American & European historical events
 
-# Curated seed database of high-retention current geopolitics & world affairs topics
-from config.constants import CurrentAffairsCategory
+# Curated seed database of high-retention Harry Potter storytelling and discovery topics
+from config.constants import HarryPotterCategory
 
-CURATED_GEOPOLITICAL_SEEDS = [
+CURATED_HARRY_POTTER_SEEDS = [
     {
-        "title": "Red Sea Maritime Chokepoint Crisis",
-        "category": CurrentAffairsCategory.GEOPOLITICS.value,
-        "summary": "Commercial shipping through the Bab-el-Mandeb strait faces missile and drone strikes, forcing international naval escort operations across critical global maritime corridors.",
-        "curiosity": 9.8, "visual_potential": 9.9, "historical_interest": 9.2, "storytelling": 9.7, "uniqueness": 9.8
+        "title": "The Boy Who Lived Under the Cupboard",
+        "category": HarryPotterCategory.NOVEL_STORY.value,
+        "summary": "Ten years in the dark cupboard under the stairs at Privet Drive, Harry Potter endured the Dursleys before discovering his true wizarding identity.",
+        "curiosity": 9.8, "visual_potential": 9.9, "historical_interest": 9.5, "storytelling": 9.9, "uniqueness": 9.8,
+        "part_marker": "PART 01"
     },
     {
-        "title": "Baltic Undersea Infrastructure Security",
-        "category": CurrentAffairsCategory.SECURITY.value,
-        "summary": "NATO naval patrols and maritime reconnaissance aircraft surge surveillance over undersea telecom cables and energy pipelines following suspected infrastructure sabotage.",
-        "curiosity": 9.7, "visual_potential": 9.8, "historical_interest": 9.1, "storytelling": 9.6, "uniqueness": 9.7
+        "title": "The Vanishing Glass at the Zoo",
+        "category": HarryPotterCategory.NOVEL_STORY.value,
+        "summary": "On Dudley's eleventh birthday, Harry speaks to a Brazilian boa constrictor before the glass barrier inexplicably vanishes into thin air.",
+        "curiosity": 9.7, "visual_potential": 9.8, "historical_interest": 9.3, "storytelling": 9.8, "uniqueness": 9.7,
+        "part_marker": "PART 02"
     },
     {
-        "title": "Strait of Hormuz Naval Interceptions",
-        "category": CurrentAffairsCategory.GLOBAL_CONFLICT.value,
-        "summary": "Fast-attack patrol craft and naval helicopter units intercept commercial oil tankers in the narrow 21-mile international transit corridor.",
-        "curiosity": 9.8, "visual_potential": 9.7, "historical_interest": 9.3, "storytelling": 9.7, "uniqueness": 9.8
+        "title": "The Letters from No One",
+        "category": HarryPotterCategory.NOVEL_STORY.value,
+        "summary": "A deluge of emerald-inked parchment letters invades the Dursley household, pushing Uncle Vernon to an isolated sea shack.",
+        "curiosity": 9.8, "visual_potential": 9.9, "historical_interest": 9.4, "storytelling": 9.8, "uniqueness": 9.8,
+        "part_marker": "PART 03"
     },
     {
-        "title": "Taiwan Strait Freedom of Navigation Patrols",
-        "category": CurrentAffairsCategory.DIPLOMACY.value,
-        "summary": "Allied guided-missile destroyers transit the contested international maritime strait as reconnaissance aircraft track carrier strike group maneuvers.",
-        "curiosity": 9.9, "visual_potential": 9.8, "historical_interest": 9.4, "storytelling": 9.8, "uniqueness": 9.9
+        "title": "The Keeper of the Keys",
+        "category": HarryPotterCategory.NOVEL_STORY.value,
+        "summary": "Rubeus Hagrid breaks down the sea-shack door at midnight, bends Vernon's shotgun, and reveals Harry's acceptance to Hogwarts.",
+        "curiosity": 9.9, "visual_potential": 9.9, "historical_interest": 9.5, "storytelling": 9.9, "uniqueness": 9.9,
+        "part_marker": "PART 04"
     },
     {
-        "title": "Suwalki Gap NATO Rapid Deployment",
-        "category": CurrentAffairsCategory.SECURITY.value,
-        "summary": "Allied mechanized divisions reinforce the 65-mile land corridor connecting Poland and Lithuania amid heightened regional border security.",
-        "curiosity": 9.6, "visual_potential": 9.5, "historical_interest": 9.1, "storytelling": 9.5, "uniqueness": 9.6
+        "title": "The Secrets of the Restricted Section",
+        "category": HarryPotterCategory.DISCOVERY_LORE.value,
+        "summary": "Behind velvet ropes in the Hogwarts library lie centuries of dangerous dark magic books that shriek when opened.",
+        "curiosity": 9.8, "visual_potential": 9.7, "historical_interest": 9.6, "storytelling": 9.7, "uniqueness": 9.8
     },
     {
-        "title": "Black Sea Maritime Corridor Operations",
-        "category": CurrentAffairsCategory.GLOBAL_CONFLICT.value,
-        "summary": "Unmanned naval surface vessels and coastal defense batteries patrol the western Black Sea export shipping routes.",
-        "curiosity": 9.7, "visual_potential": 9.8, "historical_interest": 9.2, "storytelling": 9.6, "uniqueness": 9.7
+        "title": "Why the Marauders Map Never Lied",
+        "category": HarryPotterCategory.MAGICAL_ARTIFACTS.value,
+        "summary": "Crafted by four rebellious students, the Marauder's Map saw through every disguise, polyjuice potion, and invisibility cloak.",
+        "curiosity": 9.9, "visual_potential": 9.8, "historical_interest": 9.6, "storytelling": 9.8, "uniqueness": 9.9
     },
     {
-        "title": "Arctic Maritime Arctic Defense Posture",
-        "category": CurrentAffairsCategory.GEOPOLITICS.value,
-        "summary": "Sub-zero icebreakers, strategic deepwater ports, and early warning radar stations expand monitoring across northern polar shipping corridors.",
-        "curiosity": 9.6, "visual_potential": 9.8, "historical_interest": 9.2, "storytelling": 9.5, "uniqueness": 9.6
+        "title": "How Ollivanders Wands Choose the Wizard",
+        "category": HarryPotterCategory.DISCOVERY_LORE.value,
+        "summary": "Garrick Ollivander reveals the ancient secrets of wand sentience, where core materials respond to wizard character.",
+        "curiosity": 9.7, "visual_potential": 9.6, "historical_interest": 9.4, "storytelling": 9.7, "uniqueness": 9.7
+    },
+    {
+        "title": "The Magic of the Sorting Hat",
+        "category": HarryPotterCategory.HOGWARTS_MYSTERIES.value,
+        "summary": "Enchanted with the minds of the four founders, the Sorting Hat weighs destiny and honors personal choice above all.",
+        "curiosity": 9.8, "visual_potential": 9.6, "historical_interest": 9.5, "storytelling": 9.8, "uniqueness": 9.8
     }
 ]
 
@@ -1021,9 +1031,9 @@ class TopicDiscoveryEngine:
             except Exception as e:
                 logger.warning(f"Gemini live topic discovery fallback: {e}")
 
-        # 3. Evaluate curated seed topics (History / Bizarre Historical Stories only)
-        candidates = list(CURATED_HISTORICAL_SEEDS)
-        random.shuffle(candidates)
+        # 3. Evaluate curated seed topics (Harry Potter Novel Story & Discovery seeds first, then historical)
+        import json
+        candidates = list(CURATED_HARRY_POTTER_SEEDS) + list(CURATED_HISTORICAL_SEEDS)
 
         for item in candidates:
             if self.is_duplicate(db, item["title"], item["summary"]):
@@ -1034,13 +1044,18 @@ class TopicDiscoveryEngine:
                 continue
 
             topic_id = f"top_{uuid.uuid4().hex[:12]}"
+            event_card_data = {}
+            if item.get("part_marker"):
+                event_card_data["part_marker"] = item["part_marker"]
+
             topic = Topic(
                 id=topic_id,
                 title=item["title"],
                 summary=item["summary"],
                 category=item["category"],
                 score=score,
-                status="APPROVED"
+                status="APPROVED",
+                event_card_json=json.dumps(event_card_data) if event_card_data else None
             )
             db.add(topic)
             discovered.append(topic)
@@ -1048,5 +1063,5 @@ class TopicDiscoveryEngine:
                 break
 
         db.commit()
-        logger.info(f"Discovered {len(discovered)} qualified historical topics.")
+        logger.info(f"Discovered {len(discovered)} qualified Harry Potter and curated topics.")
         return discovered

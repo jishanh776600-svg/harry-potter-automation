@@ -84,7 +84,70 @@ class ContentProfile:
 # BUILT-IN PRODUCTION PROFILES
 # ----------------------------------------------------------------------
 
-# Current Production Niche: Current Affairs & Geopolitics
+# Authoritative Primary Production Niche: Harry Potter Novel Storytelling & Discovery
+HARRY_POTTER_PROFILE = ContentProfile(
+    name="HARRY_POTTER",
+    description="Harry Potter cinematic novel storytelling and standalone discoveries grounded in the books.",
+    target_audience="Harry Potter fans, novel readers, and movie watchers curious about canonical lore and untold book details.",
+    tone="Cinematic, conversational, clear, immersive, engaging, natural narration.",
+    script_objective="Tell the novel like a movie using original narration, or reveal standalone book vs movie discoveries.",
+    system_role_instruction=(
+        "You are an expert Harry Potter narrative storyteller and canonical book researcher. "
+        "Your task is to transform scenes from the Harry Potter novels into cinematic 25-30 second YouTube Shorts. "
+        "Strict Requirements:\n"
+        "- Simple English, conversational, cinematic, easy to understand.\n"
+        "- Natural narration with no forced dramatic language or artificial 'mysterious narrator' style.\n"
+        "- Original narration: NEVER copy passages from the novels verbatim, never read the book aloud.\n"
+        "- Strictly preserve actual events and details from the novel.\n"
+        "- Maintain chronological continuity between story segments without repeating or skipping key events.\n"
+        "- CRITICAL: NEVER speak the word 'part' (e.g. never say 'Part 1', 'Part 2', 'In this part').\n"
+        "- NEVER speak book numbering, chapter numbering, or episode numbering in narration.\n"
+        "- Do NOT make the narration sound like 'Part 1 of...'. The story must feel continuous and immersive."
+    ),
+    beat_descriptions={
+        "hook": "Strong immediate hook (6-12 words) drawing viewers straight into the magical scene or discovery.",
+        "context": "Rapid establishment of the characters, location (e.g. Privet Drive, Hogwarts), and situation.",
+        "escalation": "The magical complication, emotional conflict, or untold book detail unfolding.",
+        "reveal": "The core dramatic action, revelation, or stark contrast between book and movie.",
+        "loop_twist": "A natural, cinematic resolution or compelling takeaway that seamlessly completes the Short."
+    },
+    factual_policy=(
+        "The Harry Potter novels are the absolute source of truth. "
+        "Strictly preserve book canon, character actions, and magical lore. "
+        "Movies are a visual reference only. Never invent non-canonical events."
+    ),
+    forbidden_cliches=[
+        "will shock you",
+        "unbelievable true story",
+        "events spiraled",
+        "events rapidly spiraled",
+        "you won't believe",
+        "believe it or not",
+        "did you know",
+        "what happened next",
+        "mind-blowing",
+        "in this part",
+        "part 1", "part 2", "part 3", "part 4", "part 5", "part 6", "part 7", "part 8",
+        "part one", "part two", "part three", "part four", "part five",
+        "book 1", "book 2", "book 3", "chapter 1", "chapter 2", "episode 1", "episode 2",
+        "welcome back",
+        "as you remember from"
+    ],
+    hook_markers=[
+        r"\b(Harry|Hogwarts|Dumbledore|Voldemort|Snape|magic|wand|spell|Gryffindor|Slytherin|secret|danger|curse)\b"
+    ],
+    preferred_cadence="Conversational, natural English. Clear, simple phrasing. 25-30 seconds duration.",
+    min_words=55,
+    max_words=75,
+    target_words="62-68 words",
+    discovery_profile=None,
+    deduplication_policy="canonical_scene",
+    research_strategy="novel_canon",
+    default_archive_name="Harry Potter Novel Canon",
+    default_archive_url="https://en.wikipedia.org/wiki/Harry_Potter"
+)
+
+# Legacy Profiles (Retained for backwards compatibility)
 CURRENT_AFFAIRS_PROFILE = ContentProfile(
     name="CURRENT_AFFAIRS",
     description="Geopolitics, world affairs, international diplomacy, defense, and global economic developments.",
@@ -247,6 +310,7 @@ FINANCIAL_MARKETS_PROFILE = ContentProfile(
 
 # Global profile registry
 _PROFILE_REGISTRY: Dict[str, ContentProfile] = {
+    "HARRY_POTTER": HARRY_POTTER_PROFILE,
     "CURRENT_AFFAIRS": CURRENT_AFFAIRS_PROFILE,
     "HISTORICAL": HISTORICAL_PROFILE,
     "SPACE_TECHNOLOGY": SPACE_TECHNOLOGY_PROFILE,
@@ -280,7 +344,7 @@ def get_active_profile() -> ContentProfile:
     Priority:
       1. Explicit runtime override via set_active_profile()
       2. Environment variable CONTENT_PROFILE or ACTIVE_NICHE
-      3. Default profile (HISTORICAL_PROFILE)
+      3. Default profile (HARRY_POTTER_PROFILE)
     """
     global _ACTIVE_PROFILE
     if _ACTIVE_PROFILE is not None:
@@ -293,7 +357,7 @@ def get_active_profile() -> ContentProfile:
         if prof:
             return prof
 
-    return HISTORICAL_PROFILE
+    return HARRY_POTTER_PROFILE
 
 
 def set_active_profile(profile: Optional[ContentProfile]) -> None:

@@ -15,7 +15,7 @@ on:
       target_buffer:
         description: 'Target reserve stock in Drive (01_READY)'
         required: false
-        default: '6'
+        default: '8'
         type: string
       batch_count:
         description: 'Force generate specific number of Shorts (0 = auto-replenish to target)'

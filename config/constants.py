@@ -35,8 +35,9 @@ class JobState(str, Enum):
 
 PUBLISHING_SLOTS_UTC = [
     (6, 0, "06:00 UTC (11:30 AM IST)"),
-    (11, 0, "11:00 UTC (04:30 PM IST)"),
-    (15, 0, "15:00 UTC (08:30 PM IST)"),
+    (10, 0, "10:00 UTC (03:30 PM IST)"),
+    (14, 0, "14:00 UTC (07:30 PM IST)"),
+    (18, 0, "18:00 UTC (11:30 PM IST)"),
 ]
 
 # Canonical Business Timezone (Asia/Kolkata / IST = UTC+5:30)
@@ -70,6 +71,41 @@ def get_business_day_bounds_utc(reference_dt: Optional[datetime] = None) -> Tupl
     return start_utc, end_utc
 
 
+class HarryPotterCategory(str, Enum):
+    NOVEL_STORY = "Novel Storytelling"
+    BOOK_VS_MOVIE = "Book vs Movie Differences"
+    OMITTED_SCENES = "Omitted Scenes & Details"
+    CHARACTER_LORE = "Character Lore & Details"
+    UNEXPLAINED_DETAILS = "Things Movies Didn't Explain"
+    STANDALONE_DISCOVERY = "Standalone Discoveries"
+    DISCOVERY_LORE = "Discovery Lore"
+    MAGICAL_ARTIFACTS = "Magical Artifacts"
+    HOGWARTS_MYSTERIES = "Hogwarts Mysteries"
+
+
+class ContentType(str, Enum):
+    NOVEL_STORY = "NOVEL_STORY"
+    DISCOVERY = "DISCOVERY"
+
+
+class VisualSourcePriority(str, Enum):
+    MOVIE_FOOTAGE = "movie_footage"
+    BOOK_IMAGERY = "book_imagery"
+    AI_GENERATED = "ai_generated"
+    STOCK_FOOTAGE = "stock_footage"
+    PEXELS = "pexels"
+
+
+DEFAULT_VISUAL_SOURCE_PRIORITY = [
+    VisualSourcePriority.MOVIE_FOOTAGE.value,
+    VisualSourcePriority.BOOK_IMAGERY.value,
+    VisualSourcePriority.AI_GENERATED.value,
+    VisualSourcePriority.STOCK_FOOTAGE.value,
+    VisualSourcePriority.PEXELS.value,
+]
+
+
+# Retained for backwards compatibility across existing test harnesses
 class HistoricalCategory(str, Enum):
     AMERICAN_HISTORY = "American History"
     EUROPEAN_HISTORY = "European History"
@@ -155,15 +191,74 @@ VIDEO_FPS = 30
 VIDEO_ASPECT_RATIO = "9:16"
 
 class ContentNiche(str, Enum):
+    HARRY_POTTER = "Harry Potter"
     MYSTERY_BIZARRE = "Mystery / Bizarre Real-World Stories"
 
 
-# Duration targets (Seconds)
-# Extended to 27s to accommodate Kokoro's natural pacing for 55-70 word scripts.
-# YouTube Shorts up to 60s are allowed; 22-27s is the verified engagement sweet spot.
-MIN_DURATION_SEC = 22.0
-MAX_DURATION_SEC = 27.0
-TARGET_DURATION_SEC = 24.0
+# Duration targets (Seconds for Harry Potter Shorts: 25-30s sweet spot)
+MIN_DURATION_SEC = 25.0
+MAX_DURATION_SEC = 30.0
+TARGET_DURATION_SEC = 27.5
+
+# Visual Part Marker Configuration (Visual only, strictly never spoken)
+PART_MARKER_ENABLED = True
+PART_MARKER_FORMAT = "PART {:02d}"
+PART_MARKER_POSITION = "top_left"
+FORBIDDEN_SPOKEN_PART_PATTERNS = [
+    r"\bpart\s+\d+\b",
+    r"\bpart\s+(one|two|three|four|five|six|seven|eight|nine|ten)\b",
+    r"\bepisode\s+\d+\b",
+    r"\bbook\s+\d+\b",
+    r"\bchapter\s+\d+\b",
+    r"\bin this part\b",
+    r"\blast part\b",
+    r"\bnext part\b"
+]
+
+# Configurable Bella Voice Mood/Tone Profiles (Audition-ready, not permanently locked)
+BELLA_VOICE_PROFILES = {
+    "BELLA_CANONICAL": {
+        "id": "af_bella",
+        "name": "Bella Canonical",
+        "speed": 1.0,
+        "pause_multiplier": 1.0,
+        "tone": "balanced",
+        "description": "Clear, natural storytelling delivery."
+    },
+    "BELLA_CINEMATIC": {
+        "id": "af_bella",
+        "name": "Bella Cinematic Storyteller",
+        "speed": 0.98,
+        "pause_multiplier": 1.05,
+        "tone": "cinematic",
+        "description": "Immersive cinematic delivery for Harry Potter novel storytelling."
+    },
+    "BELLA_DISCOVERY": {
+        "id": "af_bella",
+        "name": "Bella Discovery & Intrigue",
+        "speed": 1.02,
+        "pause_multiplier": 0.95,
+        "tone": "engaging_discovery",
+        "description": "Crisp, lively pacing for standalone lore and book vs movie discoveries."
+    },
+    "BELLA_DRAMATIC": {
+        "id": "af_bella",
+        "name": "Bella Dramatic",
+        "speed": 0.95,
+        "pause_multiplier": 1.15,
+        "tone": "dramatic",
+        "description": "Heightened tension for climactic magical confrontations."
+    },
+    "BELLA_WARM": {
+        "id": "af_bella",
+        "name": "Bella Warm",
+        "speed": 1.0,
+        "pause_multiplier": 1.0,
+        "tone": "warm",
+        "description": "Friendly, welcoming Hogwarts exploration tone."
+    }
+}
+DEFAULT_BELLA_PROFILE = "BELLA_CINEMATIC"
 
 # Audio Standards
 AUDIO_SAMPLE_RATE = 44100
@@ -198,10 +293,16 @@ MAX_AUDIO_LOUDNESS_LUFS = -10.0
 MAX_TRUE_PEAK_DBTP = -0.5
 MIN_BGM_RMS_ENERGY = 0.005  # Ensures BGM is physically audible in final render
 
-# Script Constraints (58-72 words optimal for 22-25s natural Bella delivery)
+# Script Constraints (55-75 words optimal for 25-30s natural Bella delivery)
 MIN_WORD_COUNT = 55
 MAX_WORD_COUNT = 75
-OPTIMAL_WORD_COUNT = 64
+OPTIMAL_WORD_COUNT = 65
+
+# Scheduling & Target Capacity
+SCHEDULING_HORIZON_HOURS = 48
+DAILY_SHORTS_LIMIT = 4
+TARGET_RESERVE_BUFFER = 8
+PUBLISHING_PLATFORMS = ["youtube", "instagram", "facebook"]
 
 # API Free Limits (Default Safety Buffers)
 PEXELS_FREE_LIMIT_HOURLY = 200
@@ -209,8 +310,6 @@ PEXELS_FREE_LIMIT_MONTHLY = 20000
 GEMINI_FREE_RPM = 15
 YOUTUBE_DAILY_QUOTA_LIMIT = 10000
 YOUTUBE_UPLOAD_COST = 1600
-DAILY_SHORTS_LIMIT = 3
-TARGET_RESERVE_BUFFER = 6
 
 # Canonical Buffer Audit & Replenishment Automation (Every 2 Hours, 24/7)
 BUFFER_AUDIT_INTERVAL_HOURS = 2

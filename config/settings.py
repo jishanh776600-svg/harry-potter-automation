@@ -29,6 +29,9 @@ SFX_DIR = ASSETS_DIR / "sfx"
 FONTS_DIR = ASSETS_DIR / "fonts"
 
 LOCKS_DIR = DATA_DIR / "locks"
+MOVIES_DIR = DATA_DIR / "movies"
+BOOKS_DIR = DATA_DIR / "books"
+MOVIE_SUBTITLES_DIR = DATA_DIR / "movie_subtitles"
 
 TEST_DB_PATH = os.getenv("TEST_DB_PATH")
 if TEST_DB_PATH:
@@ -41,7 +44,8 @@ else:
 # Ensure runtime directories exist
 for d in [DATABASE_DIR, TOPICS_DIR, RESEARCH_DIR, SCRIPTS_DIR, STORYBOARDS_DIR,
           ASSETS_CACHE_DIR, VOICE_DIR, CAPTIONS_DIR, RENDERS_DIR, PUBLISHED_DIR,
-          LOGS_DIR, LOCKS_DIR, MUSIC_DIR, SFX_DIR, FONTS_DIR]:
+          LOGS_DIR, LOCKS_DIR, MUSIC_DIR, SFX_DIR, FONTS_DIR,
+          MOVIES_DIR, BOOKS_DIR, MOVIE_SUBTITLES_DIR]:
     d.mkdir(parents=True, exist_ok=True)
 
 # Environment Variables & Keys
@@ -77,9 +81,47 @@ YOUTUBE_CLIENT_SECRET = os.getenv("YOUTUBE_CLIENT_SECRET", "")
 YOUTUBE_REFRESH_TOKEN = os.getenv("YOUTUBE_REFRESH_TOKEN", "")
 CLIENT_SECRETS_FILE = os.getenv("CLIENT_SECRETS_FILE", str(PROJECT_ROOT / "client_secret.json"))
 
-# TTS Settings — Authoritative Production Lock: Bella Only (af_bella)
+# Channel & Content Configuration (Harry Potter)
+NICHE = os.getenv("NICHE", "Harry Potter")
+DEFAULT_LANGUAGE = os.getenv("DEFAULT_LANGUAGE", "en")
+SHORTS_PER_DAY = int(os.getenv("SHORTS_PER_DAY", "4"))
+NOVEL_SHORTS_PER_DAY = int(os.getenv("NOVEL_SHORTS_PER_DAY", "2"))
+DISCOVERY_SHORTS_PER_DAY = int(os.getenv("DISCOVERY_SHORTS_PER_DAY", "2"))
+TARGET_RESERVE_BUFFER = int(os.getenv("TARGET_RESERVE_BUFFER", "8"))
+SCHEDULING_HORIZON_HOURS = int(os.getenv("SCHEDULING_HORIZON_HOURS", "48"))
+PUBLISHING_PLATFORMS = [
+    p.strip() for p in os.getenv("PUBLISHING_PLATFORMS", "youtube,instagram,facebook").split(",") if p.strip()
+]
+VISUAL_SOURCE_PRIORITY = [
+    s.strip() for s in os.getenv(
+        "VISUAL_SOURCE_PRIORITY",
+        "movie_footage,book_imagery,ai_generated,stock_footage,pexels"
+    ).split(",") if s.strip()
+]
+PART_MARKER_ENABLED = os.getenv("PART_MARKER_ENABLED", "true").lower() == "true"
+PART_MARKER_FORMAT = os.getenv("PART_MARKER_FORMAT", "PART {:02d}")
+
+
+def get_content_mix_allocation(total_shorts: int | None = None) -> dict[str, int]:
+    """
+    Returns configurable daily content allocation between Novel Storytelling and Discovery.
+    Ratio can be dynamically adjusted by analytics/learning feedback loops (e.g. 2+2, 3+1, 1+3, 4+0, 0+4).
+    """
+    total = total_shorts if total_shorts is not None else SHORTS_PER_DAY
+    novel_target = int(os.getenv("NOVEL_SHORTS_PER_DAY", str(min(2, total))))
+    discovery_target = int(os.getenv("DISCOVERY_SHORTS_PER_DAY", str(max(0, total - novel_target))))
+    if novel_target + discovery_target != total:
+        discovery_target = max(0, total - novel_target)
+    return {
+        "novel_story": novel_target,
+        "discovery": discovery_target
+    }
+
+
+# TTS Settings — Configurable Bella Narration Profile (Audition-ready, not permanently locked)
 TTS_PROVIDER = os.getenv("TTS_PROVIDER", "kokoro")  # kokoro, edge, piper
-KOKORO_VOICE = "af_bella"
+KOKORO_VOICE = os.getenv("KOKORO_VOICE", "af_bella")
+BELLA_VOICE_PROFILE = os.getenv("BELLA_VOICE_PROFILE", "BELLA_CINEMATIC")
 APPROVED_PRODUCTION_VOICES = ["af_bella"]
 KOKORO_MODEL_PATH = DATA_DIR / "kokoro-v1.0.onnx"
 KOKORO_VOICES_PATH = DATA_DIR / "voices-v1.0.bin"
@@ -91,9 +133,9 @@ BGM_VOLUME = float(os.getenv("BGM_VOLUME", "0.14"))  # -17 dB ducking relative t
 # Image Generation Fallback Provider
 IMAGE_PROVIDER = os.getenv("IMAGE_PROVIDER", "pollinations")
 
-# Publishing Frequency
-SHORTS_PER_DAY = int(os.getenv("SHORTS_PER_DAY", "2"))
-PUBLISH_TIME_SLOTS = ["14:00", "20:00"]
+# Publishing Slots (4 per day)
+from config.constants import PUBLISHING_SLOTS_UTC
+PUBLISH_TIME_SLOTS = ["06:00", "10:00", "14:00", "18:00"]
 
 # Self-Improvement & Strategy Execution (Phase 4)
 SELF_IMPROVEMENT_ENABLED = os.getenv("SELF_IMPROVEMENT_ENABLED", "false").lower() == "true"
@@ -114,12 +156,13 @@ LOCK_STALE_TIMEOUT_SEC = float(os.getenv("LOCK_STALE_TIMEOUT_SEC", "1800.0"))  #
 # Cloud Mode & Remote GitHub Actions Dispatcher (Phase 7.2)
 CLOUD_MODE = os.getenv("CLOUD_MODE", "true").lower() == "true"
 GITHUB_PAT = os.getenv("GITHUB_PAT") or os.getenv("GITHUB_TOKEN") or ""
-GITHUB_REPOSITORY_OWNER = os.getenv("GITHUB_REPOSITORY_OWNER") or "jishanh776600-svg"
-GITHUB_REPOSITORY_NAME = os.getenv("GITHUB_REPOSITORY_NAME") or "yt-automation"
+GITHUB_REPOSITORY_OWNER = os.getenv("GITHUB_REPOSITORY_OWNER") or "jishanh760-source"
+GITHUB_REPOSITORY_NAME = os.getenv("GITHUB_REPOSITORY_NAME") or "harry-potter-automation"
 GITHUB_REF = os.getenv("GITHUB_REF", "main")
 
-# Google Drive Cloud Storage Entitlement (Phase 11.2 - Confirmed 5 TB Storage Plan)
-GOOGLE_DRIVE_TOTAL_CAPACITY_BYTES = int(os.getenv("GOOGLE_DRIVE_TOTAL_CAPACITY_BYTES", str(5 * (1024 ** 4))))  # 5 TB = 5,497,558,138,880 bytes
+# Google Drive Cloud Storage (Isolated Harry Potter Vault Root)
+GOOGLE_DRIVE_VAULT_ROOT = os.getenv("GOOGLE_DRIVE_VAULT_ROOT", "Harry_Potter_Shorts_Vault")
+GOOGLE_DRIVE_TOTAL_CAPACITY_BYTES = int(os.getenv("GOOGLE_DRIVE_TOTAL_CAPACITY_BYTES", str(5 * (1024 ** 4))))  # 5 TB
 
 
 def get_ffmpeg_path() -> str:

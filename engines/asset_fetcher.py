@@ -533,14 +533,52 @@ class AssetFetcher:
 
         return None
 
+    def search_local_movie_footage(self, query: str, exclude_paths: Optional[Set[str]] = None) -> Optional[Path]:
+        """Searches local Harry Potter movie footage clips in MOVIES_DIR and ASSETS_DIR."""
+        from config.settings import MOVIES_DIR, ASSETS_DIR
+        search_dirs = [MOVIES_DIR, ASSETS_DIR / "movies", ASSETS_DIR]
+        keywords = [k.lower() for k in query.split() if len(k) > 2]
+        exclude = exclude_paths or set()
+        for sdir in search_dirs:
+            if not sdir.exists():
+                continue
+            for ext in ("*.mp4", "*.mkv", "*.mov"):
+                for clip_file in sdir.glob(ext):
+                    if str(clip_file) in exclude:
+                        continue
+                    name_lower = clip_file.stem.lower()
+                    if any(k in name_lower for k in keywords):
+                        return clip_file
+        return None
+
+    def search_local_book_imagery(self, query: str, exclude_paths: Optional[Set[str]] = None) -> Optional[Path]:
+        """Searches local book imagery/illustrations in BOOKS_DIR and ASSETS_DIR."""
+        from config.settings import BOOKS_DIR, ASSETS_DIR
+        search_dirs = [BOOKS_DIR, ASSETS_DIR / "books", ASSETS_DIR]
+        keywords = [k.lower() for k in query.split() if len(k) > 2]
+        exclude = exclude_paths or set()
+        for sdir in search_dirs:
+            if not sdir.exists():
+                continue
+            for ext in ("*.jpg", "*.jpeg", "*.png", "*.webp"):
+                for img_file in sdir.glob(ext):
+                    if str(img_file) in exclude:
+                        continue
+                    name_lower = img_file.stem.lower()
+                    if any(k in name_lower for k in keywords):
+                        return img_file
+        return None
+
     def generate_ai_image(self, prompt: str, output_path: Path) -> bool:
         """
-        Generates free, commercially usable AI historical image via Pollinations.ai (Free $0 / Open).
+        Generates free, commercially usable AI image via Pollinations.ai (Free $0 / Open).
         """
         try:
             from core.retry import retry_call
             seed = random.randint(1, 999999)
-            encoded_prompt = urllib.parse.quote(prompt + f", historic photograph style, authentic documentary, seed {seed}")
+            from config.settings import NICHE
+            aesthetic = "cinematic fantasy wizarding world, intricate details, photorealistic" if "harry potter" in str(NICHE).lower() else "historic photograph style, authentic documentary"
+            encoded_prompt = urllib.parse.quote(prompt + f", {aesthetic}, seed {seed}")
             url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1080&height=1920&nologo=true&seed={seed}"
             resp = retry_call(
                 lambda: requests.get(url, timeout=25),
@@ -562,16 +600,17 @@ class AssetFetcher:
         used_urls_in_job: Optional[Set[str]] = None
     ) -> AssetRecord:
         """
-        Acquires a unique visual asset for a shot:
-          Tier 1/2: Wikimedia Commons Archival/Historical First (if archival query)
-          Tier 3: Pexels 1080p Video -> Pexels 720p Video
-          Tier 4: Pexels Photo
-          Tier 5: Pollinations AI Generative Reconstruction
-          Tier 6: Procedural Neutral Canvas
+        Acquires a unique visual asset for a shot respecting VISUAL_SOURCE_PRIORITY:
+          1. movie_footage: Local verified movie clips
+          2. book_imagery: Local book illustrations / covers
+          3. ai_generated: Pollinations AI cinematic image
+          4. stock_footage: Visual Intelligence / Wikimedia / Free stock video
+          5. pexels: Pexels Video / Photo (ONLY as last-resort fallback)
+          6. Procedural Neutral Canvas (Fail-safe final fallback)
         """
         asset_id = f"ast_{uuid.uuid4().hex[:12]}"
         query = shot_data["search_query"]
-        prompt = shot_data.get("visual_prompt", f"Cinematic historical scene of {query}")
+        prompt = shot_data.get("visual_prompt", f"Cinematic scene of {query}")
         shot_duration = float(shot_data.get("duration", 4.0))
 
         raw_video_path = self.cache_dir / f"{asset_id}_raw.mp4"
@@ -580,6 +619,57 @@ class AssetFetcher:
 
         exclude_set = used_urls_in_job if used_urls_in_job is not None else set()
         q_lower = query.lower()
+
+        # ----------------------------------------------------
+        # PRIORITY 1: Movie Footage (Local clips)
+        # ----------------------------------------------------
+        local_movie_clip = self.search_local_movie_footage(query, exclude_paths=exclude_set)
+        if local_movie_clip:
+            exclude_set.add(str(local_movie_clip))
+            logger.info(f"[ASSET_FETCH] Priority 1: Found local movie footage '{local_movie_clip.name}' for shot '{query}'")
+            asset_rec = AssetRecord(
+                id=asset_id,
+                asset_type="video",
+                source="movie_footage",
+                source_url=str(local_movie_clip),
+                license="fair_use_commentary",
+                commercial_use=True,
+                attribution_required=False,
+                local_path=str(local_movie_clip),
+                width=VIDEO_WIDTH,
+                height=VIDEO_HEIGHT,
+                duration_sec=shot_duration,
+                metadata_json=json.dumps({"source": "movie_footage", "file": local_movie_clip.name})
+            )
+            db.add(asset_rec)
+            db.commit()
+            return asset_rec
+
+        # ----------------------------------------------------
+        # PRIORITY 2: Book Imagery (Local illustrations / covers)
+        # ----------------------------------------------------
+        local_book_img = self.search_local_book_imagery(query, exclude_paths=exclude_set)
+        if local_book_img:
+            self.crop_to_vertical_9_16(local_book_img, cropped_img_path)
+            exclude_set.add(str(local_book_img))
+            logger.info(f"[ASSET_FETCH] Priority 2: Found local book imagery '{local_book_img.name}' for shot '{query}'")
+            asset_rec = AssetRecord(
+                id=asset_id,
+                asset_type="image",
+                source="book_imagery",
+                source_url=str(local_book_img),
+                license="fair_use_commentary",
+                commercial_use=True,
+                attribution_required=False,
+                local_path=str(cropped_img_path),
+                width=VIDEO_WIDTH,
+                height=VIDEO_HEIGHT,
+                duration_sec=shot_duration,
+                metadata_json=json.dumps({"source": "book_imagery", "file": local_book_img.name})
+            )
+            db.add(asset_rec)
+            db.commit()
+            return asset_rec
 
         # ----------------------------------------------------
         # VISUAL INTELLIGENCE MULTI-SOURCE ACQUISITION & RANKING
