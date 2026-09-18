@@ -842,3 +842,67 @@ class DiscoveryCandidate(Base):
 
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+# ==============================================================================
+# HARRY POTTER STEP 8: SCRIPT GENERATION & VISUAL BEAT DATA MODELS
+# ==============================================================================
+
+class HarryPotterScript(Base):
+    """
+    Validated, fact-grounded production script and visual beat plan for a Harry Potter Short.
+    Supports both Novel Story Shorts (Type A) and Discovery Shorts (Type B).
+    Grounded in canonical novel text and movie evidence.
+    Enforces strict MOVIE FOOTAGE ONLY visual policy and no-spoken-part-marker rule.
+    """
+    __tablename__ = "hp_scripts"
+
+    id = Column(String(64), primary_key=True)  # e.g. "hps_ns_b1c01_gc0001_0003"
+    candidate_id = Column(String(64), nullable=False, index=True)
+    content_type = Column(String(32), nullable=False, index=True)  # "novel_story" or "discovery"
+
+    # Novel Traceability
+    book_number = Column(Integer, nullable=False, index=True)
+    book_title = Column(String(255), nullable=False)
+    chapter_number = Column(Integer, nullable=False, index=True)
+    chapter_title = Column(String(255), nullable=False)
+    source_chunks_json = Column(Text, nullable=False)  # JSON list of chunk IDs
+    source_reference = Column(String(255), nullable=False)  # e.g. "Book 1 Chapter 1 (p.2-13)"
+    novel_evidence_excerpt = Column(Text, nullable=True)
+
+    # Discovery / Movie Traceability
+    discovery_type = Column(String(64), nullable=True)
+    corresponding_movie_number = Column(Integer, nullable=True)
+    movie_chunk_id = Column(String(64), nullable=True)
+    movie_evidence_excerpt = Column(Text, nullable=True)
+
+    # Production Metadata & Style
+    part_marker = Column(String(32), nullable=True)  # e.g. "PART 01" (VISUAL ONLY, never spoken)
+    voice_id = Column(String(64), default="en-US-AndrewNeural", nullable=False)
+    voice_pitch = Column(String(32), default="+24Hz", nullable=False)
+    voice_rate = Column(String(32), default="+14%", nullable=False)
+    narrator_style = Column(String(64), default="Andrew Hype / High Tempo Duel Commentator", nullable=False)
+
+    # 3-Stage Narration (Hook -> Development -> Payoff)
+    hook = Column(Text, nullable=False)
+    development = Column(Text, nullable=False)
+    payoff = Column(Text, nullable=False)
+    full_text = Column(Text, nullable=False)
+    word_count = Column(Integer, nullable=False)
+    estimated_duration_sec = Column(Float, nullable=False)
+
+    # Visual Beat Plan (Step 9 input, MOVIE FOOTAGE ONLY)
+    visual_beats_json = Column(Text, nullable=False)  # Structured list of visual beats
+    total_beats = Column(Integer, default=0, nullable=False)
+
+    # Script QA & AI Review
+    qa_score = Column(Float, default=100.0, nullable=False)
+    qa_status = Column(String(32), default="APPROVED", nullable=False, index=True)  # APPROVED, REJECTED, FLAGGED
+    qa_feedback_json = Column(Text, nullable=True)
+    model_name = Column(String(64), default="gemini-3.6-flash", nullable=False)
+
+    # Lifecycle State
+    status = Column(String(32), default="READY_FOR_STEP_9", nullable=False, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
