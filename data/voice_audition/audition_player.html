@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bella Voice Audition — Harry Potter Channel</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --heading: #f0f6fc;
+      --accent: #e3a857;
+      --gold: #d4af37;
+      --badge-low: #238636;
+      --badge-med: #1f6feb;
+      --badge-high: #da3633;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 30px 20px;
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 35px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 25px;
+    }
+    h1 {
+      color: var(--gold);
+      font-size: 2.2rem;
+      margin-bottom: 10px;
+      letter-spacing: 0.5px;
+    }
+    .subtitle {
+      color: #8b949e;
+      font-size: 1rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(550px, 1fr));
+      gap: 24px;
+    }
+    .profile-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+    .profile-card:hover {
+      border-color: var(--gold);
+      transform: translateY(-2px);
+    }
+    .profile-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+      border-bottom: 1px solid #21262d;
+      padding-bottom: 8px;
+    }
+    .profile-title {
+      color: var(--heading);
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .profile-desc {
+      font-size: 0.88rem;
+      color: #8b949e;
+      margin-bottom: 14px;
+    }
+    .affinity {
+      font-size: 0.8rem;
+      color: var(--accent);
+      margin-bottom: 16px;
+      font-style: italic;
+    }
+    .samples-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .sample-item {
+      background: #0d1117;
+      border: 1px solid #21262d;
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .sample-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-low { background: #238636; color: white; }
+    .badge-medium { background: #1f6feb; color: white; }
+    .badge-high { background: #da3633; color: white; }
+    .sample-stats {
+      font-size: 0.78rem;
+      color: #6e7681;
+    }
+    .sample-text {
+      font-size: 0.9rem;
+      color: #e6edf3;
+      margin-bottom: 10px;
+      font-style: italic;
+    }
+    audio {
+      width: 100%;
+      height: 34px;
+      border-radius: 6px;
+      filter: invert(0.88) hue-rotate(180deg);
+    }
+    @media (max-width: 768px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>⚡ Bella Voice Audition Player</h1>
+      <p class="subtitle">
+        16 Delivery Profiles across Low, Medium, and High intensities (48 Total Samples).<br>
+        All audio normalized to <strong>-15.5 LUFS broadcast standard</strong> for fair, unbiased listening.
+      </p>
+    </header>
+    <div id="player-grid" class="grid"></div>
+  </div>
+
+  <script>
+    fetch('bella_profiles_metadata.json')
+      .then(res => res.json())
+      .then(data => {
+        const scripts = {
+          "BELLA_CANONICAL": {
+            "LOW": "Every young wizard who steps into Diagon Alley remembers the smell of fresh parchment and polished wand wood.",
+            "MEDIUM": "For ten quiet years, Harry lived without knowing that his parents had been two of the bravest sorcerers in Britain.",
+            "HIGH": "Hogwarts castle has stood for over a thousand years, guarding ancient secrets that even the headmaster cannot fully unlock."
+          },
+          "BELLA_CINEMATIC": {
+            "LOW": "Rain lashed against the black glass of the Hogwarts Express as it glided into the misty Scottish Highlands.",
+            "MEDIUM": "Far below the stone dungeons, shadows gathered around the mirror of Erised, waiting for a heart pure enough to look inside.",
+            "HIGH": "When the great hall doors swung open, hundreds of floating candles illuminated the starry sky ceiling above the four house tables."
+          },
+          "BELLA_DISCOVERY": {
+            "LOW": "Here is an incredible detail the movies completely left out about how the Marauder's Map was actually created.",
+            "MEDIUM": "Did you know that Ollivander tested Harry Potter with twenty different wands before the phoenix feather chose him?",
+            "HIGH": "The movies never explained this, but Peeves the Poltergeist was actually born from the chaotic energy of medieval Hogwarts students!"
+          },
+          "BELLA_DRAMATIC": {
+            "LOW": "Uncle Vernon bolted three deadbolts onto Harry's door, desperate to lock the magical world outside forever.",
+            "MEDIUM": "Deep inside the forbidden third floor corridor, a giant three-headed beast stood guarding a secret trapdoor.",
+            "HIGH": "A blinding green flash shattered the cottage in Godric's Hollow, leaving only a crying infant and a splintered wand on the floor."
+          },
+          "BELLA_WARM": {
+            "LOW": "Mrs. Weasley knit a thick maroon jumper with a hand-stitched letter H, giving Harry his very first real Christmas present.",
+            "MEDIUM": "Hagrid handed Harry a slightly squashed chocolate cake with words piped in green icing: Happee Birthdae Harry.",
+            "HIGH": "Sitting together by the roaring Gryffindor common room fire, Harry finally realized he wasn't alone in the world anymore."
+          },
+          "BELLA_CALM": {
+            "LOW": "The silver instruments on Dumbledore's desk whirred quietly, puffing tiny rings of pale smoke into the quiet night.",
+            "MEDIUM": "Snow fell softly over the rooftops of Hogsmeade, coating the cobblestones in a peaceful blanket of white.",
+            "HIGH": "Down in the potion master's cellar, ancient glass vials caught the dim torchlight without a single sound."
+          },
+          "BELLA_SUSPENSE": {
+            "LOW": "Something shifted in the deep shadows beneath the restricted section bookshelves, just out of sight.",
+            "MEDIUM": "Harry listened closely... Footsteps echoed on the cold flagstones above, slow and deliberate.",
+            "HIGH": "The silver doorknob began to turn on its own, inch by inch, into total darkness."
+          },
+          "BELLA_SURPRISED": {
+            "LOW": "Wait... Look closely at the portrait behind Dumbledore's chair, because that wizard is actually awake and taking notes!",
+            "MEDIUM": "You won't believe how different Ron Weasley was in the books; he was actually the strategic mastermind of the trio!",
+            "HIGH": "The moving staircase didn't just change directions by chance... It was actively guiding Harry straight to the third floor!"
+          },
+          "BELLA_EXCITED": {
+            "LOW": "Harry kicked hard off the grass, and the Nimbus Two Thousand surged upward into the clear blue sky!",
+            "MEDIUM": "Look at that Quidditch play! Harry dives headfirst through the rain, tracking the golden snitch at ninety miles an hour!",
+            "HIGH": "Gryffindor wins the house cup! The entire great hall erupts into roaring cheers as the scarlet banners drop!"
+          },
+          "BELLA_SAD": {
+            "LOW": "Harry sat alone in the dark dormitory, tracing the worn edges of the only photograph he had of his mother.",
+            "MEDIUM": "In the mirror of Erised, Harry saw his family smiling beside him, knowing none of them could ever come back.",
+            "HIGH": "Hedwig rested her soft feathered head against the cage bars, watching Harry endure another lonely summer at Privet Drive."
+          },
+          "BELLA_ANGRY": {
+            "LOW": "Aunt Petunia claimed her sister was a freak, refusing to ever speak Lily Potter's name aloud.",
+            "MEDIUM": "Uncle Vernon tore Harry's Hogwarts letter into tiny shreds right in front of his face with a bitter smirk.",
+            "HIGH": "Malfoy snatched Neville's remembrall and taunted him across the courtyard until Harry had had enough!"
+          },
+          "BELLA_DARK": {
+            "LOW": "Knockturn Alley smelled of damp moss and poisonous toadstools, where dark wizards traded under hooded cloaks.",
+            "MEDIUM": "A withered hand resting on a black cushion in Borgin and Burkes suddenly twitched under the dim candlelight.",
+            "HIGH": "The dark lord's whispered voice echoed from beneath Quirrell's turban, demanding absolute obedience in the cold dungeon."
+          },
+          "BELLA_SARCASTIC": {
+            "LOW": "Uncle Vernon's brilliant plan to escape magical owls was hiding in an abandoned shack surrounded by freezing ocean waves.",
+            "MEDIUM": "Because of course locking a boy under the stairs for a decade is definitely how you stop magic from existing.",
+            "HIGH": "Hermione honestly believed getting expelled from school was worse than getting eaten alive by a three-headed dog."
+          },
+          "BELLA_EDUCATIONAL": {
+            "LOW": "In wizarding lore, wand cores react directly to the caster's character; phoenix feathers demand great independence.",
+            "MEDIUM": "Here is the exact distinction: animagi retain their human minds, while wizards transformed by transfiguration lose all human thought.",
+            "HIGH": "The four Hogwarts houses represent the four classical alchemical elements: Gryffindor fire, Ravenclaw air, Hufflepuff earth, and Slytherin water."
+          },
+          "BELLA_FAST_ENERGETIC": {
+            "LOW": "Letters are flying down the chimney, owls are circling the roof, and Vernon Dursley is officially losing his mind!",
+            "MEDIUM": "Three seconds on the clock, Harry dives right, snatches the snitch out of thin air, and seals the match!",
+            "HIGH": "Boom! Hagrid kicks the wooden door down, bends the shotgun in half, and hands Harry a chocolate birthday cake!"
+          },
+          "BELLA_EMOTIONAL_RESTRAINED": {
+            "LOW": "Lily's eyes looked back at Harry from the glass, carrying a warmth he had never felt in all his eleven years.",
+            "MEDIUM": "Harry held the worn sweater close to his chest in the dark, whispering a quiet thank you to a mother he barely remembered.",
+            "HIGH": "He didn't care about being famous or defeating a dark lord; he just wanted his family to be alive."
+          }
+        };
+
+        const grid = document.getElementById('player-grid');
+
+        for (const [pKey, intensities] of Object.entries(data)) {
+          const slug = pKey.replace('BELLA_', '').toLowerCase();
+          const medCfg = intensities['MEDIUM'];
+
+          const card = document.createElement('div');
+          card.className = 'profile-card';
+
+          let samplesHtml = '';
+          let sampleIdx = 1;
+
+          for (const [intKey, cfg] of Object.entries(intensities)) {
+            const intLower = intKey.toLowerCase();
+            const filename = `bella_${slug}_${intLower}_0${sampleIdx}.wav`;
+            const audioSrc = `bella/${slug}/${filename}`;
+            const scriptText = scripts[pKey]?.[intKey] || '';
+
+            samplesHtml += `
+              <div class="sample-item">
+                <div class="sample-meta">
+                  <span class="badge badge-${intLower}">${intKey} INTENSITY</span>
+                  <span class="sample-stats">${cfg.speed}x speed • ${cfg.sentence_pause}s pause</span>
+                </div>
+                <div class="sample-text">"${scriptText}"</div>
+                <audio controls preload="none">
+                  <source src="${audioSrc}" type="audio/wav">
+                  Your browser does not support the audio element.
+                </audio>
+              </div>
+            `;
+            sampleIdx++;
+          }
+
+          card.innerHTML = `
+            <div class="profile-header">
+              <div class="profile-title">${pKey}</div>
+            </div>
+            <div class="profile-desc">${medCfg.description}</div>
+            <div class="affinity">✨ Best for: ${medCfg.content_affinity}</div>
+            <div class="samples-list">
+              ${samplesHtml}
+            </div>
+          `;
+
+          grid.appendChild(card);
+        }
+      })
+      .catch(err => {
+        console.error('Error loading metadata:', err);
+      });
+  </script>
+</body>
+</html>
