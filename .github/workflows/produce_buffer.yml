@@ -1,0 +1,139 @@
+name: YouTube Shorts Cloud Buffer Producer
+# ==============================================================================
+# BATCH CLOUD PRODUCER: Content Generator & Drive Vault Replenisher
+# Genuinely creates, renders, fact-checks, voice-synthesizes, and QA-verifies
+# fresh historical Shorts and deposits them into Google Drive (01_READY).
+# ZERO direct YouTube uploads (strictly preserves daily publication slots).
+# ==============================================================================
+
+on:
+  schedule:
+    # 2-hour buffer audit & replenishment (every 2 hours, 24/7)
+    - cron: '0 */2 * * *'
+  workflow_dispatch:
+    inputs:
+      target_buffer:
+        description: 'Target reserve stock in Drive (01_READY)'
+        required: false
+        default: '6'
+        type: string
+      batch_count:
+        description: 'Force generate specific number of Shorts (0 = auto-replenish to target)'
+        required: false
+        default: '0'
+        type: string
+      active_voice:
+        description: 'Authoritative voice identifier to use for this production run'
+        required: false
+        default: 'af_bella'
+        type: string
+      force_unlock:
+        description: 'Force release any orphaned locks before starting'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: buffer-producer
+  cancel-in-progress: false
+
+jobs:
+  produce_reserve_buffer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install FFmpeg & Fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-dejavu-core
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Restore OAuth Credentials & Environment Secrets
+        env:
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY_SECONDARY: ${{ secrets.GEMINI_API_KEY_SECONDARY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          TOKEN_JSON: ${{ secrets.TOKEN_JSON }}
+          CLIENT_SECRET_JSON: ${{ secrets.CLIENT_SECRET_JSON }}
+        run: |
+          echo "PEXELS_API_KEY=${PEXELS_API_KEY}" > .env
+          echo "GEMINI_API_KEY=${GEMINI_API_KEY}" >> .env
+          if [ -n "${GEMINI_API_KEY_SECONDARY}" ]; then
+            echo "GEMINI_API_KEY_SECONDARY=${GEMINI_API_KEY_SECONDARY}" >> .env
+          fi
+          if [ -n "${GROQ_API_KEY}" ]; then
+            echo "GROQ_API_KEY=${GROQ_API_KEY}" >> .env
+          fi
+          if [ -n "${OPENROUTER_API_KEY}" ]; then
+            echo "OPENROUTER_API_KEY=${OPENROUTER_API_KEY}" >> .env
+          fi
+          if [ -n "${DEEPSEEK_API_KEY}" ]; then
+            echo "DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}" >> .env
+          fi
+          if [ -n "${NVIDIA_API_KEY}" ]; then
+            echo "NVIDIA_API_KEY=${NVIDIA_API_KEY}" >> .env
+          fi
+          echo "TEST_MODE=false" >> .env
+          echo "KOKORO_VOICE=${{ inputs.active_voice || 'af_bella' }}" >> .env
+          echo "${TOKEN_JSON}" > token.json
+          echo "${CLIENT_SECRET_JSON}" > client_secret.json
+
+      - name: Download & Verify Canonical Database from Cloud Vault
+        run: |
+          python -m core.database_sync download
+
+      - name: Run Batch Production & Replenish Drive Vault
+        run: |
+          BATCH_COUNT="${{ inputs.batch_count }}"
+          TARGET_BUFFER="${{ inputs.target_buffer }}"
+          VOICE_INPUT="${{ inputs.active_voice }}"
+          VOICE_FLAG="--voice ${VOICE_INPUT:-af_bella}"
+          UNLOCK_FLAG=""
+          if [ "${{ inputs.force_unlock }}" = "true" ]; then
+            UNLOCK_FLAG="--force-unlock"
+          fi
+
+          if [ -n "$BATCH_COUNT" ] && [ "$BATCH_COUNT" -gt 0 ] 2>/dev/null; then
+            echo "[*] Running targeted batch production for $BATCH_COUNT Shorts (Voice: ${VOICE_INPUT:-default})..."
+            python main.py --produce-batch "$BATCH_COUNT" $VOICE_FLAG $UNLOCK_FLAG
+          else
+            TARGET=${TARGET_BUFFER:-6}
+            echo "[*] Auditing and maintaining reserve buffer (Target: $TARGET Shorts in 01_READY, Voice: ${VOICE_INPUT:-default})..."
+            python main.py --maintain-buffer "$TARGET" $VOICE_FLAG $UNLOCK_FLAG
+          fi
+
+      - name: Upload & Synchronize Database to Cloud Vault
+        if: always()
+        run: |
+          python -m core.database_sync upload
+
+      - name: Commit Topic Database & Production Records
+        if: always()
+        run: |
+          git config --global user.name 'YouTube Producer Bot'
+          git config --global user.email 'bot@github-actions.local'
+          git add data/assets/ data/captions/ data/production_summary.json data/LEARNING_LOG.md 2>/dev/null || true
+          git commit -m "Auto-update producer database records [skip ci]" || echo "No changes to commit"
+          git push origin main || echo "Push skipped"
