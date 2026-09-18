@@ -648,7 +648,7 @@ OUTPUT FORMAT: Return STRICTLY valid JSON with no markdown formatting:
                 ]
             }
 
-        elif "neville" in c_id or "disc_neville" in c_id:
+        elif "sorting" in c_id or "hufflepuff" in c_id:
             # Short 4: Discovery — Neville's Sorting Hat Plea
             return {
                 "hook": "When Neville first wore the Sorting Hat, he begged it not to send him to Gryffindor.",
@@ -697,7 +697,7 @@ OUTPUT FORMAT: Return STRICTLY valid JSON with no markdown formatting:
                     {
                         "beat_id": "beat_4",
                         "narration_text": "The Hat refused. It saw legendary courage inside him, long before Neville believed in himself.",
-                        "visual_requirement": "Neville in Movie 8 standing bloodied in courtyard ruins holding Sword of Gryffindor",
+                        "visual_requirement": "Neville in Movie 8 standing courageously in courtyard ruins holding Sword of Gryffindor",
                         "characters": ["Neville Longbottom"],
                         "location": "Hogwarts courtyard ruins",
                         "action": "Grown battle-tested Neville standing tall with sword facing danger",
@@ -706,6 +706,254 @@ OUTPUT FORMAT: Return STRICTLY valid JSON with no markdown formatting:
                         "preferred_movie_number": 8,
                         "source_grounding": "Movie 8 / Book 7 Chapter 36",
                         "retrieval_hints": ["Neville", "sword", "courage", "hero"]
+                    }
+                ]
+            }
+
+        elif "gc0020_0022" in c_id or "vanishing_glass" in c_id or "snake" in c_id:
+            # Short 5: Novel Story — The Zoo Snake Adventure (Book 1 Ch 2)
+            return {
+                "hook": "At the city zoo, Harry stopped in front of a giant sleeping snake.",
+                "development": "Suddenly, the snake woke up and winked at him. Harry whispered to it, and the snake nodded back politely. His cousin Dudley pushed Harry aside to get closer. But the moment Dudley touched the tank, the glass vanished into thin air! Dudley tumbled straight into the cold water pool.",
+                "payoff": "The friendly snake slithered free, leaving Dudley trapped behind the glass.",
+                "visual_beats": [
+                    {
+                        "beat_id": "beat_1",
+                        "narration_text": "At the city zoo, Harry stopped in front of a giant sleeping snake.",
+                        "visual_requirement": "Harry standing alone in front of the giant glass enclosure looking curiously at coiled sleeping snake",
+                        "characters": ["Harry Potter"],
+                        "location": "Zoo Reptile House",
+                        "action": "Young boy staring curiously through dark glass exhibit",
+                        "objects": ["Glass enclosure", "Snake"],
+                        "emotional_context": "Quiet curiosity and solitude",
+                        "preferred_movie_number": 1,
+                        "source_grounding": "Movie 1, 00:06:37–00:06:50 / Book 1 Chapter 2",
+                        "retrieval_hints": ["zoo", "Harry", "snake", "glass", "reptile house"]
+                    },
+                    {
+                        "beat_id": "beat_2",
+                        "narration_text": "Suddenly, the snake woke up and winked at him. Harry whispered to it, and the snake nodded back politely.",
+                        "visual_requirement": "Close-up of boa constrictor raising its head, winking, and nodding as Harry speaks",
+                        "characters": ["Harry Potter", "Boa Constrictor"],
+                        "location": "Zoo Reptile House",
+                        "action": "Giant snake making direct eye contact with Harry and nodding head",
+                        "objects": ["Snake", "Enclosure"],
+                        "emotional_context": "Surprise, gentle wonder, and magical connection",
+                        "preferred_movie_number": 1,
+                        "source_grounding": "Movie 1, 00:06:55–00:07:20 / Book 1 Chapter 2",
+                        "retrieval_hints": ["snake", "winking", "Harry talking", "nodding"]
+                    },
+                    {
+                        "beat_id": "beat_3",
+                        "narration_text": "His cousin Dudley pushed Harry aside to get closer. But the moment Dudley touched the tank, the glass vanished into thin air! Dudley tumbled straight into the cold water pool.",
+                        "visual_requirement": "Dudley running up, shoving Harry aside, and leaning hands against glass just as the glass vanishes, splashing into pool",
+                        "characters": ["Dudley Dursley", "Harry Potter"],
+                        "location": "Zoo Reptile House",
+                        "action": "Bully shoving boy, pressing glass, tumbling forward into water tank",
+                        "objects": ["Vanishing glass", "Water tank"],
+                        "emotional_context": "Comical shock and instant justice",
+                        "preferred_movie_number": 1,
+                        "source_grounding": "Movie 1, 00:07:30–00:07:50 / Book 1 Chapter 2",
+                        "retrieval_hints": ["Dudley", "push", "glass vanished", "splash", "falling"]
+                    },
+                    {
+                        "beat_id": "beat_4",
+                        "narration_text": "The friendly snake slithered free, leaving Dudley trapped behind the glass.",
+                        "visual_requirement": "Snake slithering out across floor past screaming visitors while Dudley bangs on reappeared glass from inside tank",
+                        "characters": ["Boa Constrictor", "Dudley Dursley", "Harry Potter"],
+                        "location": "Zoo Reptile House",
+                        "action": "Snake escaping freely along floor, Dudley trapped banging inside glass",
+                        "objects": ["Escaping snake", "Reappeared glass"],
+                        "emotional_context": "Triumph, amusement, and comedic payoff",
+                        "preferred_movie_number": 1,
+                        "source_grounding": "Movie 1, 00:07:50–00:08:15 / Book 1 Chapter 2",
+                        "retrieval_hints": ["snake slithering", "floor", "Dudley trapped", "glass"]
+                    }
+                ]
+            }
+
+        elif "gc0029_0031" in c_id or "letters" in c_id or "fireplace" in c_id:
+            # Short 6: Novel Story — The Fireplace Letters Explosion (Book 1 Ch 3)
+            return {
+                "hook": "Uncle Vernon was determined that Harry would never read his letter.",
+                "development": "He boarded up the windows and nailed the mail slot shut. On Sunday morning, Vernon smiled happily because no mail arrived on Sundays. Then the fireplace began to rumble. Suddenly, hundreds of letters shot out like popcorn! Envelopes swirled through the entire room as Harry jumped high to catch one.",
+                "payoff": "Uncle Vernon panicked, realizing magic was impossible to keep out.",
+                "visual_beats": [
+                    {
+                        "beat_id": "beat_1",
+                        "narration_text": "Uncle Vernon was determined that Harry would never read his letter. He boarded up the windows and nailed the mail slot shut.",
+                        "visual_requirement": "Uncle Vernon frantically hammering wooden planks across the mail slot and burning envelopes",
+                        "characters": ["Uncle Vernon"],
+                        "location": "Number 4 Privet Drive hallway",
+                        "action": "Furious man hammering boards over door slot and destroying mail",
+                        "objects": ["Hammer", "Wooden planks", "Envelopes"],
+                        "emotional_context": "Desperation and stubborn denial",
+                        "preferred_movie_number": 1,
+                        "source_grounding": "Movie 1, 00:10:05–00:10:35 / Book 1 Chapter 3",
+                        "retrieval_hints": ["Vernon", "hammer", "mail slot", "Privet Drive", "letter"]
+                    },
+                    {
+                        "beat_id": "beat_2",
+                        "narration_text": "On Sunday morning, Vernon smiled happily because no mail arrived on Sundays. Then the fireplace began to rumble.",
+                        "visual_requirement": "Uncle Vernon sitting smugly holding tea cup smiling, suddenly looking alarmed as fireplace begins trembling and shaking",
+                        "characters": ["Uncle Vernon", "Harry Potter"],
+                        "location": "Privet Drive living room",
+                        "action": "Smug smile turning to sudden alarm as brick fireplace shakes",
+                        "objects": ["Tea cup", "Fireplace"],
+                        "emotional_context": "False confidence shifting to sudden dread",
+                        "preferred_movie_number": 1,
+                        "source_grounding": "Movie 1, 00:10:45–00:11:05 / Book 1 Chapter 3",
+                        "retrieval_hints": ["Sunday", "Vernon smiling", "no post", "fireplace shaking"]
+                    },
+                    {
+                        "beat_id": "beat_3",
+                        "narration_text": "Suddenly, hundreds of letters shot out like popcorn! Envelopes swirled through the entire room as Harry jumped high to catch one.",
+                        "visual_requirement": "A whirlwind of Hogwarts envelopes blasting out of the fireplace, filling the room while Harry leaps in the air grabbing for one",
+                        "characters": ["Harry Potter", "Uncle Vernon", "Aunt Petunia"],
+                        "location": "Privet Drive living room",
+                        "action": "Hundreds of envelopes flying like a magical storm, boy jumping to snatch letter",
+                        "objects": ["Flying envelopes", "Green ink letters"],
+                        "emotional_context": "High-energy magic, excitement, and chaos",
+                        "preferred_movie_number": 1,
+                        "source_grounding": "Movie 1, 00:11:05–00:11:35 / Book 1 Chapter 3",
+                        "retrieval_hints": ["letters flying", "fireplace", "Harry jumping", "living room"]
+                    },
+                    {
+                        "beat_id": "beat_4",
+                        "narration_text": "Uncle Vernon panicked, realizing magic was impossible to keep out.",
+                        "visual_requirement": "Uncle Vernon struggling to hold Harry back as envelopes swirl chaotically around the terrified Dursley family",
+                        "characters": ["Uncle Vernon", "Harry Potter", "Dudley Dursley"],
+                        "location": "Privet Drive living room",
+                        "action": "Uncle tackling Harry away from letters amid spinning paper storm",
+                        "objects": ["Letters", "Living room furniture"],
+                        "emotional_context": "Complete overwhelm and magical inevitability",
+                        "preferred_movie_number": 1,
+                        "source_grounding": "Movie 1, 00:11:30–00:11:55 / Book 1 Chapter 3",
+                        "retrieval_hints": ["Vernon panicking", "letters", "tackle", "chaos"]
+                    }
+                ]
+            }
+
+        elif "erised" in c_id or "mirror" in c_id:
+            # Short 7: Discovery — The Mirror of Erised Backwards Code (Book 1 Ch 12)
+            return {
+                "hook": "Did you know the magical mirror in Hogwarts hides a secret code?",
+                "development": "Carved along the gold frame are strange words that look like a riddle. They seem like nonsense at first. But if you read them backwards in a mirror, the secret message appears! It says: I show not your face, but your heart's desire.",
+                "payoff": "That explains the name Erised, which is just the word desire spelled backwards.",
+                "visual_beats": [
+                    {
+                        "beat_id": "beat_1",
+                        "narration_text": "Did you know the magical mirror in Hogwarts hides a secret code?",
+                        "visual_requirement": "Harry Potter in nightclothes slowly approaching the towering gold-framed mirror in a deserted dark classroom",
+                        "characters": ["Harry Potter"],
+                        "location": "Abandoned Hogwarts classroom",
+                        "action": "Young student creeping quietly toward towering ornate mirror",
+                        "objects": ["Mirror of Erised", "Gold frame"],
+                        "emotional_context": "Mystery and quiet revelation",
+                        "preferred_movie_number": 1,
+                        "source_grounding": "Movie 1, 01:31:50–01:32:15 / Book 1 Chapter 12",
+                        "retrieval_hints": ["Harry", "mirror", "Erised", "classroom", "night"]
+                    },
+                    {
+                        "beat_id": "beat_2",
+                        "narration_text": "Carved along the gold frame are strange words that look like a riddle. They seem like nonsense at first.",
+                        "visual_requirement": "Close-up of the intricate gold arch of the mirror, showing the mysterious carved inscription letters",
+                        "characters": ["Mirror of Erised"],
+                        "location": "Mirror top arch",
+                        "action": "Camera panning across carved letters along golden rim",
+                        "objects": ["Carved inscription", "Gold arch"],
+                        "emotional_context": "Curiosity and cryptic puzzle",
+                        "preferred_movie_number": 1,
+                        "source_grounding": "Movie 1, 01:32:15–01:32:35 / Book 1 Chapter 12",
+                        "retrieval_hints": ["inscription", "letters", "gold frame", "carved", "Erised"]
+                    },
+                    {
+                        "beat_id": "beat_3",
+                        "narration_text": "But if you read them backwards in a mirror, the secret message appears! It says: I show not your face, but your heart's desire.",
+                        "visual_requirement": "Harry gazing into the mirror glass as smiling reflections of his parents appear beside him",
+                        "characters": ["Harry Potter", "James Potter", "Lily Potter"],
+                        "location": "Mirror glass reflection",
+                        "action": "Loving family reflection appearing in silver glass smiling at Harry",
+                        "objects": ["Reflective glass", "Parents reflection"],
+                        "emotional_context": "Emotional wonder and profound longing",
+                        "preferred_movie_number": 1,
+                        "source_grounding": "Movie 1, 01:32:40–01:33:20 / Book 1 Chapter 12",
+                        "retrieval_hints": ["parents reflection", "Harry smiling", "mirror glass"]
+                    },
+                    {
+                        "beat_id": "beat_4",
+                        "narration_text": "That explains the name Erised, which is just the word desire spelled backwards.",
+                        "visual_requirement": "Dumbledore sitting quietly on a wooden desk beside Harry, speaking with gentle wisdom",
+                        "characters": ["Albus Dumbledore", "Harry Potter"],
+                        "location": "Abandoned classroom",
+                        "action": "Wise headmaster explaining the true nature of the mirror",
+                        "objects": ["Mirror of Erised", "Desk"],
+                        "emotional_context": "Warm wisdom and satisfying realization",
+                        "preferred_movie_number": 1,
+                        "source_grounding": "Movie 1, 01:35:10–01:35:45 / Book 1 Chapter 12",
+                        "retrieval_hints": ["Dumbledore", "Harry", "Erised", "desire", "explaining"]
+                    }
+                ]
+            }
+
+        elif "remembrall" in c_id or "cloak" in c_id:
+            # Short 8: Discovery — Neville's Remembrall Cloak Secret (Book 1 Ch 9)
+            return {
+                "hook": "Did you know Neville's magical glass ball revealed his secret right on screen?",
+                "development": "An owl drops a Remembrall that fills with red smoke whenever you forget something. Neville looks confused, admitting he cannot remember what he forgot. Notice the other students at the breakfast table! Every single student is wearing their black school robes.",
+                "payoff": "Neville is sitting in his sweater and tie, having completely forgotten his cloak.",
+                "visual_beats": [
+                    {
+                        "beat_id": "beat_1",
+                        "narration_text": "Did you know Neville's magical glass ball revealed his secret right on screen?",
+                        "visual_requirement": "Flock of school owls swooping into the sunny Great Hall carrying letters and packages down to students",
+                        "characters": ["Hogwarts Students", "Owls"],
+                        "location": "Great Hall breakfast tables",
+                        "action": "Owls flying low over long breakfast tables dropping mail",
+                        "objects": ["Mail packages", "Great Hall tables"],
+                        "emotional_context": "Morning energy and anticipation",
+                        "preferred_movie_number": 1,
+                        "source_grounding": "Movie 1, 00:54:05–00:54:20 / Book 1 Chapter 9",
+                        "retrieval_hints": ["owls", "Great Hall", "breakfast", "mail", "delivery"]
+                    },
+                    {
+                        "beat_id": "beat_2",
+                        "narration_text": "An owl drops a Remembrall that fills with red smoke whenever you forget something. Neville looks confused, admitting he cannot remember what he forgot.",
+                        "visual_requirement": "Close-up of Neville holding the clear glass ball as glowing red smoke swirls inside, looking bewildered",
+                        "characters": ["Neville Longbottom", "Hermione Granger", "Dean Thomas"],
+                        "location": "Gryffindor house table",
+                        "action": "Student holding glowing sphere, frowning in confusion",
+                        "objects": ["Remembrall", "Red smoke"],
+                        "emotional_context": "Bewilderment and innocent humor",
+                        "preferred_movie_number": 1,
+                        "source_grounding": "Movie 1, 00:54:22–00:54:35 / Book 1 Chapter 9",
+                        "retrieval_hints": ["Remembrall", "Neville", "red smoke", "confused"]
+                    },
+                    {
+                        "beat_id": "beat_3",
+                        "narration_text": "Notice the other students at the breakfast table! Every single student is wearing their black school robes.",
+                        "visual_requirement": "Medium shot panning across Harry, Ron, Hermione, and Dean, all dressed in standard black Hogwarts robes",
+                        "characters": ["Harry Potter", "Ron Weasley", "Hermione Granger"],
+                        "location": "Gryffindor table",
+                        "action": "Classmates sitting in full uniform black school cloaks watching Neville",
+                        "objects": ["Black Hogwarts robes", "House ties"],
+                        "emotional_context": "Visual evidence and contrast",
+                        "preferred_movie_number": 1,
+                        "source_grounding": "Movie 1, 00:54:30–00:54:38 / Book 1 Chapter 9",
+                        "retrieval_hints": ["students in robes", "Hermione", "black cloaks", "uniform"]
+                    },
+                    {
+                        "beat_id": "beat_4",
+                        "narration_text": "Neville is sitting in his sweater and tie, having completely forgotten his cloak.",
+                        "visual_requirement": "Cut back to Neville sitting in just his white collared shirt, vest sweater, and tie, completely missing his black robe",
+                        "characters": ["Neville Longbottom"],
+                        "location": "Gryffindor table",
+                        "action": "Neville holding Remembrall in shirt and sweater with no black robe on",
+                        "objects": ["Remembrall", "Sweater vest", "Missing robe"],
+                        "emotional_context": "Clever realization, laughter, and hidden easter egg",
+                        "preferred_movie_number": 1,
+                        "source_grounding": "Movie 1, 00:54:35–00:54:45 / Book 1 Chapter 9",
+                        "retrieval_hints": ["Neville sweater", "no robe", "Remembrall", "forgotten cloak"]
                     }
                 ]
             }

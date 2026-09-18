@@ -84,6 +84,34 @@ class TestHarryPotterScriptEngine(unittest.TestCase):
                 for b in beats:
                     self.assertEqual(b.get("visual_source_policy"), "MOVIE_FOOTAGE_ONLY")
 
+    def test_batch2_persisted_and_distinct(self):
+        """Batch 2 scripts (Shorts 5-8) must exist, have 2 novel + 2 discovery, and zero overlap with batch 1."""
+        batch2_ids = [
+            "hps_ns_b1c02_gc0020_0022",
+            "hps_ns_b1c03_gc0029_0031",
+            "hps_disc_mirror_of_erised_inscription_b1",
+            "hps_disc_neville_remembrall_cloak_b1"
+        ]
+        with self.engine.Session() as session:
+            b2_scripts = session.query(HarryPotterScript).filter(HarryPotterScript.id.in_(batch2_ids)).all()
+            self.assertEqual(len(b2_scripts), 4)
+            novel_count = sum(1 for s in b2_scripts if s.content_type == "novel_story")
+            disc_count = sum(1 for s in b2_scripts if s.content_type == "discovery")
+            self.assertEqual(novel_count, 2)
+            self.assertEqual(disc_count, 2)
+
+            for s in b2_scripts:
+                self.assertEqual(s.qa_status, "APPROVED")
+                self.assertGreaterEqual(s.word_count, 55)
+                self.assertLessEqual(s.word_count, 75)
+                # Verify zero spoken part numbering in narration
+                for word in ["part one", "part two", "part three", "part four", "part five", "chapter one"]:
+                    self.assertNotIn(word, s.full_text.lower())
+                beats = json.loads(s.visual_beats_json)
+                self.assertGreaterEqual(len(beats), 3)
+                for b in beats:
+                    self.assertEqual(b.get("visual_source_policy"), "MOVIE_FOOTAGE_ONLY")
+
 
 if __name__ == "__main__":
     unittest.main()
