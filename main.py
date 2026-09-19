@@ -697,7 +697,7 @@ class ShortsPipeline:
         except Exception as e:
             logger.warning(f"Could not persist production summary: {e}")
 
-    def produce_batch(self, count: int = 1, force_unlock: bool = False) -> Tuple[int, Dict[str, Any]]:
+    def produce_batch(self, count: int = 1, force_unlock: bool = False, is_dry_run: bool = False) -> Tuple[int, Dict[str, Any]]:
         """
         BATCH PRODUCER: Generates multiple complete YouTube Shorts sequentially into Google Drive Vault.
         Uses the authoritative CloudProductionOrchestrator protected by CompositeLock
