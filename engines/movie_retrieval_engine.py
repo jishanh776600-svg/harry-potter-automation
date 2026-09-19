@@ -163,8 +163,8 @@ class MovieRetrievalEngine:
                         m["matched_query"] = q
                         candidates_by_id[m["chunk_id"]] = m
 
-        # Round 2: Fallback global search if fewer than 5 candidates
-        if len(candidates_by_id) < 5:
+        # Round 2: Fallback global search ONLY if preferred movie has zero candidates
+        if len(candidates_by_id) == 0:
             for q in queries:
                 matches = self.asset_engine.search_movie_scenes(q, movie_number=None, limit=5)
                 for m in matches:

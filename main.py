@@ -750,6 +750,7 @@ class ShortsPipeline:
         orchestrator = HPAutonomousRefillEngine(
             drive_engine=self.drive_engine,
             voice_id="af_bella",
+            is_dry_run=is_dry_run or getattr(self, "dry_run", False),
             force_unlock=force_unlock
         )
         telemetry = orchestrator.run_refill_cycle(force_batch_count=effective_count)
@@ -776,7 +777,7 @@ class ShortsPipeline:
         ))
         return telemetry.videos_deposited, summary
 
-    def maintain_buffer(self, target_stock: int = 6, force_unlock: bool = False) -> Tuple[int, Dict[str, Any]]:
+    def maintain_buffer(self, target_stock: int = 6, force_unlock: bool = False, is_dry_run: bool = False) -> Tuple[int, Dict[str, Any]]:
         """
         BUFFER MANAGER: Checks current ready stock in Drive '01_READY'.
         If stock < target_stock, dynamically calculates deficit per iteration and generates
@@ -808,6 +809,7 @@ class ShortsPipeline:
         orchestrator = HPAutonomousRefillEngine(
             drive_engine=self.drive_engine,
             voice_id="af_bella",
+            is_dry_run=is_dry_run or getattr(self, "dry_run", False),
             force_unlock=force_unlock
         )
         telemetry = orchestrator.run_refill_cycle(target_buffer=clamped_target)
@@ -1939,7 +1941,11 @@ def main():
         console.print("[bold green][+] Forcibly released all cloud and local locks.[/bold green]")
         sys.exit(0)
     elif args.maintain_buffer > 0:
-        res = pipeline.maintain_buffer(target_stock=args.maintain_buffer, force_unlock=args.force_unlock or args.force)
+        res = pipeline.maintain_buffer(
+            target_stock=args.maintain_buffer,
+            force_unlock=args.force_unlock or args.force,
+            is_dry_run=getattr(args, "dry_run", False)
+        )
         count = res[0] if isinstance(res, tuple) else res
         summary = res[1] if isinstance(res, tuple) else {}
         sys.stdout.flush()
@@ -1958,7 +1964,11 @@ def main():
             sys.stderr.flush()
             os._exit(0)
     elif args.produce_batch > 0:
-        res = pipeline.produce_batch(count=args.produce_batch, force_unlock=args.force_unlock or args.force)
+        res = pipeline.produce_batch(
+            count=args.produce_batch,
+            force_unlock=args.force_unlock or args.force,
+            is_dry_run=getattr(args, "dry_run", False)
+        )
         count = res[0] if isinstance(res, tuple) else res
         summary = res[1] if isinstance(res, tuple) else {}
         sys.stdout.flush()
