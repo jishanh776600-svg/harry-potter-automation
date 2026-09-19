@@ -156,8 +156,8 @@ class HealthChecker:
     # 3. YouTube Authentication & Scope Health Check
     # -------------------------------------------------------------------------
     def check_youtube_auth(self, token_path: Optional[Path] = None, offline: bool = False) -> Dict[str, Any]:
-        from config.settings import PROJECT_ROOT
-        tok_file = token_path or (PROJECT_ROOT / "token.json")
+        from config.settings import PROJECT_ROOT, TOKEN_PATH
+        tok_file = token_path or (TOKEN_PATH if (TOKEN_PATH and TOKEN_PATH.exists()) else (PROJECT_ROOT / "token.json"))
 
         if not tok_file.exists():
             return {

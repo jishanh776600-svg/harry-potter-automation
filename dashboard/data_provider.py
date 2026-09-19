@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, desc
 from config.settings import GOOGLE_DRIVE_TOTAL_CAPACITY_BYTES
 
-from config.settings import PROJECT_ROOT, TEST_MODE, KOKORO_VOICE
+from config.settings import PROJECT_ROOT, TEST_MODE, KOKORO_VOICE, TOKEN_PATH
 from config.constants import DAILY_SHORTS_LIMIT, JobState, get_business_day_bounds_utc, BUSINESS_TIMEZONE
 from core.database import SessionLocal, get_db
 from core.models import (
@@ -2191,7 +2191,7 @@ class SystemDataProvider:
             db_sync_telemetry = {"error": str(sync_err)}
 
         # Data Freshness & Source Truth Metadata
-        token_path = PROJECT_ROOT / "token.json"
+        token_path = TOKEN_PATH if (TOKEN_PATH and TOKEN_PATH.exists()) else (PROJECT_ROOT / "token.json")
         has_token = token_path.exists()
         from engines.metrics_collector import MetricsCollector
         collector = MetricsCollector()

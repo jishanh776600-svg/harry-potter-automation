@@ -10,6 +10,15 @@ from dotenv import load_dotenv
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(PROJECT_ROOT / ".env")
 
+# ==============================================================================
+# AUTOMATION IDENTITY & HARD ROUTING GUARDS
+# ==============================================================================
+AUTOMATION_ID = "harry_potter"
+EXPECTED_GOOGLE_ACCOUNT = "jishanh760@gmail.com"
+EXPECTED_DRIVE_ROOT_ID = "11K6v7PjLsnb8fVCsAm00YGmamvv4ygzC"
+EXPECTED_YOUTUBE_CHANNEL_ID = "UCsghEXDa3EzxI4d93cjT-bQ"
+EXPECTED_YOUTUBE_CHANNEL_NAME = "STORY FORGE"
+
 DATA_DIR = PROJECT_ROOT / "data"
 DATABASE_DIR = DATA_DIR / "database"
 TOPICS_DIR = DATA_DIR / "topics"

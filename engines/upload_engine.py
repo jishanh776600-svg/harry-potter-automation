@@ -14,7 +14,7 @@ from typing import Dict, Any, Optional, List, Union, Tuple
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
-from config.settings import TEST_MODE, CLIENT_SECRETS_FILE, PROJECT_ROOT
+from config.settings import TEST_MODE, CLIENT_SECRETS_FILE, PROJECT_ROOT, TOKEN_PATH
 from core.models import Job, RenderOutput, UploadRecord, ScriptRecord
 from config.constants import JobState
 
@@ -23,6 +23,13 @@ logger = logging.getLogger(__name__)
 
 class UploadEngine:
     """Manages YouTube uploads and YouTube-side scheduled publishing via Data API v3."""
+
+    def _get_token_path(self) -> Path:
+        """Returns the isolated Harry Potter token path, falling back to PROJECT_ROOT / token.json."""
+        if TOKEN_PATH and Path(TOKEN_PATH).exists():
+            return Path(TOKEN_PATH)
+        fallback = PROJECT_ROOT / "token.json"
+        return fallback
 
     def validate_media_integrity(self, video_path: Union[str, Path]) -> None:
         """
@@ -94,10 +101,10 @@ class UploadEngine:
             except Exception as err:
                 return False, f"Gate 3 Failed: Media integrity check failed ({err})"
 
-        # 4. Duration within configured Shorts range (20.0s - 60.0s)
-        dur = float(render.duration_sec or 0.0)
-        if dur < 20.0 or dur > 60.0:
-            return False, f"Gate 4 Failed: Duration {dur:.1f}s out of bounds (20.0s - 60.0s)"
+        # 4. Duration within configured Shorts range (12.0s - 60.0s)
+        dur = float(getattr(render, "duration_sec", None) or getattr(render, "total_duration_sec", None) or 0.0)
+        if dur < 12.0 or dur > 60.0:
+            return False, f"Gate 4 Failed: Duration {dur:.1f}s out of bounds (12.0s - 60.0s)"
 
         # 5. Resolution is 1080x1920
         width = getattr(render, "width", None) or 1080
@@ -171,9 +178,9 @@ class UploadEngine:
                 return False, f"Gate 12 Failed: Scheduled slot {slot_utc} is not in the future"
 
         # 13. YouTube authentication availability
-        token_path = PROJECT_ROOT / "token.json"
+        token_path = self._get_token_path()
         if not token_path.exists() and not self._is_test_mode():
-            return False, "Gate 13 Failed: YouTube OAuth token.json not configured"
+            return False, f"Gate 13 Failed: YouTube OAuth token not found at {token_path}"
 
         # 14. Metadata is valid
         if not metadata or not metadata.get("title") or len(metadata.get("title", "").strip()) < 3:
@@ -213,19 +220,52 @@ class UploadEngine:
         except Exception as dedup_err:
             logger.warning(f"[GATE 15] Dedup evaluation notice: {dedup_err}")
 
-        # 16. Strict Niche Compliance Gate (Mystery / Bizarre Real-World Stories ONLY)
-        from intelligence.clustering import is_niche_compliant
-        cand_title = metadata.get("title", "")
-        cand_desc = metadata.get("description", "")
-        cand_script = ""
-        script_rec = db.query(ScriptRecord).filter(ScriptRecord.topic_id == job.topic_id).first() if (job and getattr(job, "topic_id", None)) else None
-        if script_rec and getattr(script_rec, "full_text", None):
-            cand_script = script_rec.full_text
-        elif script_rec and getattr(script_rec, "script_text", None):
-            cand_script = script_rec.script_text
-        is_niche, niche_reason = is_niche_compliant(title=cand_title, text=f"{cand_desc} {cand_script}")
-        if not is_niche:
-            return False, f"Gate 16 Failed: Asset violates editorial policy (Mystery / Bizarre Real-World Stories ONLY): {niche_reason}"
+        # 16. Strict Editorial Policy Gate
+        # For Harry Potter automation:
+        # Verify asset adheres to Harry Potter standards (100% movie footage, Bella voice, canonical script).
+        is_hp_job = False
+        resolved_script_id = None
+        if job and job.id:
+            clean_jid = job.id.replace("job_", "")
+            if clean_jid.startswith("hps_") or job.id.startswith("hps_"):
+                is_hp_job = True
+                resolved_script_id = clean_jid
+
+        if not is_hp_job and metadata.get("script_id"):
+            m_id = metadata.get("script_id")
+            if m_id and m_id.startswith("hps_"):
+                is_hp_job = True
+                resolved_script_id = m_id
+
+        if is_hp_job or resolved_script_id:
+            from core.models import HarryPotterScript, HPRender
+            hp_script = db.query(HarryPotterScript).filter_by(id=resolved_script_id).first() if resolved_script_id else None
+            if not hp_script and job and job.id:
+                hp_script = db.query(HarryPotterScript).filter_by(id=job.id.replace("job_", "")).first()
+            if not hp_script and resolved_script_id:
+                hp_script = db.query(HarryPotterScript).filter(HarryPotterScript.id.ilike(f"%{resolved_script_id}%")).first()
+
+            if hp_script:
+                if hp_script.voice_id not in ("af_bella", "bella"):
+                    return False, f"Gate 16 Failed: Harry Potter voice '{hp_script.voice_id}' is invalid (af_bella required)"
+                if hp_script.content_type not in ("novel_story", "discovery"):
+                    return False, f"Gate 16 Failed: Invalid content type '{hp_script.content_type}'"
+                # Passed Harry Potter editorial policy
+            else:
+                return False, f"Gate 16 Failed: Harry Potter script '{resolved_script_id}' not registered in database"
+        else:
+            from intelligence.clustering import is_niche_compliant
+            cand_title = metadata.get("title", "")
+            cand_desc = metadata.get("description", "")
+            cand_script = ""
+            script_rec = db.query(ScriptRecord).filter(ScriptRecord.topic_id == job.topic_id).first() if (job and getattr(job, "topic_id", None)) else None
+            if script_rec and getattr(script_rec, "full_text", None):
+                cand_script = script_rec.full_text
+            elif script_rec and getattr(script_rec, "script_text", None):
+                cand_script = script_rec.script_text
+            is_niche, niche_reason = is_niche_compliant(title=cand_title, text=f"{cand_desc} {cand_script}")
+            if not is_niche:
+                return False, f"Gate 16 Failed: Asset violates editorial policy (Mystery / Bizarre Real-World Stories ONLY): {niche_reason}"
 
         return True, "All 16 publication safety gates passed successfully"
 
@@ -359,6 +399,34 @@ class UploadEngine:
         """Alias for schedule_short."""
         return self.schedule_short(db, job, render, metadata, scheduled_publish_at)
 
+    def verify_channel_authorization(self, youtube=None) -> str:
+        """
+        FAIL-CLOSED HARD CHANNEL ISOLATION GUARD.
+        Verifies authenticated YouTube channel strictly matches EXPECTED_YOUTUBE_CHANNEL_ID.
+        """
+        from config.settings import EXPECTED_YOUTUBE_CHANNEL_ID
+        if youtube is None:
+            from googleapiclient.discovery import build
+            from google.oauth2.credentials import Credentials
+            token_path = self._get_token_path()
+            if not token_path.exists():
+                raise FileNotFoundError(f"OAuth token not found at {token_path}")
+            creds = Credentials.from_authorized_user_file(str(token_path))
+            youtube = build("youtube", "v3", credentials=creds)
+
+        ch_res = youtube.channels().list(mine=True, part="id,snippet").execute()
+        ch_items = ch_res.get("items", [])
+        if not ch_items:
+            raise PermissionError("[HARD_CHANNEL_GUARD_VIOLATION] No YouTube channel found for authenticated user.")
+        actual_channel_id = ch_items[0].get("id")
+        if actual_channel_id != EXPECTED_YOUTUBE_CHANNEL_ID:
+            raise PermissionError(
+                f"[HARD_CHANNEL_GUARD_VIOLATION] Authenticated YouTube channel '{actual_channel_id}' "
+                f"does NOT match expected Harry Potter channel '{EXPECTED_YOUTUBE_CHANNEL_ID}'. "
+                "Refusing upload to prevent cross-channel pollution."
+            )
+        return actual_channel_id
+
     def schedule_short(
         self,
         db: Session,
@@ -482,12 +550,14 @@ class UploadEngine:
             import http.client
             import ssl
 
-            token_path = PROJECT_ROOT / "token.json"
+            token_path = self._get_token_path()
             if not token_path.exists():
-                raise FileNotFoundError(f"OAuth token.json not found at {token_path}. Run authentication setup.")
+                raise FileNotFoundError(f"OAuth token not found at {token_path}. Run authentication setup.")
 
             creds = Credentials.from_authorized_user_file(str(token_path))
             youtube = build("youtube", "v3", credentials=creds)
+            # HARD CHANNEL ISOLATION GUARD: Verify YouTube channel matches Harry Potter channel
+            self.verify_channel_authorization(youtube=youtube)
 
             # Crash-Safe Pre-Upload Check: Search channel to prevent double uploads if prior run crashed post-upload
             orphan_id, orphan_reason = self.recover_orphaned_upload(
@@ -661,7 +731,7 @@ class UploadEngine:
                 try:
                     from googleapiclient.discovery import build
                     from google.oauth2.credentials import Credentials
-                    token_path = PROJECT_ROOT / "token.json"
+                    token_path = self._get_token_path()
                     if token_path.exists():
                         creds = Credentials.from_authorized_user_file(str(token_path))
                         yt_check = build("youtube", "v3", credentials=creds)

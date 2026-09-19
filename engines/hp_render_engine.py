@@ -513,9 +513,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         c6 = len(a_streams) == 1
         qa_report["details"]["single_audio_stream"] = c6
 
-        # 7. Duration within bounds (20.0s - 35.0s)
+        # 7. Duration within bounds (12.0s - 35.0s) - Quality over artificial padding
         dur = float(probe_data.get("format", {}).get("duration", 0.0))
-        c7 = 20.0 <= dur <= 35.0
+        c7 = 12.0 <= dur <= 35.0
         qa_report["details"]["duration_within_bounds"] = c7
 
         # 8. Black screen detection
@@ -655,12 +655,35 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                         f"Cannot render {script_id}: Movie {sh.movie_number} not available locally or on Drive."
                     )
 
-        # Adapt shot sequence to match narration duration without gaps
-        total_shot_dur = sum(sh.duration_seconds for sh in shots)
-        # If total shot footage is slightly shorter or longer than narration, loop shots to ensure complete coverage
+        # ----------------------------------------------------------------------
+        # ANTI-LOOP HARD GATE: Strict zero-repetition enforcement
+        # ----------------------------------------------------------------------
+        unique_shot_paths = list(dict.fromkeys(shot_files))
+        if len(unique_shot_paths) != len(shot_files):
+            raise ValueError(f"Anti-Loop Violation for {script_id}: Repeated clip detected in shot list!")
+
+        # Check timestamp intervals for overlap
+        intervals = [(sh.clip_start_seconds, sh.clip_end_seconds) for sh in shots]
+        sorted_intervals = sorted(intervals, key=lambda x: x[0])
+        for i in range(len(sorted_intervals) - 1):
+            curr_end = sorted_intervals[i][1]
+            next_start = sorted_intervals[i + 1][0]
+            if curr_end - next_start > 0.5:
+                raise ValueError(
+                    f"Anti-Loop Violation for {script_id}: Substantially overlapping timestamp windows detected: "
+                    f"[{sorted_intervals[i][0]:.1f}, {curr_end:.1f}] and [{next_start:.1f}, {sorted_intervals[i+1][1]:.1f}]"
+                )
+
+        total_unique_shot_dur = sum(sh.duration_seconds for sh in shots)
+        if total_unique_shot_dur < narration_dur - 0.5:
+            raise ValueError(
+                f"Anti-Loop Violation for {script_id}: Total unique visual coverage ({total_unique_shot_dur:.2f}s) "
+                f"is less than narration duration ({narration_dur:.2f}s). "
+                "Padding/looping is strictly prohibited; narration must be constrained by available footage."
+            )
+
+        # Assembled shots is strictly the unique shot sequence (0% repetition)
         assembled_shots = list(shot_files)
-        while sum(shots[i % len(shots)].duration_seconds for i in range(len(assembled_shots))) < narration_dur:
-            assembled_shots.append(shot_files[len(assembled_shots) % len(shot_files)])
 
         # 5. Render Final Short Video
         output_mp4 = RENDERS_OUTPUT_DIR / f"{script_id}.mp4"

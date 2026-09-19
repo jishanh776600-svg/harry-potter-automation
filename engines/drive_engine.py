@@ -16,7 +16,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
 
-from config.settings import PROJECT_ROOT, TEST_MODE
+from config.settings import (
+    PROJECT_ROOT, TEST_MODE,
+    AUTOMATION_ID, EXPECTED_GOOGLE_ACCOUNT, EXPECTED_DRIVE_ROOT_ID
+)
 from core.retry import retry_call
 
 logger = logging.getLogger(__name__)
@@ -24,6 +27,58 @@ logger = logging.getLogger(__name__)
 VAULT_ROOT_NAME = os.getenv("GOOGLE_DRIVE_VAULT_ROOT", "Yt_harry_potter_automation")
 SUBFOLDERS = ["00_SYSTEM", "01_READY", "02_PROCESSING", "03_PUBLISHED", "04_FAILED", "05_KNOWLEDGE"]
 MIN_VALID_SHORT_BYTES = 5 * 1024 * 1024  # 5 MB minimum for real 1080x1920 vertical Short
+
+# ==============================================================================
+# CONTENT IDENTITY & ROUTING SAFETY GUARDS
+# ==============================================================================
+HP_CONTENT_KEYWORDS = {
+    "harry potter", "hogwarts", "wizard", "magic", "quidditch", "dumbledore",
+    "voldemort", "gryffindor", "slytherin", "hufflepuff", "ravenclaw", "snape",
+    "hermione", "ron weasley", "neville", "hagrid", "peeves", "sorting hat",
+    "erised", "malfoy", "privet drive", "dursley", "philosopher", "sorcerer",
+    "hps_"
+}
+
+FORBIDDEN_AL_AMR_KEYWORDS = {
+    "medical cases", "nasa", "plastic waste", "edible cookies", "courtship rituals",
+    "live science", "current affairs", "short_man_"
+}
+
+
+def validate_hp_content_identity(
+    local_path: Optional[Path] = None,
+    filename: str = "",
+    metadata_properties: Optional[Dict[str, Any]] = None,
+    title: str = "",
+    description: str = "",
+    destination_automation_id: str = "harry_potter"
+) -> Tuple[bool, str]:
+    """
+    Evaluates Step 4 (Content Identity Guard) and Step 5 (Content Type Guard).
+    Fails closed if automation_id != 'harry_potter' or if content is recognizable AL AMR material.
+    """
+    props = metadata_properties or {}
+    auto_id = props.get("automation_id") or os.environ.get("AUTOMATION_ID", "")
+    if not auto_id:
+        return False, "Missing required 'automation_id' metadata property"
+    if auto_id != destination_automation_id:
+        return False, f"Automation ID mismatch: candidate carries '{auto_id}', expected '{destination_automation_id}'"
+
+    fn = (filename or (local_path.name if local_path else "")).lower()
+    t = (title or props.get("title", "")).lower()
+    d = (description or props.get("description", "")).lower()
+    combined = f"{fn} {t} {d}"
+
+    for forbidden in FORBIDDEN_AL_AMR_KEYWORDS:
+        if forbidden in combined:
+            return False, f"Forbidden AL AMR content marker detected: '{forbidden}'"
+
+    if not fn.startswith("hps_"):
+        has_hp_kw = any(kw in combined for kw in HP_CONTENT_KEYWORDS)
+        if not has_hp_kw:
+            return False, f"Content lacks required Harry Potter contextual markers: '{fn}'"
+
+    return True, "Validated Harry Potter Content Identity"
 
 
 def is_valid_ready_short(
@@ -82,18 +137,15 @@ def is_valid_ready_short(
         if v_prop and v_prop not in ("af_bella", "bella"):
             return False, f"Non-authoritative voice '{v_prop}' in properties (af_bella required)"
 
-        # Check HPRender or RenderedVideoRecord
-        if db and (name.startswith("hps_") or name.startswith("short_man_")):
+        # Foreign AL AMR artifact check
+        if name.startswith("short_man_") or name.startswith("short_job_"):
+            return False, f"Foreign AL AMR production artifact rejected from HP vault: '{name}'"
+
+        # Check HPRender
+        if db and name.startswith("hps_"):
             try:
-                if name.startswith("hps_"):
-                    from core.models import HPRender
-                    r = db.query(HPRender).filter(HPRender.video_path.ilike(f"%{name}%")).first()
-                else:
-                    from core.models import RenderedVideoRecord
-                    r = db.query(RenderedVideoRecord).filter(
-                        (RenderedVideoRecord.video_path.ilike(f"%{name}%")) |
-                        (RenderedVideoRecord.cloud_storage_path.ilike(f"%{name}%"))
-                    ).first()
+                from core.models import HPRender
+                r = db.query(HPRender).filter(HPRender.video_path.ilike(f"%{name}%")).first()
                 if r:
                     if r.voice_id not in ("af_bella", "bella"):
                         return False, f"Non-authoritative voice '{r.voice_id}' (af_bella required)"
@@ -102,7 +154,7 @@ def is_valid_ready_short(
             except Exception as r_err:
                 logger.debug(f"Video record verification notice for {name}: {r_err}")
 
-        if db and job_id and not name.startswith("short_man_") and not allow_test_artifacts:
+        if db and job_id and not allow_test_artifacts:
             try:
                 from core.models import UploadRecord, Job
                 upl = db.query(UploadRecord).filter(
@@ -245,6 +297,18 @@ class DriveVaultEngine:
 
             creds = Credentials.from_authorized_user_file(str(self.token_path))
             self._drive_service = build("drive", "v3", credentials=creds)
+
+            # FAIL-CLOSED HARD ACCOUNT GUARD (Step 3): Verify authenticated Google account matches Harry Potter account
+            about = self._drive_service.about().get(fields="user(emailAddress)").execute()
+            user_email = about.get("user", {}).get("emailAddress", "").lower().strip()
+            if not user_email or user_email != EXPECTED_GOOGLE_ACCOUNT:
+                self._drive_service = None
+                raise PermissionError(
+                    f"[HARD_ACCOUNT_GUARD_VIOLATION] Authenticated Google account '{user_email}' "
+                    f"does NOT match expected Harry Potter account '{EXPECTED_GOOGLE_ACCOUNT}'. "
+                    "Refusing Drive operations to prevent cross-automation pollution."
+                )
+
             return self._drive_service
         except Exception as e:
             logger.error(f"Failed to initialize Google Drive API client: {e}")
@@ -348,18 +412,39 @@ class DriveVaultEngine:
             "05_KNOWLEDGE": None
         }
 
-        root_folder = self.find_folder(VAULT_ROOT_NAME)
-        if not root_folder and VAULT_ROOT_NAME != "Yt_harry_potter_automation":
-            root_folder = self.find_folder("Yt_harry_potter_automation")
-        if not root_folder and VAULT_ROOT_NAME != "Harry_Potter_Shorts_Vault":
-            root_folder = self.find_folder("Harry_Potter_Shorts_Vault")
+        # HARD ROOT GUARD (Step 3): Direct authoritative lookup by EXPECTED_DRIVE_ROOT_ID
+        root_folder = None
+        if not self._is_test_mode():
+            try:
+                drive = self.get_drive_service()
+                root_obj = drive.files().get(fileId=EXPECTED_DRIVE_ROOT_ID, fields="id, name, trashed").execute()
+                if root_obj and not root_obj.get("trashed"):
+                    root_folder = root_obj
+            except Exception as root_lookup_err:
+                logger.error(f"[HARD_ROOT_GUARD] Failed to lookup expected root ID '{EXPECTED_DRIVE_ROOT_ID}': {root_lookup_err}")
+
+        if not root_folder:
+            root_folder = self.find_folder(VAULT_ROOT_NAME)
+            if not root_folder and VAULT_ROOT_NAME != "Yt_harry_potter_automation":
+                root_folder = self.find_folder("Yt_harry_potter_automation")
 
         if not root_folder:
             if not create_if_missing:
                 return structure
+            if not self._is_test_mode():
+                raise PermissionError(
+                    f"[HARD_ROOT_GUARD_VIOLATION] Could not locate expected Harry Potter vault root '{EXPECTED_DRIVE_ROOT_ID}'. "
+                    "Refusing to create arbitrary root folder to prevent cross-automation pollution."
+                )
             root_folder = self.create_folder(VAULT_ROOT_NAME)
 
         root_id = root_folder["id"]
+        if not self._is_test_mode() and root_id != EXPECTED_DRIVE_ROOT_ID:
+            raise PermissionError(
+                f"[HARD_ROOT_GUARD_VIOLATION] Discovered vault root ID '{root_id}' does NOT match "
+                f"expected Harry Potter root ID '{EXPECTED_DRIVE_ROOT_ID}'. "
+                "Refusing Drive operation to prevent cross-automation pollution."
+            )
         structure["root"] = root_id
         self._vault_cache["root"] = root_id
 
@@ -440,12 +525,21 @@ class DriveVaultEngine:
         self,
         file_id: str,
         from_folder: str = "01_READY",
-        to_folder: str = "04_FAILED"
+        to_folder: str = "04_FAILED",
+        filename: Optional[str] = None
     ) -> bool:
         """
         Moves a file between Drive vault folders (e.g. from 01_READY to 04_FAILED quarantine)
         by updating parent folder relationships.
+        HARD BARRIER: Foreign artifacts (short_man_, short_job_) can NEVER be moved to
+        01_READY, 02_PROCESSING, or 03_PUBLISHED.
         """
+        fn = (filename or "").lower()
+        if to_folder in ("01_READY", "02_PROCESSING", "03_PUBLISHED"):
+            if fn.startswith("short_man_") or fn.startswith("short_job_"):
+                logger.error(f"[HARD_MOVE_BARRIER] Refusing to move foreign AL AMR artifact '{fn}' to production folder '{to_folder}'")
+                return False
+
         if self._is_test_mode() or not self.token_path.exists():
             import shutil
             from_dir = PROJECT_ROOT / "data" / "vault_ready" if from_folder == "01_READY" else (PROJECT_ROOT / "data" / "vault" / from_folder)
@@ -457,6 +551,14 @@ class DriveVaultEngine:
 
         drive = self.get_drive_service()
         try:
+            # Check file metadata if filename not supplied
+            if to_folder in ("01_READY", "02_PROCESSING", "03_PUBLISHED") and not fn:
+                meta = drive.files().get(fileId=file_id, fields="name").execute()
+                cand_name = meta.get("name", "").lower()
+                if cand_name.startswith("short_man_") or cand_name.startswith("short_job_"):
+                    logger.error(f"[HARD_MOVE_BARRIER] Refusing to move foreign AL AMR artifact '{cand_name}' to production folder '{to_folder}'")
+                    return False
+
             from_id = self.get_folder_id(from_folder, create_if_missing=False)
             to_id = self.get_folder_id(to_folder, create_if_missing=True)
             drive.files().update(
@@ -499,6 +601,25 @@ class DriveVaultEngine:
             raise FileNotFoundError(f"Local file not found: {local_path}")
 
         filename = custom_filename or local_path.name
+
+        # CONTENT IDENTITY & CONTENT TYPE GUARD (Step 4 & Step 5)
+        meta_props = dict(metadata_properties or {})
+        if "automation_id" not in meta_props:
+            meta_props["automation_id"] = AUTOMATION_ID
+
+        is_valid, reason = validate_hp_content_identity(
+            local_path=local_path,
+            filename=filename,
+            metadata_properties=meta_props,
+            title=meta_props.get("title", ""),
+            description=description,
+            destination_automation_id=AUTOMATION_ID
+        )
+        if not is_valid:
+            logger.critical(f"[CONTENT_IDENTITY_VIOLATION] Refusing upload of '{filename}' to vault: {reason}")
+            raise ValueError(f"[CONTENT_IDENTITY_VIOLATION] Refusing upload of '{filename}' to vault: {reason}")
+
+        metadata_properties = meta_props
         import shutil
 
         # Always maintain local staging
@@ -602,7 +723,7 @@ class DriveVaultEngine:
         logger.info(f"[+] Downloaded Drive file {file_id} to {local_dest_path} ({local_dest_path.stat().st_size} bytes)")
         return local_dest_path
 
-    def move_file_in_vault(self, file_id: str, from_folder: str, to_folder: str, _from_gateway: bool = False) -> Dict[str, Any]:
+    def move_file_in_vault(self, file_id: str, from_folder: str, to_folder: str, _from_gateway: bool = False, filename: Optional[str] = None) -> Dict[str, Any]:
         """
         Moves a file between vault folders by updating parent IDs in Drive (or moving local staging files).
         """
@@ -614,6 +735,16 @@ class DriveVaultEngine:
             )
 
         clean_name = file_id.replace("local_", "")
+        check_name = (filename or clean_name).lower()
+
+        # HARD ISOLATION BARRIER: Foreign AL AMR artifacts must NEVER enter HP operational folders
+        if to_folder in ("01_READY", "02_PROCESSING", "03_PUBLISHED"):
+            if "short_man_" in check_name or "short_job_" in check_name:
+                raise PermissionError(
+                    f"[CROSS_AUTOMATION_BARRIER] Foreign AL AMR file '{check_name}' ({file_id}) "
+                    f"cannot be moved into Harry Potter operational folder '{to_folder}'. Must remain quarantined in 04_FAILED."
+                )
+
         if to_folder == "04_FAILED" and (
             clean_name == "short_man_2bf89781983b.mp4"
             or "2bf89781983b" in clean_name

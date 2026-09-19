@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
 from sqlalchemy.orm import Session
-from config.settings import PROJECT_ROOT, TEST_MODE
+from config.settings import PROJECT_ROOT, TEST_MODE, TOKEN_PATH
 from core.database import SessionLocal, init_db
 from core.models import UploadRecord, PerformanceSnapshot, Job
 
@@ -26,7 +26,7 @@ class MetricsCollector:
     """Collects multi-factor performance metrics from YouTube APIs."""
 
     def __init__(self):
-        self.token_path = PROJECT_ROOT / "token.json"
+        self.token_path = TOKEN_PATH if (TOKEN_PATH and TOKEN_PATH.exists()) else (PROJECT_ROOT / "token.json")
 
     def get_youtube_clients(self):
         """Initializes YouTube Data API and YouTube Analytics API clients."""

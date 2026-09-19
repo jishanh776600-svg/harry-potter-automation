@@ -8,8 +8,9 @@ name: YouTube Shorts Cloud Buffer Producer
 
 on:
   schedule:
-    # 2-hour buffer audit & replenishment (every 2 hours, 24/7)
-    - cron: '0 */2 * * *'
+    # Autonomous buffer maintenance: Checks Drive 01_READY stock every 4 hours.
+    # Exits cleanly in <15s if buffer is satisfied (8/8). Replenishes if deficit detected.
+    - cron: '0 */4 * * *'
   workflow_dispatch:
     inputs:
       target_buffer:
@@ -120,6 +121,9 @@ jobs:
           echo "KOKORO_VOICE=${{ inputs.active_voice || 'af_bella' }}" >> .env
           echo "TOKEN_PATH=credentials/hp_token.json" >> .env
           echo "CLIENT_SECRETS_PATH=credentials/hp_client_secret.json" >> .env
+          echo "AUTOMATION_ID=harry_potter" >> .env
+          echo "EXPECTED_GOOGLE_ACCOUNT=jishanh760@gmail.com" >> .env
+          echo "EXPECTED_DRIVE_ROOT_ID=11K6v7PjLsnb8fVCsAm00YGmamvv4ygzC" >> .env
           echo "GOOGLE_DRIVE_VAULT_ROOT=Yt_harry_potter_automation" >> .env
           echo "HP_YOUTUBE_CHANNEL_ID=UCsghEXDa3EzxI4d93cjT-bQ" >> .env
           echo "HP_YOUTUBE_CHANNEL_NAME=STORY FORGE" >> .env
@@ -129,6 +133,10 @@ jobs:
           echo "SCHEDULING_HORIZON_HOURS=48" >> .env
           echo "PUBLISHING_ENABLED=false" >> .env
           echo "UPLOAD_ENABLED=false" >> .env
+
+      - name: Verify Automation Identity & Account Isolation
+        run: |
+          python -c "from config.settings import AUTOMATION_ID, EXPECTED_GOOGLE_ACCOUNT, EXPECTED_DRIVE_ROOT_ID, EXPECTED_YOUTUBE_CHANNEL_ID; assert AUTOMATION_ID == 'harry_potter'; assert EXPECTED_GOOGLE_ACCOUNT == 'jishanh760@gmail.com'; assert EXPECTED_DRIVE_ROOT_ID == '11K6v7PjLsnb8fVCsAm00YGmamvv4ygzC'; assert EXPECTED_YOUTUBE_CHANNEL_ID == 'UCsghEXDa3EzxI4d93cjT-bQ'; print('Automation identity and routing guards verified: HARRY_POTTER')"
 
       - name: Download & Verify Canonical Database from Cloud Vault
         run: |

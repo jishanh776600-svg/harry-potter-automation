@@ -45,6 +45,7 @@ from config.settings import (
 from core.models import (
     Base, NovStoryCandidate, DiscoveryCandidate, HarryPotterScript, NovelChunk
 )
+from core.discovery_types import DiscoverySubtype, VisualClassification, DiscoveryQAResult
 from core.gemini_client import get_gemini_client
 
 logger = logging.getLogger(__name__)
@@ -285,6 +286,128 @@ class HarryPotterScriptEngine:
             forbidden_visuals_detected=forbidden_visuals_detected,
         )
 
+    def evaluate_discovery_qa(
+        self,
+        script_text: str,
+        hook: str,
+        subtype: str,
+        visual_beats: List[Dict[str, Any]],
+        part_marker: Optional[str] = None
+    ) -> DiscoveryQAResult:
+        """
+        11-Point Discovery Quality Gate (Checks A through K):
+        A. Can I identify the exact fact/difference in one sentence?
+        B. Is that fact stated explicitly in the script?
+        C. Does the first ~5 seconds communicate the actual subject?
+        D. Does the script feel like INFORMATION rather than a chapter summary?
+        E. Is the subtype correctly represented?
+        F. For a book/movie difference, are BOTH sides explicitly stated?
+        G. For an omitted scene, is the omission explicitly stated?
+        H. For a behind-the-scenes fact, is the production fact explicitly stated?
+        I. Does the script avoid unnecessary chronological storytelling?
+        J. Does it remain standalone?
+        K. Does it avoid PART markers?
+        """
+        reasons = []
+        text_lower = script_text.lower()
+        hook_lower = hook.lower()
+        words = script_text.split()
+
+        # Check K: PART markers strictly forbidden in Discovery
+        no_part_markers = True
+        if part_marker is not None and str(part_marker).strip():
+            no_part_markers = False
+            reasons.append(f"Check K Failed: Discovery short has visual PART marker '{part_marker}'")
+        for pat in FORBIDDEN_SPOKEN_PART_PATTERNS:
+            if re.search(pat, text_lower):
+                no_part_markers = False
+                reasons.append(f"Check K Failed: Discovery short contains spoken part/chapter numbering: '{pat}'")
+
+        # Check C: Subject in first ~5 seconds (first ~15 words / hook)
+        hook_words = hook.split()
+        subject_in_first_5s = len(hook_words) >= 4 and any(
+            w in hook_lower for w in [
+                "cut", "cuts", "movie", "book", "secret", "never", "performance",
+                "actor", "detail", "scene", "missed", "hidden", "changed", "erised",
+                "remembrall", "neville", "sorting", "peeves", "inscription", "robes"
+            ]
+        )
+        if not subject_in_first_5s:
+            reasons.append("Check C Failed: First ~5 seconds does not clearly introduce the subject/fact")
+
+        # Check D & I: Avoid narrative story transitions & chapter summary feel
+        banned_story_transitions = [
+            "meanwhile", "later that night", "the next morning", "then something happened",
+            "he then", "after that,", "and then this happened"
+        ]
+        avoids_chronological_story = True
+        for st in banned_story_transitions:
+            if st in text_lower:
+                avoids_chronological_story = False
+                reasons.append(f"Check D/I Failed: Contains narrative story transition '{st}'")
+        feels_like_information = avoids_chronological_story and len(words) >= 40
+
+        # Check E: Valid subtype
+        valid_subtypes = [s.value for s in DiscoverySubtype]
+        subtype_structure_valid = subtype in valid_subtypes or any(s in subtype.upper() for s in valid_subtypes)
+
+        # Check F: Book vs Movie Difference
+        book_movie_both_stated = True
+        if "DIFFERENCE" in subtype.upper():
+            has_book = any(b in text_lower for b in ["book", "novel", "rowling", "pages", "written"])
+            has_movie = any(m in text_lower for m in ["movie", "film", "screen", "cut", "skips", "adaptation"])
+            book_movie_both_stated = has_book and has_movie
+            if not book_movie_both_stated:
+                reasons.append("Check F Failed: DISCOVERY_BOOK_MOVIE_DIFFERENCE must explicitly state BOTH book and movie")
+
+        # Check G: Omitted Scene
+        omission_explicitly_stated = True
+        if "OMITTED" in subtype.upper():
+            omission_explicitly_stated = any(o in text_lower for o in ["cut", "omit", "leaves out", "left out", "never showed", "skips", "deleted"])
+            if not omission_explicitly_stated:
+                reasons.append("Check G Failed: DISCOVERY_OMITTED_SCENE must explicitly state the omission")
+
+        # Check H: Behind the Scenes
+        production_fact_stated = True
+        if "BEHIND_THE_SCENES" in subtype.upper() or "BTS" in subtype.upper():
+            production_fact_stated = any(p in text_lower for p in ["actor", "filmed", "director", "shot", "scenes", "cast", "performance", "deleted"])
+            if not production_fact_stated:
+                reasons.append("Check H Failed: DISCOVERY_BEHIND_THE_SCENES must explicitly state the production fact")
+
+        # Check A & B: Fact identifiable and explicitly stated
+        fact_explicitly_stated = len(words) >= 30 and len(reasons) == 0
+        fact_identifiable = fact_explicitly_stated
+
+        # Check J: Standalone
+        is_standalone = True
+        for dep in ["as we saw earlier", "in the last part", "as seen previously", "stay tuned"]:
+            if dep in text_lower:
+                is_standalone = False
+                reasons.append(f"Check J Failed: Contains cross-short dependency '{dep}'")
+
+        passed = (
+            no_part_markers and subject_in_first_5s and avoids_chronological_story
+            and book_movie_both_stated and omission_explicitly_stated and production_fact_stated
+            and is_standalone and len(reasons) == 0
+        )
+
+        return DiscoveryQAResult(
+            passed=passed,
+            subtype=subtype,
+            fact_identifiable=fact_identifiable,
+            fact_explicitly_stated=fact_explicitly_stated,
+            subject_in_first_5s=subject_in_first_5s,
+            feels_like_information=feels_like_information,
+            subtype_structure_valid=subtype_structure_valid,
+            book_movie_both_stated=book_movie_both_stated,
+            omission_explicitly_stated=omission_explicitly_stated,
+            production_fact_stated=production_fact_stated,
+            avoids_chronological_story=avoids_chronological_story,
+            is_standalone=is_standalone,
+            no_part_markers=no_part_markers,
+            failure_reasons=reasons
+        )
+
     # ── AI Prompt Construction ────────────────────────────────────────────────
 
     def _build_novel_story_prompt(
@@ -370,63 +493,39 @@ OUTPUT FORMAT: Return STRICTLY valid JSON with no markdown formatting:
 }}"""
         return prompt
 
-    def _build_discovery_prompt(
+    def _build_book_movie_difference_prompt(
         self,
         candidate: DiscoveryCandidate,
         revision_feedback: Optional[List[str]] = None
     ) -> str:
         feedback_str = ""
         if revision_feedback:
-            feedback_str = (
-                "\nCRITICAL CORRECTIONS REQUIRED (PREVIOUS DRAFT FAILED QA):\n"
-                + "\n".join(f"- {f}" for f in revision_feedback)
-                + "\n"
-            )
+            feedback_str = "\nCRITICAL CORRECTIONS REQUIRED:\n" + "\n".join(f"- {f}" for f in revision_feedback) + "\n"
 
-        prompt = f"""You are an excited Harry Potter storyteller revealing an amazing secret detail directly to a viewer.
+        return f"""You are a Harry Potter expert delivering a sharp, factual BOOK VS MOVIE DIFFERENCE short.
 
-CRITICAL MENTAL TEST (THE 8-YEAR-OLD TEST):
-Explain this secret so simply that an 8-year-old child understands and smiles immediately!
-Do NOT use academic language, literary analysis, or dense explanations.
-Make it sound like an excited friend sharing an incredible secret: "Did you know...?" or "The movies never showed this..."
+PURPOSE: Deliver a standalone piece of information. The viewer must immediately understand the contrast.
+Must NOT feel like a mini chapter or story. This is an INFORMATION DELIVERY format.
 
-DISCOVERY TOPIC:
-Type: {candidate.discovery_type}
-Book {candidate.book_number}: {candidate.book_title} — Chapter {candidate.chapter_number}: {candidate.chapter_title}
-Fact: {candidate.novel_fact_summary}
-Why It Matters: {candidate.why_interesting or ''}
+SUBTYPE: DISCOVERY_BOOK_MOVIE_DIFFERENCE
+TOPIC: {candidate.novel_fact_summary}
+BOOK EVIDENCE: {candidate.novel_evidence_text or ''}
+MOVIE SHOWS / OMITS: {candidate.movie_shows or ''} | {candidate.movie_omits_or_changes or ''}
+WHY INTERESTING: {candidate.why_interesting or ''}
 
-GROUNDED EVIDENCE:
-Novel Evidence: \"\"\"{candidate.novel_evidence_text or ''}\"\"\"
-Movie Comparison:
-  What Movie Shows: {candidate.movie_shows or 'N/A'}
-  What Movie Omits / Changes: {candidate.movie_omits_or_changes or 'N/A'}
+MANDATORY SCRIPT STRUCTURE:
+1. HOOK (0-5s): Direct, punchy statement of the difference (e.g. "The movie completely cuts...", "The book does this completely differently:").
+2. BOOK: State what the novel actually says and shows.
+3. MOVIE: State what the film shows or omits.
+4. DIFFERENCE & PAYOFF: The exact contrast and why this difference matters.
 
-MANDATORY STORYTELLING RULES:
-1. ULTRA-SIMPLE SPOKEN ENGLISH:
-   - Short, punchy sentences (6 to 12 words per sentence).
-   - One idea per sentence.
-   - Simple, concrete words (no "crippling self-doubt", no "agonizing minutes", no "paralyzed by fear").
-   - Clear contrast between what people saw on screen and what happened in the books.
-
-2. STORY STRUCTURE:
-   - HOOK: Immediate curious question or surprising statement (e.g. "Did you know...", "When Neville first put on the Sorting Hat...").
-   - DEVELOPMENT: What really happened in the book, explained step-by-step in plain English.
-   - PAYOFF: Why this makes the character so cool, funny, or brave!
-
-3. MOVIE FOOTAGE ONLY VISUAL POLICY:
-   - 100% genuine Harry Potter movie scenes. Every sentence must have matching footage.
-   - Break narration into 3 to 4 sequential visual beats.
-
-4. HARD INVARIANTS:
-   - WORD COUNT: Exactly 58 to 72 spoken words (HARD BOUNDS: 55 to 75 words).
-   - STANDALONE: Completely self-contained.
-   - NEVER speak "part 1", "chapter 1", "episode 1", or any numbering.
-   - NEVER use clickbait clichés ("will shock you", "mind-blowing").
-
+RULES:
+- Word count: 58 to 70 spoken words.
+- First substantive sentence must communicate the subject and difference.
+- Avoid narrative story transitions ("Meanwhile", "Later", "The next morning", "He then").
+- Visual Beats: 3-4 beats. Classify each beat as DIRECT or CONTEXTUAL in visual_requirement.
 {feedback_str}
-
-OUTPUT FORMAT: Return STRICTLY valid JSON with no markdown formatting:
+OUTPUT STRICT JSON:
 {{
   "hook": "...",
   "development": "...",
@@ -435,7 +534,7 @@ OUTPUT FORMAT: Return STRICTLY valid JSON with no markdown formatting:
     {{
       "beat_id": "beat_1",
       "narration_text": "...",
-      "visual_requirement": "...",
+      "visual_requirement": "[DIRECT or CONTEXTUAL] ...",
       "characters": ["..."],
       "location": "...",
       "action": "...",
@@ -447,7 +546,129 @@ OUTPUT FORMAT: Return STRICTLY valid JSON with no markdown formatting:
     }}
   ]
 }}"""
-        return prompt
+
+    def _build_omitted_scene_prompt(
+        self,
+        candidate: DiscoveryCandidate,
+        revision_feedback: Optional[List[str]] = None
+    ) -> str:
+        feedback_str = ""
+        if revision_feedback:
+            feedback_str = "\nCRITICAL CORRECTIONS REQUIRED:\n" + "\n".join(f"- {f}" for f in revision_feedback) + "\n"
+
+        return f"""You are a Harry Potter expert revealing an OMITTED SCENE cut from the movies.
+
+PURPOSE: Information delivery. Viewer must understand what scene was omitted and why it was cut.
+Must NOT feel like a chapter retelling.
+
+SUBTYPE: DISCOVERY_OMITTED_SCENE
+TOPIC: {candidate.novel_fact_summary}
+BOOK CONTEXT: {candidate.novel_evidence_text or ''}
+MOVIE OMISSION: {candidate.movie_omits_or_changes or ''}
+
+MANDATORY SCRIPT STRUCTURE:
+1. HOOK (0-5s): "The movie completely leaves out this scene:" or "There's an entire scene from the book the movie cuts:".
+2. BOOK SCENE: What actually occurs in the book.
+3. MOVIE ABSENCE: What happens in the movie instead or how it skips the scene.
+4. PAYOFF: Why the omission matters or what fans missed.
+
+RULES:
+- Word count: 58 to 70 spoken words.
+- Classify visual beats as DIRECT or CONTEXTUAL.
+{feedback_str}
+OUTPUT STRICT JSON:
+{{
+  "hook": "...",
+  "development": "...",
+  "payoff": "...",
+  "visual_beats": [...]
+}}"""
+
+    def _build_behind_the_scenes_prompt(
+        self,
+        candidate: DiscoveryCandidate,
+        revision_feedback: Optional[List[str]] = None
+    ) -> str:
+        feedback_str = ""
+        if revision_feedback:
+            feedback_str = "\nCRITICAL CORRECTIONS REQUIRED:\n" + "\n".join(f"- {f}" for f in revision_feedback) + "\n"
+
+        return f"""You are a Harry Potter expert revealing a BEHIND-THE-SCENES production secret.
+
+PURPOSE: The subject is the production fact itself (actors, filming, cut footage, directors).
+Do NOT narrate fictional story events as the primary fact. Use movie footage only as contextual support.
+
+SUBTYPE: DISCOVERY_BEHIND_THE_SCENES
+TOPIC: {candidate.novel_fact_summary}
+PRODUCTION CONTEXT: {candidate.why_interesting or candidate.novel_evidence_text or ''}
+
+MANDATORY SCRIPT STRUCTURE:
+1. HOOK (0-5s): Immediate production secret (e.g. "There is a deleted Harry Potter performance most fans never saw...").
+2. PRODUCTION FACT: Explicit facts about the filming, actors, or deleted scenes.
+3. CONTEXT: How it connects to the film world.
+4. PAYOFF: Why it was cut or what happened to the footage.
+
+RULES:
+- Word count: 58 to 70 spoken words.
+- Visual classification must be CONTEXTUAL (since behind-the-scenes facts cannot be directly shown in movie scenes).
+{feedback_str}
+OUTPUT STRICT JSON:
+{{
+  "hook": "...",
+  "development": "...",
+  "payoff": "...",
+  "visual_beats": [...]
+}}"""
+
+    def _build_fact_trivia_prompt(
+        self,
+        candidate: DiscoveryCandidate,
+        revision_feedback: Optional[List[str]] = None
+    ) -> str:
+        feedback_str = ""
+        if revision_feedback:
+            feedback_str = "\nCRITICAL CORRECTIONS REQUIRED:\n" + "\n".join(f"- {f}" for f in revision_feedback) + "\n"
+
+        return f"""You are a Harry Potter expert revealing a HIDDEN DETAIL or canon trivia fact.
+
+PURPOSE: Information delivery. Viewer must think: 'OH, I learned something!'
+
+SUBTYPE: {getattr(candidate, 'discovery_type', 'DISCOVERY_FACT')}
+TOPIC: {candidate.novel_fact_summary}
+DETAIL / EVIDENCE: {candidate.novel_evidence_text or candidate.why_interesting or ''}
+
+MANDATORY SCRIPT STRUCTURE:
+1. HOOK (0-5s): "You probably missed this hidden detail..." or "The movie hides a secret in plain sight:".
+2. FACT: The exact concrete fact.
+3. EVIDENCE / CONTEXT: Where it appears and what proves it.
+4. PAYOFF: Why it is fascinating or what it explains.
+
+RULES:
+- Word count: 58 to 70 spoken words.
+- Visual classification: DIRECT if visible on screen, CONTEXTUAL if lore/background.
+{feedback_str}
+OUTPUT STRICT JSON:
+{{
+  "hook": "...",
+  "development": "...",
+  "payoff": "...",
+  "visual_beats": [...]
+}}"""
+
+    def _build_discovery_prompt(
+        self,
+        candidate: DiscoveryCandidate,
+        revision_feedback: Optional[List[str]] = None
+    ) -> str:
+        st = str(getattr(candidate, "discovery_type", DiscoverySubtype.DISCOVERY_FACT.value)).upper()
+        if "DIFFERENCE" in st or "BOOK_VS_MOVIE" in st:
+            return self._build_book_movie_difference_prompt(candidate, revision_feedback)
+        elif "OMITTED" in st:
+            return self._build_omitted_scene_prompt(candidate, revision_feedback)
+        elif "BEHIND_THE_SCENES" in st or "BTS" in st:
+            return self._build_behind_the_scenes_prompt(candidate, revision_feedback)
+        else:
+            return self._build_fact_trivia_prompt(candidate, revision_feedback)
 
     # ── Deterministic Fallback Scripts (Offline / Quota Fail-Safe) ──────────────
 

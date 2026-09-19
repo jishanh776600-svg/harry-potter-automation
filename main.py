@@ -1354,11 +1354,18 @@ class ShortsPipeline:
                     logger.warning(f"[PRE-CLAIM SKIP] File {candidate['id']} ({candidate.get('name')}) skipped from immediate batch: {val_reason}")
                     continue
 
-                # 3. Strict Niche Compliance Gate (Harry Potter / AL-AMR pipeline output)
+                # 3. Strict Niche Compliance Gate (Harry Potter Pipeline Output ONLY)
                 filename = candidate.get("name", "")
-                is_our_output = filename.startswith("short_man_") or filename.startswith("short_job_") or filename.startswith("hps_")
-                if is_our_output:
-                    is_comp, comp_reason = True, "APPROVED: Harry Potter / AL-AMR pipeline output (pre-validated)"
+                if filename.startswith("short_man_") or filename.startswith("short_job_"):
+                    logger.error(f"[CROSS_AUTOMATION_ALERT] Foreign AL AMR file '{filename}' ({candidate['id']}) detected in HP vault. Quarantining to 04_FAILED.")
+                    try:
+                        self.drive_engine.move_file_in_vault(candidate["id"], from_folder="01_READY", to_folder="04_FAILED")
+                    except Exception as q_err:
+                        logger.error(f"Failed to quarantine AL AMR file {candidate['id']}: {q_err}")
+                    continue
+
+                if filename.startswith("hps_"):
+                    is_comp, comp_reason = True, "APPROVED: Harry Potter pipeline output (pre-validated)"
                 else:
                     is_comp, comp_reason = is_niche_compliant(title=c_title, text=c_desc)
 
@@ -1979,35 +1986,33 @@ def main():
         target_buf = args.maintain_buffer if args.maintain_buffer > 0 else 6
         pipeline.run_autonomous_daemon(target_stock=target_buf)
     elif args.runtime:
-        from runtime.service import autonomous_runtime_service
-        console.print("[bold green]Starting persistent AL-AMR Autonomous Runtime Service...[/bold green]")
-        autonomous_runtime_service.start()
+        console.print("[bold yellow][!] Persistent runtime in Harry Potter automation dispatches to HP autonomous daemon.[/bold yellow]")
+        target_buf = args.maintain_buffer if args.maintain_buffer > 0 else TARGET_RESERVE_BUFFER
+        pipeline.run_autonomous_daemon(target_stock=target_buf)
     elif args.canary:
-        from runtime.service import AutonomousRuntimeService
-        from runtime.config import RuntimeConfig
-        console.print("[bold cyan]Starting controlled live-cloud canary production...[/bold cyan]")
-        cfg = RuntimeConfig.from_env()
-        cfg.canary_mode = True
-        service = AutonomousRuntimeService(config=cfg)
-        result = service.run_canary()
-        if result.get("status") == "SUCCESS":
-            console.print(f"[bold green][+] Canary Succeeded: Job {result.get('job_id')} verified in 01_READY (Reserve: {result.get('post_canary_reserve')}/{TARGET_RESERVE_BUFFER})[/bold green]")
+        console.print("[bold cyan]Starting controlled live-cloud canary refill for Harry Potter...[/bold cyan]")
+        from engines.hp_autonomous_refill import HPAutonomousRefillEngine
+        refill = HPAutonomousRefillEngine(drive_engine=pipeline.drive_engine, voice_id="af_bella", force_unlock=args.force_unlock or args.force)
+        telemetry = refill.run_refill_cycle(force_batch_count=1)
+        if telemetry.status in ("SUCCEEDED", "PARTIAL", "BUFFER_SATISFIED"):
+            console.print(f"[bold green][+] Canary Succeeded: Verified in 01_READY (Reserve: {telemetry.final_ready_stock}/{TARGET_RESERVE_BUFFER})[/bold green]")
         else:
-            console.print(f"[bold red][!] Canary Failed: {result.get('status')} - {result.get('error')}[/bold red]")
+            console.print(f"[bold red][!] Canary Failed: {telemetry.status} - {telemetry.failure_reasons}[/bold red]")
             sys.exit(1)
     elif args.cloud_produce > 0 or getattr(args, "dry_run", False) and not args.run_once:
-        from intelligence.cloud_orchestrator import CloudProductionOrchestrator
-        orchestrator = CloudProductionOrchestrator(
+        from engines.hp_autonomous_refill import HPAutonomousRefillEngine
+        orchestrator = HPAutonomousRefillEngine(
             drive_engine=pipeline.drive_engine,
             is_dry_run=args.dry_run,
-            voice_id=args.voice or "af_bella"
+            voice_id="af_bella",
+            force_unlock=args.force_unlock or args.force
         )
-        telemetry = orchestrator.run_production_cycle(
-            target_buffer=args.maintain_buffer if args.maintain_buffer > 0 else 6,
-            force_batch_count=args.cloud_produce
+        telemetry = orchestrator.run_refill_cycle(
+            target_buffer=args.maintain_buffer if args.maintain_buffer > 0 else TARGET_RESERVE_BUFFER,
+            force_batch_count=args.cloud_produce if args.cloud_produce > 0 else None
         )
         console.print(Panel.fit(
-            f"[bold green]=== Phase 7 Cloud Production Run Complete ===[/bold green]\n"
+            f"[bold green]=== Harry Potter Autonomous Refill Run Complete ===[/bold green]\n"
             f"Run ID: [bold white]{telemetry.run_id}[/bold white]\n"
             f"Status: [bold]{telemetry.status}[/bold]\n"
             f"Videos Deposited: [bold cyan]{telemetry.videos_deposited}[/bold cyan]\n"

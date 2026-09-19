@@ -91,6 +91,9 @@ jobs:
           echo "KOKORO_VOICE=af_bella" >> .env
           echo "TOKEN_PATH=credentials/hp_token.json" >> .env
           echo "CLIENT_SECRETS_PATH=credentials/hp_client_secret.json" >> .env
+          echo "AUTOMATION_ID=harry_potter" >> .env
+          echo "EXPECTED_GOOGLE_ACCOUNT=jishanh760@gmail.com" >> .env
+          echo "EXPECTED_DRIVE_ROOT_ID=11K6v7PjLsnb8fVCsAm00YGmamvv4ygzC" >> .env
           echo "GOOGLE_DRIVE_VAULT_ROOT=Yt_harry_potter_automation" >> .env
           echo "HP_YOUTUBE_CHANNEL_ID=UCsghEXDa3EzxI4d93cjT-bQ" >> .env
           echo "HP_YOUTUBE_CHANNEL_NAME=STORY FORGE" >> .env
@@ -101,9 +104,9 @@ jobs:
           echo "PUBLISHING_ENABLED=true" >> .env
           echo "UPLOAD_ENABLED=true" >> .env
 
-      - name: Verify YouTube Channel Safety Gate
+      - name: Verify Automation Identity & Account Isolation
         run: |
-          python -c "import os; from config.settings import HP_YOUTUBE_CHANNEL_ID; assert HP_YOUTUBE_CHANNEL_ID == 'UCsghEXDa3EzxI4d93cjT-bQ', f'FATAL: Unauthorized channel ID {HP_YOUTUBE_CHANNEL_ID}'"
+          python -c "from config.settings import AUTOMATION_ID, EXPECTED_GOOGLE_ACCOUNT, EXPECTED_DRIVE_ROOT_ID, EXPECTED_YOUTUBE_CHANNEL_ID; assert AUTOMATION_ID == 'harry_potter'; assert EXPECTED_GOOGLE_ACCOUNT == 'jishanh760@gmail.com'; assert EXPECTED_DRIVE_ROOT_ID == '11K6v7PjLsnb8fVCsAm00YGmamvv4ygzC'; assert EXPECTED_YOUTUBE_CHANNEL_ID == 'UCsghEXDa3EzxI4d93cjT-bQ'; print('Automation identity and routing guards verified: HARRY_POTTER')"
 
       - name: Download & Verify Canonical Database from Cloud Vault
         run: |
