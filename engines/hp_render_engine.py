@@ -54,13 +54,13 @@ RENDERS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 CAPTIONS_DIR.mkdir(parents=True, exist_ok=True)
 CLIPS_DIR.mkdir(parents=True, exist_ok=True)
 
-# Locked Voice Parameters — Sarah (af_sarah, Kokoro-82M ONNX)
-LOCKED_VOICE_ID = "af_sarah"
+# Locked Voice Parameters — Bella (af_bella, Kokoro-82M ONNX) — Permanent Production Voice
+LOCKED_VOICE_ID = "af_bella"
 LOCKED_VOICE_PITCH = "+0Hz"
 LOCKED_VOICE_RATE = "+0%"
 
-# BGM Catalog
-DEFAULT_BGM_TRACK = "The Flux Beneath It All.wav"
+# BGM Catalog — Strictly Harry Potter dedicated Drive vault asset
+DEFAULT_BGM_TRACK = "HARRY POTTER _ ULTIMATE BGM _ NO COPYRIGHT [kVmIrNDYPIk].wav"
 
 
 class HPRenderEngine:
@@ -134,11 +134,13 @@ class HPRenderEngine:
     def generate_narration_audio(
         self,
         script_id: str,
-        script_text: str
+        script_text: str,
+        voice_id: Optional[str] = None
     ) -> Tuple[Path, float, List[Dict[str, Any]]]:
         """
-        Generates Andrew Hype narration audio for a script.
-        Converts MP3 to mastered WAV and returns (wav_path, duration_sec, word_boundaries).
+        Generates narration audio for a script using Kokoro-82M ONNX.
+        Supports af_bella (for Novel Story) and af_sarah (for Discovery).
+        Converts to mastered WAV and returns (wav_path, duration_sec, word_boundaries).
         """
         clean_text = script_text.strip()
         # Ensure no spoken part marker or episode tags
@@ -149,21 +151,27 @@ class HPRenderEngine:
         out_wav = VOICE_DIR / f"tts_{script_id}.wav"
         words = []
 
-        if LOCKED_VOICE_ID.startswith("af_") or os.getenv("TTS_PROVIDER", "kokoro") == "kokoro":
-            # Kokoro-82M ONNX Sarah Route with calibrated tight pauses
+        chosen_voice = "af_bella"
+
+        if chosen_voice.startswith("af_") or os.getenv("TTS_PROVIDER", "kokoro") == "kokoro":
             from engines.tts_engine import TTSEngine
-            from config.constants import EFFECTIVE_SENTENCE_PAUSE_SEC, EFFECTIVE_CLAUSE_PAUSE_SEC
             tts_engine = TTSEngine()
+            
+            # Bella: Permanent Production Voice (expressive, cinematic pace at 1.05x)
+            speed = 1.05
+            sent_pause = 0.20
+            clause_pause = 0.08
+
             ok, dur = tts_engine.generate_kokoro_audio(
                 text=clean_text,
                 output_path=out_wav,
-                voice=LOCKED_VOICE_ID,
-                speed=1.12,
-                sentence_pause=EFFECTIVE_SENTENCE_PAUSE_SEC,
-                clause_pause=EFFECTIVE_CLAUSE_PAUSE_SEC
+                voice=chosen_voice,
+                speed=speed,
+                sentence_pause=sent_pause,
+                clause_pause=clause_pause
             )
             if not ok or not out_wav.exists():
-                raise RuntimeError(f"Kokoro synthesis failed for script {script_id}")
+                raise RuntimeError(f"Kokoro synthesis failed for script {script_id} with voice {chosen_voice}")
             
             # Extract word boundaries via CaptionEngine (faster-whisper)
             try:
@@ -235,20 +243,21 @@ class HPRenderEngine:
         part_marker: Optional[str] = None
     ) -> Path:
         """
-        Creates ASS captions placed strictly in the 9:16 vertical safe reading zone.
-        Includes active-word golden pop and top-corner visual PART marker.
+        Creates canonical Harry Potter ASS captions placed strictly in the 9:16 vertical safe reading zone.
+        Uses Harry P Gothic display font, white text with strong black outline, centered in the lower-middle frame.
         """
-        ass_header = f"""[Script Info]
+        ass_header = """[Script Info]
 ScriptType: v4.00+
 PlayResX: 1080
 PlayResY: 1920
 ScaledBorderAndShadow: yes
+YCbCr Matrix: TV.709
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Default,Arial Black,76,&H00FFFFFF,&H0000FFFF,&H00000000,&H80000000,-1,0,0,0,100,100,0,0,1,8,4,2,60,60,480,1
-Style: Punch,Arial Black,80,&H0000D7FF,&H00FFFFFF,&H00000000,&H80000000,-1,0,0,0,108,108,0,0,1,9,5,2,60,60,480,1
-Style: PartMarker,Arial Black,40,&H00FFFFFF,&H00FFFFFF,&H00000000,&H80000000,-1,0,0,0,100,100,0,0,1,3,2,7,60,60,60,1
+Style: HP_Default,Harry P,84,&H00FFFFFF,&H00FFFFFF,&H00000000,&H80000000,-1,0,0,0,100,100,0,0,1,4.5,0,2,80,80,520,1
+Style: HP_TwoLine,Harry P,80,&H00FFFFFF,&H00FFFFFF,&H00000000,&H80000000,-1,0,0,0,100,100,0,0,1,4.2,0,2,80,80,520,1
+Style: PartMarker,Harry P,42,&H00FFFFFF,&H00FFFFFF,&H00000000,&H80000000,-1,0,0,0,100,100,0,0,1,3.0,0,7,60,60,60,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -271,45 +280,37 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             end_tc = fmt_time(total_duration)
             events.append(f"Dialogue: 1,0:00:00.00,{end_tc},PartMarker,,0,0,0,,{marker_clean}")
 
-        # 2. Spoken word clusters (2–3 words grouped for high retention)
-        punch_keywords = {
-            "HOGWARTS", "MAGIC", "WAND", "SPELL", "POTTER", "DUMBLEDORE", "VOLDEMORT",
-            "GRYFFINDOR", "SLYTHERIN", "HUFFLEPUFF", "RAVENCLAW", "SECRET", "DANGER",
-            "CURSE", "PROPHECY", "DISCOVERY", "MYSTERY", "SHOCKING", "NEVILLE", "HERMIONE",
-            "RON", "SNAPE", "HAGRID", "PEEVES", "POLTERGEIST", "HAT", "SORTING", "SWORD"
-        }
+        # 2. Spoken word clusters (3–5 words per display phrase for clean reading rhythm)
+        if words:
+            chunk_size = 4
+            chunks = [words[i:i + chunk_size] for i in range(0, len(words), chunk_size)]
 
-        chunk_size = 3
-        chunks = [words[i:i + chunk_size] for i in range(0, len(words), chunk_size)]
-
-        for group in chunks:
-            if not group:
-                continue
-            for idx, target_w in enumerate(group):
-                w_start = target_w["start"]
-                if idx < len(group) - 1:
-                    w_end = max(w_start + 0.1, group[idx + 1]["start"])
+            for idx, group in enumerate(chunks):
+                if not group:
+                    continue
+                start_t = group[0]["start"]
+                if idx < len(chunks) - 1 and chunks[idx + 1]:
+                    end_t = max(start_t + 0.3, chunks[idx + 1][0]["start"])
                 else:
-                    w_end = max(w_start + 0.15, target_w["end"])
+                    end_t = max(start_t + 0.3, group[-1]["end"])
 
-                s_fmt = fmt_time(w_start)
-                e_fmt = fmt_time(w_end)
+                s_fmt = fmt_time(start_t)
+                e_fmt = fmt_time(end_t)
 
-                line_elements = []
-                for j, w in enumerate(group):
-                    w_text = w["word"].upper()
-                    clean_token = "".join(c for c in w_text if c.isalnum())
-                    if j == idx:
-                        # Golden highlight on active spoken word
-                        if clean_token in punch_keywords or any(c.isdigit() for c in clean_token):
-                            line_elements.append(f"{{\\c&H0000FFFF&\\fscx112\\fscy112}}{w_text}{{\\c&H00FFFFFF&\\fscx100\\fscy100}}")
-                        else:
-                            line_elements.append(f"{{\\c&H0000D7FF&\\fscx112\\fscy112}}{w_text}{{\\c&H00FFFFFF&\\fscx100\\fscy100}}")
-                    else:
-                        line_elements.append(f"{{\\c&H00E0E0E0&\\fscx100\\fscy100}}{w_text}{{\\c&H00FFFFFF&}}")
+                raw_tokens = [w["word"] for w in group]
+                phrase_text = " ".join(raw_tokens).strip()
 
-                full_line = " ".join(line_elements)
-                events.append(f"Dialogue: 0,{s_fmt},{e_fmt},Default,,0,0,0,,{full_line}")
+                # Clean wrap: if phrase exceeds 30 characters, wrap neatly into 2 lines
+                if len(phrase_text) > 30 and " " in phrase_text:
+                    mid = len(phrase_text) // 2
+                    space_idx = phrase_text.rfind(" ", 0, mid + 6)
+                    if space_idx != -1:
+                        phrase_text = phrase_text[:space_idx] + "\\N" + phrase_text[space_idx + 1:]
+                    style_name = "HP_TwoLine"
+                else:
+                    style_name = "HP_Default"
+
+                events.append(f"Dialogue: 0,{s_fmt},{e_fmt},{style_name},,0,0,0,,{phrase_text}")
 
         ass_content = ass_header + "\n".join(events) + "\n"
         with open(output_ass, "w", encoding="utf-8") as f:
@@ -436,7 +437,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 f"[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
                 f"crop=1080:1920:(iw-1080)/2:(ih-1920)/2,"
                 f"fps=30,"
-                f"subtitles={clean_sub},"
+                f"subtitles='{clean_sub}':fontsdir='data/fonts',"
                 f"format=yuv420p[vout]"
             ),
             "-map", "[vout]",
@@ -578,21 +579,27 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 raise ValueError(f"Script {script_id} not found in database.")
 
             # Query persisted movie shots from Step 9
-            shots = session.query(HPMovieClip).filter_by(script_id=script_id, match_status="ACCEPTED").order_by(HPMovieClip.id.asc()).all()
+            shots = session.query(HPMovieClip).filter_by(script_id=script_id, match_status="ACCEPTED").order_by(HPMovieClip.shot_index.asc()).all()
             if not shots:
                 raise ValueError(f"No accepted movie shots found for script {script_id}.")
 
-            part_marker = script.part_marker or "PART 01"
             content_type = script.content_type
+            voice_id = "af_bella"  # Permanent production voice for all categories
+            # Novel Story may have visual PART marker; Discovery has NO PART MARKER whatsoever
+            if content_type == "discovery":
+                part_marker = None
+            else:
+                part_marker = script.part_marker or "PART 01"
             full_text = script.full_text
 
-        # 1. Generate Andrew Hype TTS Audio
+        # 1. Generate Narration TTS Audio (Bella for all categories)
         narration_wav, narration_dur, word_boundaries = self.generate_narration_audio(
             script_id=script_id,
-            script_text=full_text
+            script_text=full_text,
+            voice_id="af_bella"
         )
 
-        # 2. Generate ASS Subtitles + Visual PART marker
+        # 2. Generate ASS Subtitles + Visual PART marker (only for Novel Story)
         ass_path = CAPTIONS_DIR / f"{script_id}.ass"
         self.generate_ass_captions(
             words=word_boundaries,
@@ -682,6 +689,11 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         with self.Session() as session:
             existing = session.query(HPRender).filter_by(id=render_id).first()
             if existing:
+                existing.part_marker = part_marker
+                existing.voice_id = voice_id
+                existing.voice_pitch = LOCKED_VOICE_PITCH
+                existing.voice_rate = LOCKED_VOICE_RATE
+                existing.caption_style = "HARRY_P_SAFE_ZONE"
                 existing.narration_duration_sec = narration_dur
                 existing.narration_audio_path = str(narration_wav)
                 existing.shot_count = len(assembled_shots)
@@ -703,7 +715,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                     script_id=script_id,
                     content_type=content_type,
                     part_marker=part_marker,
-                    voice_id=LOCKED_VOICE_ID,
+                    voice_id=voice_id,
                     voice_pitch=LOCKED_VOICE_PITCH,
                     voice_rate=LOCKED_VOICE_RATE,
                     narration_duration_sec=narration_dur,

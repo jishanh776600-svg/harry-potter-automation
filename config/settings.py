@@ -93,8 +93,7 @@ CLIENT_SECRETS_FILE = str(CLIENT_SECRETS_PATH)
 
 # YouTube Channel Identity Safety Gate
 # The automation will verify that the authenticated channel matches this before enabling publishing.
-# Leave empty — the auth script will populate these after OAuth verification.
-HP_YOUTUBE_CHANNEL_ID = os.getenv("HP_YOUTUBE_CHANNEL_ID", "")
+HP_YOUTUBE_CHANNEL_ID = os.getenv("HP_YOUTUBE_CHANNEL_ID", "UCsghEXDa3EzxI4d93cjT-bQ")
 HP_YOUTUBE_CHANNEL_NAME = os.getenv("HP_YOUTUBE_CHANNEL_NAME", "")
 
 # Google Account Isolation
@@ -106,26 +105,16 @@ NVIDIA_IMAGE_MODEL = os.getenv("NVIDIA_IMAGE_MODEL", "nvidia/consistory")
 NVIDIA_IMAGE_BASE_URL = os.getenv("NVIDIA_IMAGE_BASE_URL", "https://ai.api.nvidia.com/v1/genai")
 
 # ==============================================================================
-# VISUAL SOURCE PRIORITY — MOVIE FOOTAGE IS ATTEMPT #1 FOR EVERY VISUAL BEAT
-# The system tries movie clip first for each narration sentence/visual requirement.
-# Images/AI/stock are per-beat fallbacks when no suitable movie clip can be found.
+# VISUAL SOURCE PRIORITY — MOVIE FOOTAGE ONLY (Harry Potter canon rule)
 # ==============================================================================
 VISUAL_SOURCE_PRIORITY = [
     s.strip() for s in os.getenv(
         "VISUAL_SOURCE_PRIORITY",
-        "movie_footage,book_imagery,ai_generated,stock_footage,pexels"
+        "movie_footage"
     ).split(",") if s.strip()
 ]
-# Ensure movie_footage is always first — enforce programmatically as well as in env
 if "movie_footage" not in VISUAL_SOURCE_PRIORITY:
     VISUAL_SOURCE_PRIORITY.insert(0, "movie_footage")
-elif VISUAL_SOURCE_PRIORITY[0] != "movie_footage":
-    VISUAL_SOURCE_PRIORITY.remove("movie_footage")
-    VISUAL_SOURCE_PRIORITY.insert(0, "movie_footage")
-# Pexels is last resort — ensure it remains at the end
-if "pexels" in VISUAL_SOURCE_PRIORITY and VISUAL_SOURCE_PRIORITY[-1] != "pexels":
-    VISUAL_SOURCE_PRIORITY.remove("pexels")
-    VISUAL_SOURCE_PRIORITY.append("pexels")
 
 PART_MARKER_ENABLED = os.getenv("PART_MARKER_ENABLED", "true").lower() == "true"
 PART_MARKER_FORMAT = os.getenv("PART_MARKER_FORMAT", "PART {:02d}")
@@ -159,13 +148,13 @@ def get_content_mix_allocation(total_shorts: int | None = None) -> dict[str, int
     }
 
 
-# TTS Settings — Sarah (af_sarah) — Permanent Production Voice
-# Kokoro-82M ONNX US Female voice with tight, rapid-fire pacing (-40% pause intervals)
+# TTS Settings — Bella (af_bella) — Permanent Production Voice
+# Kokoro-82M ONNX US Female voice
 TTS_PROVIDER = os.getenv("TTS_PROVIDER", "kokoro")
-KOKORO_VOICE = os.getenv("KOKORO_VOICE", "af_sarah")
+KOKORO_VOICE = os.getenv("KOKORO_VOICE", "af_bella")
 ACTIVE_VOICE_PITCH = os.getenv("ACTIVE_VOICE_PITCH", "+0Hz")
 ACTIVE_VOICE_RATE = os.getenv("ACTIVE_VOICE_RATE", "+0%")
-APPROVED_PRODUCTION_VOICES = ["af_sarah"]
+APPROVED_PRODUCTION_VOICES = ["af_bella"]
 KOKORO_MODEL_PATH = DATA_DIR / "kokoro-v1.0.onnx"
 KOKORO_VOICES_PATH = DATA_DIR / "voices-v1.0.bin"
 
@@ -178,7 +167,7 @@ IMAGE_PROVIDER = os.getenv("IMAGE_PROVIDER", "pollinations")
 
 # Publishing Slots (4 per day)
 from config.constants import PUBLISHING_SLOTS_UTC
-PUBLISH_TIME_SLOTS = ["06:00", "10:00", "14:00", "18:00"]
+PUBLISH_TIME_SLOTS = ["02:00", "08:00", "14:00", "20:00"]
 
 # Self-Improvement & Strategy Execution (Phase 4)
 SELF_IMPROVEMENT_ENABLED = os.getenv("SELF_IMPROVEMENT_ENABLED", "false").lower() == "true"
@@ -204,7 +193,7 @@ GITHUB_REPOSITORY_NAME = os.getenv("GITHUB_REPOSITORY_NAME") or "harry-potter-au
 GITHUB_REF = os.getenv("GITHUB_REF", "main")
 
 # Google Drive Cloud Storage (Isolated Harry Potter Vault Root)
-GOOGLE_DRIVE_VAULT_ROOT = os.getenv("GOOGLE_DRIVE_VAULT_ROOT", "Harry_Potter_Shorts_Vault")
+GOOGLE_DRIVE_VAULT_ROOT = os.getenv("GOOGLE_DRIVE_VAULT_ROOT", "Yt_harry_potter_automation")
 GOOGLE_DRIVE_TOTAL_CAPACITY_BYTES = int(os.getenv("GOOGLE_DRIVE_TOTAL_CAPACITY_BYTES", str(5 * (1024 ** 4))))  # 5 TB
 
 

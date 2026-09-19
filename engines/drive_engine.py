@@ -21,7 +21,7 @@ from core.retry import retry_call
 
 logger = logging.getLogger(__name__)
 
-VAULT_ROOT_NAME = os.getenv("GOOGLE_DRIVE_VAULT_ROOT", "Harry_Potter_Shorts_Vault")
+VAULT_ROOT_NAME = os.getenv("GOOGLE_DRIVE_VAULT_ROOT", "Yt_harry_potter_automation")
 SUBFOLDERS = ["00_SYSTEM", "01_READY", "02_PROCESSING", "03_PUBLISHED", "04_FAILED", "05_KNOWLEDGE"]
 MIN_VALID_SHORT_BYTES = 5 * 1024 * 1024  # 5 MB minimum for real 1080x1920 vertical Short
 
@@ -77,26 +77,30 @@ def is_valid_ready_short(
             if topic_id.startswith(("top_test_", "test_")):
                 return False, f"Test artifact topic_id: '{topic_id}'"
 
-        # Voice property check — must match current production voice (af_sarah or Andrew)
-        v_prop = props.get("voice")
-        if v_prop and v_prop not in ("af_sarah", "sarah", "en-US-AndrewNeural", "andrew_hype"):
-            return False, f"Non-authoritative voice '{v_prop}' in properties (af_sarah required)"
+        # Voice property check — must match current production voice (af_bella)
+        v_prop = props.get("voice") or props.get("voice_id")
+        if v_prop and v_prop not in ("af_bella", "bella"):
+            return False, f"Non-authoritative voice '{v_prop}' in properties (af_bella required)"
 
-        # RenderedVideoRecord check for cloud manifests
-        if db and name.startswith("short_man_"):
+        # Check HPRender or RenderedVideoRecord
+        if db and (name.startswith("hps_") or name.startswith("short_man_")):
             try:
-                from core.models import RenderedVideoRecord
-                r = db.query(RenderedVideoRecord).filter(
-                    (RenderedVideoRecord.video_path.ilike(f"%{name}%")) |
-                    (RenderedVideoRecord.cloud_storage_path.ilike(f"%{name}%"))
-                ).first()
+                if name.startswith("hps_"):
+                    from core.models import HPRender
+                    r = db.query(HPRender).filter(HPRender.video_path.ilike(f"%{name}%")).first()
+                else:
+                    from core.models import RenderedVideoRecord
+                    r = db.query(RenderedVideoRecord).filter(
+                        (RenderedVideoRecord.video_path.ilike(f"%{name}%")) |
+                        (RenderedVideoRecord.cloud_storage_path.ilike(f"%{name}%"))
+                    ).first()
                 if r:
-                    if r.voice_id not in ("af_sarah", "en-US-AndrewNeural"):
-                        return False, f"Non-authoritative voice '{r.voice_id}' (af_sarah required)"
+                    if r.voice_id not in ("af_bella", "bella"):
+                        return False, f"Non-authoritative voice '{r.voice_id}' (af_bella required)"
                     if r.qa_status != "PASSED":
-                        return False, f"RenderedVideoRecord QA status is '{r.qa_status}'"
+                        return False, f"QA status is '{r.qa_status}'"
             except Exception as r_err:
-                logger.debug(f"RenderedVideoRecord verification notice for {name}: {r_err}")
+                logger.debug(f"Video record verification notice for {name}: {r_err}")
 
         if db and job_id and not name.startswith("short_man_") and not allow_test_artifacts:
             try:
@@ -163,20 +167,24 @@ def is_valid_ready_short(
 
     if db:
         name = p.name
-        if name.startswith("short_man_") or "2bf89781983b" in name:
+        if name.startswith("hps_") or name.startswith("short_man_") or "2bf89781983b" in name:
             try:
-                from core.models import RenderedVideoRecord
-                r = db.query(RenderedVideoRecord).filter(
-                    (RenderedVideoRecord.video_path.ilike(f"%{name}%")) |
-                    (RenderedVideoRecord.cloud_storage_path.ilike(f"%{name}%"))
-                ).first()
+                if name.startswith("hps_"):
+                    from core.models import HPRender
+                    r = db.query(HPRender).filter(HPRender.video_path.ilike(f"%{name}%")).first()
+                else:
+                    from core.models import RenderedVideoRecord
+                    r = db.query(RenderedVideoRecord).filter(
+                        (RenderedVideoRecord.video_path.ilike(f"%{name}%")) |
+                        (RenderedVideoRecord.cloud_storage_path.ilike(f"%{name}%"))
+                    ).first()
                 if r:
-                    if r.voice_id not in ("af_sarah", "en-US-AndrewNeural"):
-                        return False, f"Non-authoritative voice '{r.voice_id}' (af_sarah required)"
+                    if r.voice_id not in ("af_bella", "bella"):
+                        return False, f"Non-authoritative voice '{r.voice_id}' (af_bella required)"
                     if r.qa_status != "PASSED":
-                        return False, f"RenderedVideoRecord QA status is '{r.qa_status}'"
+                        return False, f"QA status is '{r.qa_status}'"
             except Exception as r_err:
-                logger.debug(f"RenderedVideoRecord local verification notice for {name}: {r_err}")
+                logger.debug(f"Video record local verification notice for {name}: {r_err}")
 
         import re
         m = re.search(r"job_([a-f0-9]+)", p.name)
@@ -341,6 +349,11 @@ class DriveVaultEngine:
         }
 
         root_folder = self.find_folder(VAULT_ROOT_NAME)
+        if not root_folder and VAULT_ROOT_NAME != "Yt_harry_potter_automation":
+            root_folder = self.find_folder("Yt_harry_potter_automation")
+        if not root_folder and VAULT_ROOT_NAME != "Harry_Potter_Shorts_Vault":
+            root_folder = self.find_folder("Harry_Potter_Shorts_Vault")
+
         if not root_folder:
             if not create_if_missing:
                 return structure

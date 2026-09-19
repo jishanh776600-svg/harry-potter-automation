@@ -29,7 +29,7 @@ from config.settings import (
     MAX_BUFFER_RESERVE_CEILING,
     AI_PROVIDER_AVAILABLE
 )
-from config.constants import JobState, DAILY_SHORTS_LIMIT
+from config.constants import JobState, DAILY_SHORTS_LIMIT, TARGET_RESERVE_BUFFER
 from sqlalchemy.orm import Session
 from core.database import init_db, SessionLocal
 from core.models import (
@@ -593,6 +593,7 @@ class ShortsPipeline:
                 "job_id": str(job.id)[:60],
                 "topic_id": str(topic.id)[:60],
                 "title": str(metadata.get("title", ""))[:100],
+                "voice": "af_bella",
                 "tags": ",".join(metadata.get("tags", []))[:100]
             }
 
@@ -1748,7 +1749,7 @@ def main():
     parser.add_argument("--health-check", action="store_true", help="Run non-destructive production health check and launch readiness gate")
     parser.add_argument("--self-heal", action="store_true", help="Executes master autonomous self-healing, stale recovery, and vault reconciliation")
     parser.add_argument("--json", action="store_true", help="Output health check or diagnostic results in JSON format")
-    parser.add_argument("--maintain-buffer", type=int, nargs="?", const=6, default=0, metavar="TARGET", help="Maintain a reserve of TARGET ready Shorts in Drive 01_READY (default: 6)")
+    parser.add_argument("--maintain-buffer", type=int, nargs="?", const=TARGET_RESERVE_BUFFER, default=0, metavar="TARGET", help=f"Maintain a reserve of TARGET ready Shorts in Drive 01_READY (default: {TARGET_RESERVE_BUFFER})")
     parser.add_argument("--produce-batch", type=int, default=0, metavar="N", help="Generate N Shorts, verify QA, and deposit in Google Drive 01_READY")
     parser.add_argument("--publish-next", action="store_true", help="Claim next ready Short from Google Drive 01_READY and publish to YouTube")
     parser.add_argument("--schedule-ready", action="store_true", help="Claim and schedule all available READY Shorts up to daily limit")
@@ -1924,7 +1925,7 @@ def main():
         service = AutonomousRuntimeService(config=cfg)
         result = service.run_canary()
         if result.get("status") == "SUCCESS":
-            console.print(f"[bold green][+] Canary Succeeded: Job {result.get('job_id')} verified in 01_READY (Reserve: {result.get('post_canary_reserve')}/6)[/bold green]")
+            console.print(f"[bold green][+] Canary Succeeded: Job {result.get('job_id')} verified in 01_READY (Reserve: {result.get('post_canary_reserve')}/{TARGET_RESERVE_BUFFER})[/bold green]")
         else:
             console.print(f"[bold red][!] Canary Failed: {result.get('status')} - {result.get('error')}[/bold red]")
             sys.exit(1)

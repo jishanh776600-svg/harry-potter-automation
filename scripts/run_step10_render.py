@@ -109,7 +109,7 @@ def run_step_10():
     render_results = []
     for idx, sid in enumerate(LAUNCH_SCRIPT_IDS, 1):
         print(f"\n[{idx}/4] Rendering Short: {sid}...")
-        res = engine.render_launch_short(script_id=sid, bgm_track="The Flux Beneath It All.wav")
+        res = engine.render_launch_short(script_id=sid, bgm_track="HARRY POTTER _ ULTIMATE BGM _ NO COPYRIGHT [kVmIrNDYPIk].wav")
         render_results.append(res)
         print(f"  [+] Complete: {res['video_path']}")
         print(f"      Duration: {res['duration_sec']:.2f}s | Shots: {res['shot_count']} | Loudness: {res['measured_lufs']:.1f} LUFS | QA: {'PASSED' if res['qa_passed'] else 'FAILED'}")

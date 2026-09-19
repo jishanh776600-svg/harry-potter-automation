@@ -32,13 +32,7 @@ from engines.scheduler_engine import PublicationScheduler
 
 logger = logging.getLogger(__name__)
 
-PUBLISHING_SLOTS_UTC = [
-    (6, 0, "06:00 UTC (11:30 AM IST)"),
-    (11, 0, "11:00 UTC (04:30 PM IST)"),
-    (15, 0, "15:00 UTC (08:30 PM IST)"),
-]
-
-TARGET_RESERVE_BUFFER = 6
+from config.constants import PUBLISHING_SLOTS_UTC, TARGET_RESERVE_BUFFER
 
 _LIVE_METRICS_CACHE: Dict[str, Any] = {}
 _LIVE_METRICS_CACHE_TIME: Optional[datetime] = None

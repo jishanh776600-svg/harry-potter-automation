@@ -60,6 +60,9 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg fonts-dejavu-core
+          mkdir -p ~/.local/share/fonts
+          cp assets/fonts/HarryP.ttf ~/.local/share/fonts/ 2>/dev/null || cp data/fonts/HarryP.ttf ~/.local/share/fonts/ 2>/dev/null || true
+          fc-cache -f -v
 
       - name: Install Python Dependencies
         run: |
@@ -78,6 +81,11 @@ jobs:
           TOKEN_JSON: ${{ secrets.TOKEN_JSON }}
           CLIENT_SECRET_JSON: ${{ secrets.CLIENT_SECRET_JSON }}
         run: |
+          mkdir -p credentials
+          echo "${TOKEN_JSON}" > credentials/hp_token.json
+          echo "${CLIENT_SECRET_JSON}" > credentials/hp_client_secret.json
+          echo "${TOKEN_JSON}" > token.json
+          echo "${CLIENT_SECRET_JSON}" > client_secret.json
           echo "PEXELS_API_KEY=${PEXELS_API_KEY}" > .env
           echo "GEMINI_API_KEY=${GEMINI_API_KEY}" >> .env
           if [ -n "${GEMINI_API_KEY_SECONDARY}" ]; then
@@ -96,9 +104,19 @@ jobs:
             echo "NVIDIA_API_KEY=${NVIDIA_API_KEY}" >> .env
           fi
           echo "TEST_MODE=false" >> .env
+          echo "CLOUD_MODE=true" >> .env
           echo "KOKORO_VOICE=${{ inputs.active_voice || 'af_bella' }}" >> .env
-          echo "${TOKEN_JSON}" > token.json
-          echo "${CLIENT_SECRET_JSON}" > client_secret.json
+          echo "TOKEN_PATH=credentials/hp_token.json" >> .env
+          echo "CLIENT_SECRETS_PATH=credentials/hp_client_secret.json" >> .env
+          echo "GOOGLE_DRIVE_VAULT_ROOT=Yt_harry_potter_automation" >> .env
+          echo "HP_YOUTUBE_CHANNEL_ID=UCsghEXDa3EzxI4d93cjT-bQ" >> .env
+          echo "HP_YOUTUBE_CHANNEL_NAME=STORY FORGE" >> .env
+          echo "VISUAL_SOURCE_PRIORITY=movie_footage" >> .env
+          echo "TARGET_RESERVE_BUFFER=8" >> .env
+          echo "SHORTS_PER_DAY=4" >> .env
+          echo "SCHEDULING_HORIZON_HOURS=48" >> .env
+          echo "PUBLISHING_ENABLED=false" >> .env
+          echo "UPLOAD_ENABLED=false" >> .env
 
       - name: Download & Verify Canonical Database from Cloud Vault
         run: |
@@ -119,7 +137,7 @@ jobs:
             echo "[*] Running targeted batch production for $BATCH_COUNT Shorts (Voice: ${VOICE_INPUT:-default})..."
             python main.py --produce-batch "$BATCH_COUNT" $VOICE_FLAG $UNLOCK_FLAG
           else
-            TARGET=${TARGET_BUFFER:-6}
+            TARGET=${TARGET_BUFFER:-8}
             echo "[*] Auditing and maintaining reserve buffer (Target: $TARGET Shorts in 01_READY, Voice: ${VOICE_INPUT:-default})..."
             python main.py --maintain-buffer "$TARGET" $VOICE_FLAG $UNLOCK_FLAG
           fi

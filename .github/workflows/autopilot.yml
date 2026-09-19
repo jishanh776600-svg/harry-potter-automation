@@ -8,8 +8,8 @@ name: YouTube Shorts Cloud Publisher
 on:
   schedule:
     # 4 scheduled publishing slots daily:
-    # 06:00 UTC (11:30 AM IST) | 10:00 UTC (3:30 PM IST) | 14:00 UTC (7:30 PM IST) | 18:00 UTC (11:30 PM IST)
-    - cron: '0 6,10,14,18 * * *'
+    # 02:00 UTC (07:30 AM IST) | 08:00 UTC (01:30 PM IST) | 14:00 UTC (07:30 PM IST) | 20:00 UTC (01:30 AM IST)
+    - cron: '0 2,8,14,20 * * *'
   workflow_dispatch: # Allows manual on-demand publishing from GitHub Web / Mobile
 
 permissions:
@@ -50,6 +50,11 @@ jobs:
           TOKEN_JSON: ${{ secrets.TOKEN_JSON }}
           CLIENT_SECRET_JSON: ${{ secrets.CLIENT_SECRET_JSON }}
         run: |
+          mkdir -p credentials
+          echo "${TOKEN_JSON}" > credentials/hp_token.json
+          echo "${CLIENT_SECRET_JSON}" > credentials/hp_client_secret.json
+          echo "${TOKEN_JSON}" > token.json
+          echo "${CLIENT_SECRET_JSON}" > client_secret.json
           echo "PEXELS_API_KEY=${PEXELS_API_KEY}" > .env
           echo "GEMINI_API_KEY=${GEMINI_API_KEY}" >> .env
           if [ -n "${GEMINI_API_KEY_SECONDARY}" ]; then
@@ -62,8 +67,23 @@ jobs:
             echo "OPENROUTER_API_KEY=${OPENROUTER_API_KEY}" >> .env
           fi
           echo "TEST_MODE=false" >> .env
-          echo "${TOKEN_JSON}" > token.json
-          echo "${CLIENT_SECRET_JSON}" > client_secret.json
+          echo "CLOUD_MODE=true" >> .env
+          echo "KOKORO_VOICE=af_bella" >> .env
+          echo "TOKEN_PATH=credentials/hp_token.json" >> .env
+          echo "CLIENT_SECRETS_PATH=credentials/hp_client_secret.json" >> .env
+          echo "GOOGLE_DRIVE_VAULT_ROOT=Yt_harry_potter_automation" >> .env
+          echo "HP_YOUTUBE_CHANNEL_ID=UCsghEXDa3EzxI4d93cjT-bQ" >> .env
+          echo "HP_YOUTUBE_CHANNEL_NAME=STORY FORGE" >> .env
+          echo "VISUAL_SOURCE_PRIORITY=movie_footage" >> .env
+          echo "TARGET_RESERVE_BUFFER=8" >> .env
+          echo "SHORTS_PER_DAY=4" >> .env
+          echo "SCHEDULING_HORIZON_HOURS=48" >> .env
+          echo "PUBLISHING_ENABLED=false" >> .env
+          echo "UPLOAD_ENABLED=false" >> .env
+
+      - name: Verify YouTube Channel Safety Gate
+        run: |
+          python -c "import os; from config.settings import HP_YOUTUBE_CHANNEL_ID; assert HP_YOUTUBE_CHANNEL_ID == 'UCsghEXDa3EzxI4d93cjT-bQ', f'FATAL: Unauthorized channel ID {HP_YOUTUBE_CHANNEL_ID}'"
 
       - name: Download & Verify Canonical Database from Cloud Vault
         run: |

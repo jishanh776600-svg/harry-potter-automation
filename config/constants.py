@@ -34,10 +34,10 @@ class JobState(str, Enum):
 
 
 PUBLISHING_SLOTS_UTC = [
-    (6, 0, "06:00 UTC (11:30 AM IST)"),
-    (10, 0, "10:00 UTC (03:30 PM IST)"),
+    (2, 0, "02:00 UTC (07:30 AM IST)"),
+    (8, 0, "08:00 UTC (01:30 PM IST)"),
     (14, 0, "14:00 UTC (07:30 PM IST)"),
-    (18, 0, "18:00 UTC (11:30 PM IST)"),
+    (20, 0, "20:00 UTC (01:30 AM IST)"),
 ]
 
 # Canonical Business Timezone (Asia/Kolkata / IST = UTC+5:30)

@@ -29,14 +29,30 @@ logger = logging.getLogger(__name__)
 KOKORO_MODEL_URL = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx"
 KOKORO_VOICES_URL = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin"
 
-APPROVED_PRODUCTION_VOICES = ["af_sarah", "en-US-AndrewNeural"]
+APPROVED_PRODUCTION_VOICES = ["af_bella"]
 
 AVAILABLE_VOICES = [
     {
-        "id": "af_sarah",
-        "display_name": "Sarah (US Female)",
+        "id": "af_bella",
+        "display_name": "Bella (Expressive US Female)",
         "engine": "Kokoro-82M ONNX",
-        "description": "Engaging American female narrator with tight, high-retention storytelling delivery and calibrated fast pause rhythm (-40% pauses).",
+        "description": "Warm, expressive, cinematic American female narrator for Novel Story Shorts.",
+        "style": "Cinematic Storyteller",
+        "gender": "Female",
+        "accent": "American",
+        "age": "26",
+        "kokoro_voice": "af_bella",
+        "edge_voice": "en-US-JennyNeural",
+        "edge_pitch": "+0Hz",
+        "edge_rate": "+5%",
+        "delivery_profile": "BELLA_CINEMATIC",
+        "available": True
+    },
+    {
+        "id": "af_sarah",
+        "display_name": "Sarah (US Female - DEPRECATED)",
+        "engine": "Kokoro-82M ONNX",
+        "description": "Deprecated legacy voice.",
         "style": "Conversational Storyteller",
         "gender": "Female",
         "accent": "American",
@@ -46,23 +62,23 @@ AVAILABLE_VOICES = [
         "edge_pitch": "+0Hz",
         "edge_rate": "+15%",
         "delivery_profile": "SARAH_MAX_CREATOR",
-        "available": True
+        "available": False
     },
     {
         "id": "en-US-AndrewNeural",
-        "display_name": "Andrew Hype (Young US Male)",
+        "display_name": "Andrew Hype (DEPRECATED)",
         "engine": "Edge-TTS Neural",
-        "description": "High-energy 18yo American voice with rapid-fire excitement.",
+        "description": "Deprecated legacy voice.",
         "style": "Electrifying / High Tempo / Youth",
         "gender": "Male",
         "accent": "American",
         "age": "18",
-        "kokoro_voice": "af_sarah",
+        "kokoro_voice": "af_bella",
         "edge_voice": "en-US-AndrewNeural",
         "edge_pitch": "+24Hz",
         "edge_rate": "+14%",
         "delivery_profile": "ANDREW_HYPE",
-        "available": True
+        "available": False
     }
 ]
 
@@ -75,9 +91,9 @@ def resolve_voice_config(voice_id: str) -> dict:
     Restricted strictly to APPROVED_PRODUCTION_VOICES.
     """
     for v in AVAILABLE_VOICES:
-        if v["id"] == voice_id and v.get("available", False):
+        if v["id"] == voice_id and v.get("available", False) and v["id"] in APPROVED_PRODUCTION_VOICES:
             return v
-    # Safe fallback to approved production voice (Sarah)
+    # Safe fallback to approved production voice (Bella)
     return AVAILABLE_VOICES[0]
 
 
@@ -90,7 +106,7 @@ def get_active_voice(db: Optional[Session] = None) -> str:
                 return cfg.value
         except Exception:
             pass
-    return "af_sarah"
+    return "af_bella"
 
 
 def select_voice_by_policy(category: str = "", title: str = "", script_text: str = "") -> str:
