@@ -1,0 +1,12 @@
+{
+  "action": "MAINTAIN_BUFFER",
+  "outcome": "FAILED",
+  "block_reason": "Novel Story #1 failed: No pending approved novel_story script available in database; Novel Story #2 failed: No pending approved novel_story script available in database",
+  "requested_deficit": 7,
+  "produced_count": 0,
+  "initial_stock": 1,
+  "final_stock": 1,
+  "target_stock": 8,
+  "voice": "af_bella",
+  "timestamp": "2026-09-19T18:34:04.644725Z"
+}
