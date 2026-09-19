@@ -1,9 +1,9 @@
 # ==============================================================================
-# Render Blueprint Specification - AL AMR (الأمر) Mission Control
+# Render Blueprint Specification - STORY FORGE Command Center
 # ==============================================================================
 services:
   - type: web
-    name: al-amr
+    name: story-forge
     runtime: docker
     plan: free
     region: oregon
@@ -11,6 +11,20 @@ services:
     healthCheckPath: /health
     autoDeploy: true
     envVars:
+      - key: AUTOMATION_ID
+        value: "harry_potter"
+      - key: EXPECTED_GOOGLE_ACCOUNT
+        value: "jishanh760@gmail.com"
+      - key: EXPECTED_DRIVE_ROOT_ID
+        value: "11K6v7PjLsnb8fVCsAm00YGmamvv4ygzC"
+      - key: EXPECTED_YOUTUBE_CHANNEL_ID
+        value: "UCsghEXDa3EzxI4d93cjT-bQ"
+      - key: EXPECTED_YOUTUBE_CHANNEL_NAME
+        value: "STORY FORGE"
+      - key: GITHUB_REPOSITORY_OWNER
+        value: "jishanh760-source"
+      - key: GITHUB_REPOSITORY_NAME
+        value: "harry-potter-automation"
       - key: CLOUD_MODE
         value: "true"
       - key: TEST_MODE
@@ -27,12 +41,6 @@ services:
       - key: SESSION_SECRET
         sync: false
       - key: GITHUB_PAT
-        sync: false
-      - key: GITHUB_REPOSITORY_OWNER
-        sync: false
-      - key: GITHUB_REPOSITORY_NAME
-        sync: false
-      - key: PEXELS_API_KEY
         sync: false
       - key: GEMINI_API_KEY
         sync: false
