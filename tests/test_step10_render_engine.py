@@ -105,7 +105,8 @@ def test_ass_caption_generation(engine):
     # Safe zone & styling assertions
     assert "PlayResX: 1080" in content
     assert "PlayResY: 1920" in content
-    assert ",480,1" in content  # 9:16 safe vertical margin
+    assert "Harry P" in content
+    assert ",790,1" in content  # lower-middle safe vertical margin
     assert "Style: PartMarker" in content
     assert "PART 01" in content
 

@@ -26,10 +26,7 @@ from config.settings import (
     VISUAL_SOURCE_PRIORITY,
     MOVIES_DIR,
     MOVIE_SUBTITLES_DIR,
-    ASSETS_CACHE_DIR,
-    PEXELS_API_KEY,
-    NVIDIA_API_KEY,
-    IMAGE_PROVIDER
+    ASSETS_CACHE_DIR
 )
 
 logger = logging.getLogger(__name__)

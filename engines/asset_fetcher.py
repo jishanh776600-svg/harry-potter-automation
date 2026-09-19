@@ -571,26 +571,12 @@ class AssetFetcher:
 
     def generate_ai_image(self, prompt: str, output_path: Path) -> bool:
         """
-        Generates free, commercially usable AI image via Pollinations.ai (Free $0 / Open).
+        AI image generation is strictly PROHIBITED under Harry Potter production policy.
+        100% genuine movie footage ONLY.
         """
-        try:
-            from core.retry import retry_call
-            seed = random.randint(1, 999999)
-            from config.settings import NICHE
-            aesthetic = "cinematic fantasy wizarding world, intricate details, photorealistic" if "harry potter" in str(NICHE).lower() else "historic photograph style, authentic documentary"
-            encoded_prompt = urllib.parse.quote(prompt + f", {aesthetic}, seed {seed}")
-            url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1080&height=1920&nologo=true&seed={seed}"
-            resp = retry_call(
-                lambda: requests.get(url, timeout=25),
-                max_retries=3,
-                base_delay=1.5
-            )
-            if resp.status_code == 200 and len(resp.content) > 5000:
-                with open(output_path, "wb") as f:
-                    f.write(resp.content)
-                return True
-        except Exception as e:
-            logger.warning(f"AI image generation failed: {e}")
+        logger.warning(
+            "[POLICY_ENFORCEMENT] AI image generation blocked: MOVIE_FOOTAGE_ONLY policy active. No AI visuals permitted."
+        )
         return False
 
     def fetch_asset_for_shot(

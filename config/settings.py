@@ -99,10 +99,10 @@ HP_YOUTUBE_CHANNEL_NAME = os.getenv("HP_YOUTUBE_CHANNEL_NAME", "")
 # Google Account Isolation
 GOOGLE_ACCOUNT_EMAIL = "jishanh760@gmail.com"  # Harry Potter project account ONLY
 
-# NVIDIA Image Generation
+# NVIDIA Text LLM Fallback (Strictly Tier-6 Text Completion only; visual AI prohibited)
 NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY", "")
-NVIDIA_IMAGE_MODEL = os.getenv("NVIDIA_IMAGE_MODEL", "nvidia/consistory")
-NVIDIA_IMAGE_BASE_URL = os.getenv("NVIDIA_IMAGE_BASE_URL", "https://ai.api.nvidia.com/v1/genai")
+NVIDIA_IMAGE_MODEL = None
+NVIDIA_IMAGE_BASE_URL = None
 
 # ==============================================================================
 # VISUAL SOURCE PRIORITY — MOVIE FOOTAGE ONLY (Harry Potter canon rule)
@@ -162,8 +162,8 @@ KOKORO_VOICES_PATH = DATA_DIR / "voices-v1.0.bin"
 BGM_ENABLED = True
 BGM_VOLUME = float(os.getenv("BGM_VOLUME", "0.14"))  # -17 dB ducking relative to speech
 
-# Image Generation Fallback Provider
-IMAGE_PROVIDER = os.getenv("IMAGE_PROVIDER", "pollinations")
+# Image Generation Fallback Provider (Permanently disabled; 100% movie footage policy enforced)
+IMAGE_PROVIDER = None
 
 # Publishing Slots (4 per day)
 from config.constants import PUBLISHING_SLOTS_UTC
