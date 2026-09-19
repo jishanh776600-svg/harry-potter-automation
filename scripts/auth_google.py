@@ -37,7 +37,7 @@ EXPECTED_CHANNEL_ID = os.getenv("HP_YOUTUBE_CHANNEL_ID", "")
 REDIRECT_PORT = 8080
 
 SCOPES = [
-    "https://www.googleapis.com/auth/youtube.readonly",
+    "https://www.googleapis.com/auth/youtube",
     "https://www.googleapis.com/auth/drive",
     "openid",
     "https://www.googleapis.com/auth/userinfo.email",
@@ -65,6 +65,12 @@ def run_oauth_flow():
         scopes=SCOPES,
         redirect_uri=f"http://localhost:{REDIRECT_PORT}"
     )
+
+    auth_url, _ = flow.authorization_url(prompt="consent", access_type="offline")
+    print("\n" + "=" * 70)
+    print("PLEASE VISIT THIS URL IN YOUR BROWSER IF IT DOES NOT OPEN AUTOMATICALLY:")
+    print(auth_url)
+    print("=" * 70 + "\n")
 
     creds = flow.run_local_server(
         port=REDIRECT_PORT,
