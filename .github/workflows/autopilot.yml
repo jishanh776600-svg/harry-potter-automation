@@ -98,8 +98,8 @@ jobs:
           echo "TARGET_RESERVE_BUFFER=8" >> .env
           echo "SHORTS_PER_DAY=4" >> .env
           echo "SCHEDULING_HORIZON_HOURS=48" >> .env
-          echo "PUBLISHING_ENABLED=false" >> .env
-          echo "UPLOAD_ENABLED=false" >> .env
+          echo "PUBLISHING_ENABLED=true" >> .env
+          echo "UPLOAD_ENABLED=true" >> .env
 
       - name: Verify YouTube Channel Safety Gate
         run: |

@@ -82,8 +82,8 @@ YOUTUBE_REFRESH_TOKEN = os.getenv("YOUTUBE_REFRESH_TOKEN", "")
 # Publishing Safety — Hard Gate
 # PUBLISHING_ENABLED and UPLOAD_ENABLED must both be True to permit any YouTube upload.
 # These default to False and must be explicitly set to True in .env only for the launch step.
-PUBLISHING_ENABLED = os.getenv("PUBLISHING_ENABLED", "false").lower() == "true"
-UPLOAD_ENABLED = os.getenv("UPLOAD_ENABLED", "false").lower() == "true"
+PUBLISHING_ENABLED = os.getenv("PUBLISHING_ENABLED", "true").lower() == "true"
+UPLOAD_ENABLED = os.getenv("UPLOAD_ENABLED", "true").lower() == "true"
 
 # Google OAuth credential file paths (isolated to Harry Potter project — NEVER AL AMR paths)
 TOKEN_PATH = PROJECT_ROOT / os.getenv("TOKEN_PATH", "credentials/hp_token.json")

@@ -30,7 +30,11 @@ DEDUP_STOPWORDS = {
     "can", "will", "just", "don", "should", "now", "that", "this", "these", "those",
     "story", "history", "true", "shocking", "unbelievable", "bizarre", "strange",
     "incident", "event", "disaster", "crisis", "mystery", "case", "great", "short",
-    "shorts", "video", "youtube", "tiktok"
+    "shorts", "video", "youtube", "tiktok",
+    # Harry Potter common channel anchors (prevent false cross-short collisions)
+    "harry", "potter", "wizarding", "world", "hogwarts", "magic", "magical",
+    "chapter", "part", "novel", "stone", "philosopher", "sorcerer",
+    "bella", "voiceover", "canonical", "source"
 }
 
 GENERIC_DEDUP_ENTITIES = {
@@ -39,7 +43,10 @@ GENERIC_DEDUP_ENTITIES = {
     "january", "february", "march", "april", "may", "june", "july",
     "august", "september", "october", "november", "december",
     "scientists", "researchers", "study", "experts", "team", "people",
-    "doctor", "doctors", "author", "authors", "university", "science"
+    "doctor", "doctors", "author", "authors", "university", "science",
+    # Production / Audio / Video / Channel generic terms
+    "bella", "voiceover", "book", "canonical source", "canonical", "source",
+    "movie", "film", "audio", "footage", "scene", "scenes", "version", "adaptation"
 }
 
 # Thematic anchors that link events when exact year matches
@@ -324,6 +331,11 @@ class StoryDeduplicationEngine:
         """
         Layer 2: Deterministic Consistency, Entity-Pair & Fingerprint Matching.
         """
+        if isinstance(candidate_fp, str):
+            candidate_fp = self.build_fingerprint(candidate_fp, "")
+        if isinstance(existing_fp, str):
+            existing_fp = self.build_fingerprint(existing_fp, "")
+
         # 1. Exact title match
         if candidate_fp.title.lower().strip() == existing_fp.title.lower().strip():
             return DeduplicationResult(
@@ -402,6 +414,13 @@ class StoryDeduplicationEngine:
                         reason=f"Candidate matches historical event '{existing_fp.title}' on anchor year {list(shared_years)} and thematic elements {list(shared_thematic | shared_entities)}.",
                         is_allowed=False
                     )
+
+        # Differentiate distinct chronological novel parts (e.g. PART 01 vs PART 02)
+        part_c = re.search(r"part\s*0*(\d+)", candidate_fp.title.lower())
+        part_e = re.search(r"part\s*0*(\d+)", existing_fp.title.lower())
+        if part_c and part_e and part_c.group(1) != part_e.group(1):
+            # Distinct chronological parts of the novel saga are explicitly not duplicates
+            return None
 
         # 4. Title Token Overlap (ignoring stopwords/numbers)
         candidate_title_words = set(re.findall(r"\b[a-z]{4,}\b", candidate_fp.title.lower())) - DEDUP_STOPWORDS
@@ -612,6 +631,11 @@ class StoryDeduplicationEngine:
 
         # 2. Entity-Pair (Year + City) Escalation to Semantic NLI
         for existing in corpus:
+            part_c = re.search(r"part\s*0*(\d+)", candidate_title.lower())
+            part_e = re.search(r"part\s*0*(\d+)", existing.title.lower())
+            if part_c and part_e and part_c.group(1) != part_e.group(1):
+                continue
+
             shared_pairs = candidate_fp.entity_pairs.intersection(existing.entity_pairs)
             shared_years = candidate_fp.years.intersection(existing.years)
             shared_locations = candidate_fp.locations.intersection(existing.locations)
@@ -634,6 +658,11 @@ class StoryDeduplicationEngine:
 
         # 3. General Semantic NLI for shared years, entities, or thematic stems
         for existing in corpus:
+            part_c = re.search(r"part\s*0*(\d+)", candidate_title.lower())
+            part_e = re.search(r"part\s*0*(\d+)", existing.title.lower())
+            if part_c and part_e and part_c.group(1) != part_e.group(1):
+                continue
+
             if candidate_fp.years and existing.years and not candidate_fp.years.intersection(existing.years):
                 continue
             shared_years = candidate_fp.years.intersection(existing.years)
@@ -806,6 +835,10 @@ class DeduplicationRouter:
             )
             return is_dup, reason
         else:
+            part1 = re.search(r"part\s*0*(\d+)", title1.lower())
+            part2 = re.search(r"part\s*0*(\d+)", title2.lower())
+            if part1 and part2 and part1.group(1) != part2.group(1):
+                return False, "DISTINCT_SEQUENTIAL_PARTS"
             fp1 = self._story_engine.build_fingerprint(title1, summary1)
             fp2 = self._story_engine.build_fingerprint(title2, summary2)
             dup_chk = self._story_engine.check_deterministic_duplicate(fp1, fp2)

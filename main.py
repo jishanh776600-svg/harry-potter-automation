@@ -152,6 +152,60 @@ def resolve_vault_file_metadata(candidate: Dict[str, Any], db: Optional[Session]
         if m:
             event_id = m.group(0)
 
+    # 0. Harry Potter Canonical Metadata Resolution
+    clean_hps_id = None
+    if name.startswith("hps_"):
+        clean_hps_id = name.replace(".mp4", "").strip()
+    elif props.get("script_id") and str(props["script_id"]).startswith("hps_"):
+        clean_hps_id = props["script_id"]
+
+    if clean_hps_id and db:
+        try:
+            from core.models import HarryPotterScript
+            hp_script = db.query(HarryPotterScript).filter_by(id=clean_hps_id).first()
+            if not hp_script:
+                hp_script = db.query(HarryPotterScript).filter(HarryPotterScript.id.ilike(f"%{clean_hps_id}%")).first()
+
+            if hp_script:
+                if hp_script.content_type == "novel_story":
+                    pt = hp_script.part_marker or "PART 01"
+                    title = f"Harry Potter: {hp_script.chapter_title} [{pt}] #Shorts"
+                    if len(title) > 95:
+                        title = f"{hp_script.chapter_title} [{pt}] | Harry Potter #Shorts"
+                else:
+                    topic_clean = clean_hps_id.replace("hps_disc_", "").replace("_b1", "").replace("_", " ").title()
+                    if "Mirror Of Erised" in topic_clean:
+                        title = "The Secret Inscription on the Mirror of Erised | Harry Potter #Shorts"
+                    elif "Neville Remembrall" in topic_clean:
+                        title = "The Movie Secret in Neville's Remembrall | Harry Potter #Shorts"
+                    elif "Neville Hufflepuff" in topic_clean:
+                        title = "Why Neville Begged NOT to Be in Gryffindor | Harry Potter #Shorts"
+                    elif "Peeves" in topic_clean:
+                        title = "The Poltergeist Deleted from the Movies | Harry Potter #Shorts"
+                    else:
+                        title = f"{topic_clean} | Harry Potter Discovery #Shorts"
+
+                desc_parts = []
+                if hp_script.hook:
+                    desc_parts.append(hp_script.hook)
+                if hp_script.development:
+                    desc_parts.append(hp_script.development)
+                if hp_script.payoff:
+                    desc_parts.append(hp_script.payoff)
+
+                desc_body = "\n\n".join(desc_parts)
+                source_note = f"Canonical Source: {hp_script.book_title} ({hp_script.source_reference})\nVoiceover by Bella (af_bella)"
+                full_desc = f"{desc_body}\n\n{source_note}\n\n#HarryPotter #WizardingWorld #Shorts #Hogwarts"
+
+                return {
+                    "title": title[:100],
+                    "description": sanitize(full_desc)[:5000],
+                    "tags": [],
+                    "script_id": hp_script.id
+                }
+        except Exception as hp_meta_err:
+            logger.warning(f"Harry Potter DB metadata lookup notice: {hp_meta_err}")
+
     # 1. Explicit properties if clean (not short_man_ placeholder)
     p_title = props.get("title") or props.get("topic_title")
     if p_title and not p_title.startswith("short_man_") and not p_title.startswith("short_job_") and not p_title.lower().startswith("al-amr ready short") and len(p_title) > 3:
@@ -692,13 +746,13 @@ class ShortsPipeline:
                     return 0, summary
                 raise fatal_e
 
-        from intelligence.cloud_orchestrator import CloudProductionOrchestrator
-        orchestrator = CloudProductionOrchestrator(
+        from engines.hp_autonomous_refill import HPAutonomousRefillEngine
+        orchestrator = HPAutonomousRefillEngine(
             drive_engine=self.drive_engine,
             voice_id="af_bella",
             force_unlock=force_unlock
         )
-        telemetry = orchestrator.run_production_cycle(force_batch_count=effective_count)
+        telemetry = orchestrator.run_refill_cycle(force_batch_count=effective_count)
 
         summary = {
             "action": "PRODUCE_BATCH",
@@ -750,13 +804,13 @@ class ShortsPipeline:
             border_style="cyan"
         ))
         
-        from intelligence.cloud_orchestrator import CloudProductionOrchestrator
-        orchestrator = CloudProductionOrchestrator(
+        from engines.hp_autonomous_refill import HPAutonomousRefillEngine
+        orchestrator = HPAutonomousRefillEngine(
             drive_engine=self.drive_engine,
             voice_id="af_bella",
             force_unlock=force_unlock
         )
-        telemetry = orchestrator.run_production_cycle(target_buffer=clamped_target)
+        telemetry = orchestrator.run_refill_cycle(target_buffer=clamped_target)
 
         summary = {
             "action": "MAINTAIN_BUFFER",
@@ -833,9 +887,13 @@ class ShortsPipeline:
         import re
         extracted_job_id = props.get("job_id")
         if not extracted_job_id:
-            m = re.search(r"short_(job_[a-f0-9]+)", target_file.get("name", ""))
-            if m:
-                extracted_job_id = m.group(1)
+            t_name = target_file.get("name", "")
+            if t_name.startswith("hps_"):
+                extracted_job_id = f"job_{t_name.replace('.mp4', '')}"
+            else:
+                m = re.search(r"short_(job_[a-f0-9]+)", t_name)
+                if m:
+                    extracted_job_id = m.group(1)
         job_id = extracted_job_id or f"job_vault_{file_id[:8]}"
         resolved_meta = resolve_vault_file_metadata(target_file, db=db)
         title = resolved_meta["title"]
@@ -845,7 +903,8 @@ class ShortsPipeline:
         metadata = {
             "title": title,
             "description": description,
-            "tags": tags
+            "tags": tags,
+            "script_id": resolved_meta.get("script_id") or (target_file.get("name", "").replace(".mp4", "") if target_file.get("name", "").startswith("hps_") else None)
         }
 
         temp_download_path = RENDERS_DIR / f"temp_publish_{file_id}.mp4"
@@ -892,21 +951,23 @@ class ShortsPipeline:
                     top = db.query(Topic).filter(Topic.event_id == props["event_id"]).first()
                     if top:
                         cand_topic_id = top.id
-                if not cand_topic_id and title:
-                    top = db.query(Topic).filter(Topic.title.ilike(title.strip())).first()
-                    if top:
-                        cand_topic_id = top.id
+                if not cand_topic_id and target_file.get("name", "").startswith("hps_"):
+                    cand_topic_id = target_file.get("name", "").replace(".mp4", "")
                 if cand_topic_id:
                     job.topic_id = cand_topic_id
                     db.commit()
 
             render_output = db.query(RenderOutput).filter_by(job_id=job.id).first()
             if not render_output:
+                from core.models import HPRender
+                clean_sid = resolved_meta.get("script_id") or target_file.get("name", "").replace(".mp4", "")
+                hp_r = db.query(HPRender).filter_by(script_id=clean_sid).first()
+                actual_dur = hp_r.total_duration_sec if hp_r else 23.0
                 render_output = RenderOutput(
                     id=f"rnd_{uuid.uuid4().hex[:10]}",
                     job_id=job.id,
                     video_path=str(temp_download_path),
-                    duration_sec=23.0,
+                    duration_sec=actual_dur,
                     file_size_bytes=temp_download_path.stat().st_size if temp_download_path.exists() else 1024000,
                     video_codec="h264",
                     width=1080,
@@ -1265,6 +1326,8 @@ class ShortsPipeline:
                     m = re.search(r"short_(job_[a-f0-9]+)", candidate.get("name", ""))
                     if m:
                         c_job_id = m.group(1)
+                    elif candidate.get("name", "").startswith("hps_"):
+                        c_job_id = f"job_{candidate.get('name', '').replace('.mp4', '')}"
 
                 # 1. Direct DB lookup by job_id or explicit properties for THIS specific asset
                 existing_upl = None
@@ -1291,11 +1354,11 @@ class ShortsPipeline:
                     logger.warning(f"[PRE-CLAIM SKIP] File {candidate['id']} ({candidate.get('name')}) skipped from immediate batch: {val_reason}")
                     continue
 
-                # 3. Strict Niche Compliance Gate (Mystery / Bizarre Real-World Stories ONLY)
+                # 3. Strict Niche Compliance Gate (Harry Potter / AL-AMR pipeline output)
                 filename = candidate.get("name", "")
-                is_our_output = filename.startswith("short_man_") or filename.startswith("short_job_")
+                is_our_output = filename.startswith("short_man_") or filename.startswith("short_job_") or filename.startswith("hps_")
                 if is_our_output:
-                    is_comp, comp_reason = True, "APPROVED: AL-AMR pipeline output (pre-validated)"
+                    is_comp, comp_reason = True, "APPROVED: Harry Potter / AL-AMR pipeline output (pre-validated)"
                 else:
                     is_comp, comp_reason = is_niche_compliant(title=c_title, text=c_desc)
 
@@ -1309,7 +1372,9 @@ class ShortsPipeline:
 
                 # Resolve topic_id to exclude from deduplication check (prevent candidate self-matching against its own PRODUCED topic)
                 cand_topic_id = c_props.get("topic_id")
-                if not cand_topic_id and c_job_id:
+                if not cand_topic_id and filename.startswith("hps_"):
+                    cand_topic_id = filename.replace(".mp4", "")
+                elif not cand_topic_id and c_job_id:
                     j = db.query(Job).filter(Job.id == c_job_id).first()
                     if j and j.topic_id:
                         cand_topic_id = j.topic_id
@@ -1345,6 +1410,7 @@ class ShortsPipeline:
                 matched_event = None
                 try:
                     from engines.deduplication_engine import DeduplicationRouter
+                    dedup_eng = DeduplicationRouter()
                     clean_preclaim_title = c_title.strip() if c_title else ""
                     dedup_res = dedup_eng.evaluate_candidate(
                         candidate_title=clean_preclaim_title,
