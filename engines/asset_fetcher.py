@@ -607,6 +607,16 @@ class AssetFetcher:
         q_lower = query.lower()
 
         # ----------------------------------------------------
+        # HARD INVARIANT: STORY FORGE HYBRID VISUAL POLICY
+        # ----------------------------------------------------
+        # If query explicitly requests forbidden generic stock or AI generation:
+        if any(f in q_lower for f in ["pexels", "unsplash", "stock footage", "generic stock", "generic b-roll"]):
+            raise ValueError(
+                f"[HYBRID_VISUAL_SYSTEM] Forbidden generic stock requested: '{query}'. "
+                "Generic stock fallback is permanently disabled for STORY FORGE."
+            )
+
+        # ----------------------------------------------------
         # PRIORITY 1: Movie Footage (Local clips)
         # ----------------------------------------------------
         local_movie_clip = self.search_local_movie_footage(query, exclude_paths=exclude_set)
@@ -656,6 +666,28 @@ class AssetFetcher:
             db.add(asset_rec)
             db.commit()
             return asset_rec
+
+        # ----------------------------------------------------
+        # HARD INVARIANT: STORY FORGE HYBRID VISUAL POLICY
+        # ----------------------------------------------------
+        # For Harry Potter / STORY FORGE automation, generic stock (Pexels, Unsplash, generic B-roll)
+        # and synthetic AI scene generation are PERMANENTLY FORBIDDEN.
+        from config.settings import AUTOMATION_ID
+        is_hp = (
+            AUTOMATION_ID == "harry_potter"
+            or "harry potter" in q_lower
+            or "hogwarts" in q_lower
+            or any(w in q_lower for w in ["dumbledore", "voldemort", "gryffindor", "slytherin", "hufflepuff", "ravenclaw", "snape", "hermione", "peeves"])
+        )
+        if is_hp:
+            logger.warning(
+                f"[HYBRID_VISUAL] Harry Potter shot '{query}' could not be matched to local movie or curated artwork. "
+                "Generic stock (Pexels, Unsplash, generic B-roll) and AI image replacements are permanently forbidden."
+            )
+            raise ValueError(
+                f"[HYBRID_VISUAL_SYSTEM] No truthful visual found for Harry Potter shot: '{query}'. "
+                "Generic stock/AI fallback is permanently disabled for STORY FORGE."
+            )
 
         # ----------------------------------------------------
         # VISUAL INTELLIGENCE MULTI-SOURCE ACQUISITION & RANKING

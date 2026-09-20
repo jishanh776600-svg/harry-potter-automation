@@ -1078,7 +1078,14 @@ class MovieRetrievalEngine:
         source_mode: str,
         source_drive_id: Optional[str] = None,
         rejection_reason: Optional[str] = None,
-        extraction_meta: Optional[Dict[str, Any]] = None
+        extraction_meta: Optional[Dict[str, Any]] = None,
+        visual_source: str = "MOVIE_DIRECT",
+        source_url: Optional[str] = None,
+        creator: Optional[str] = None,
+        license_name: Optional[str] = None,
+        rights_status: Optional[str] = None,
+        provenance_json: Optional[str] = None,
+        visual_source_policy: str = "HYBRID_TRUTHFUL"
     ) -> HPMovieClip:
         """Persists or updates an individual HPMovieClip shot record in SQLite."""
         clip_pk = f"clip_{script_id}_{beat_id}_{shot_id}"
@@ -1125,6 +1132,13 @@ class MovieRetrievalEngine:
                 existing.audio_stream_count = 0
                 existing.width = width
                 existing.height = height
+                existing.visual_source = visual_source
+                existing.source_url = source_url
+                existing.creator = creator
+                existing.license_name = license_name
+                existing.rights_status = rights_status
+                existing.provenance_json = provenance_json
+                existing.visual_source_policy = visual_source_policy
                 existing.status = "READY_FOR_STEP_10" if match_status == "ACCEPTED" else "REJECTED"
                 existing.updated_at = datetime.utcnow()
                 rec = existing
@@ -1159,7 +1173,13 @@ class MovieRetrievalEngine:
                     audio_stream_count=0,
                     width=width,
                     height=height,
-                    visual_source_policy="MOVIE_FOOTAGE_ONLY",
+                    visual_source=visual_source,
+                    source_url=source_url,
+                    creator=creator,
+                    license_name=license_name,
+                    rights_status=rights_status,
+                    provenance_json=provenance_json,
+                    visual_source_policy=visual_source_policy,
                     status="READY_FOR_STEP_10" if match_status == "ACCEPTED" else "REJECTED",
                     created_at=datetime.utcnow(),
                     updated_at=datetime.utcnow()
@@ -1219,7 +1239,68 @@ class MovieRetrievalEngine:
             shots = self.resolve_beat_to_shots(beat, ranked, target_shots_per_beat=2, canonical_event=canonical_event, used_intervals=used_intervals)
 
             if not shots:
-                # No candidate met the gate; record rejected shot
+                # Check truthful fan-art / official artwork before marking as rejected
+                from engines.fan_art_retrieval_engine import FanArtRetrievalEngine
+                fa_engine = FanArtRetrievalEngine()
+                artwork = fa_engine.search_artwork_for_beat(beat)
+                if artwork and artwork.file_path and Path(artwork.file_path).exists():
+                    dur = float(beat.get("duration_seconds", 2.5))
+                    art_clip = self.clips_dir / f"{script_id}_{beat_id}_fanart.mp4"
+                    try:
+                        fa_engine.format_artwork_to_clip(Path(artwork.file_path), art_clip, duration_seconds=dur)
+                        rec = self.persist_shot_record(
+                            script_id=script_id,
+                            beat_id=beat_id,
+                            shot_id="shot_1",
+                            shot_index=1,
+                            candidate={
+                                "movie_number": 0,
+                                "movie_title": f"Artwork: {artwork.creator or 'Curated'}",
+                                "text": artwork.visual_description,
+                                "matched_query": artwork.search_query,
+                                "score": 90.0,
+                            },
+                            shot_timing={
+                                "source_start_seconds": 0.0,
+                                "source_end_seconds": dur,
+                                "clip_start_seconds": 0.0,
+                                "clip_end_seconds": dur,
+                                "duration_seconds": dur
+                            },
+                            match_status="ACCEPTED",
+                            source_mode="LOCAL_DEV_CACHE",
+                            extraction_meta={
+                                "file_path": str(art_clip),
+                                "file_size_bytes": art_clip.stat().st_size,
+                                "sha256": fa_engine.compute_image_hash(art_clip),
+                                "audio_stream_count": 0,
+                                "width": 1080,
+                                "height": 1920
+                            },
+                            visual_source=artwork.source_type.value,
+                            source_url=artwork.source_url,
+                            creator=artwork.creator,
+                            license_name=artwork.license,
+                            rights_status=artwork.rights_status.value,
+                            provenance_json=json.dumps(artwork.to_dict()),
+                            visual_source_policy="HYBRID_TRUTHFUL"
+                        )
+                        script_shots.append({
+                            "shot_id": "shot_1",
+                            "shot_index": 1,
+                            "beat_id": beat_id,
+                            "clip_start_seconds": 0.0,
+                            "clip_end_seconds": dur,
+                            "duration_seconds": dur,
+                            "file_path": str(art_clip),
+                            "visual_source": artwork.source_type.value,
+                            "candidate": {"movie_number": 0, "movie_title": f"Artwork: {artwork.creator or 'Curated'}"}
+                        })
+                        continue
+                    except Exception as art_err:
+                        logger.warning(f"Failed to format artwork clip for {beat_id}: {art_err}")
+
+                # No candidate met the gate; record rejected shot without forcing unrelated footage
                 top_cand = ranked[0] if ranked else {}
                 _, match_status, reason = self.evaluate_confidence_gate(top_cand or None)
                 self.persist_shot_record(
@@ -1231,7 +1312,8 @@ class MovieRetrievalEngine:
                     shot_timing={"source_start_seconds": 0.0, "source_end_seconds": 0.0, "duration_seconds": 0.0},
                     match_status="REJECTED",
                     source_mode="CLOUD_RESOLVABLE",
-                    rejection_reason=reason
+                    rejection_reason=reason or "Neither movie footage nor approved artwork depicts this beat.",
+                    visual_source="NO_VALID_VISUAL"
                 )
                 continue
 

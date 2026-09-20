@@ -87,9 +87,9 @@ FORBIDDEN_LITERARY_WORDS = [
 ]
 
 FORBIDDEN_VISUAL_TERMS = [
-    "ai image", "ai generated", "stock footage", "pexels", "wikimedia",
-    "book screenshot", "book illustration", "generic b-roll", "external video",
-    "consistory", "pollinations", "midjourney", "dall-e"
+    "ai image", "ai generated", "stock footage", "pexels", "unsplash",
+    "generic b-roll", "generic stock", "external video",
+    "consistory", "pollinations", "midjourney", "dall-e", "stable diffusion"
 ]
 
 MIN_WORD_COUNT = 55
@@ -100,7 +100,7 @@ PREFERRED_MAX_WORDS = 70
 
 @dataclass
 class VisualBeatPlan:
-    """Structured visual beat requirement for Step 9 movie retrieval."""
+    """Structured visual beat requirement for truthful hybrid visual resolution."""
     beat_id: str
     narration_text: str
     visual_requirement: str
@@ -112,7 +112,17 @@ class VisualBeatPlan:
     preferred_movie_number: int
     source_grounding: str
     retrieval_hints: List[str]
-    visual_source_policy: str = "MOVIE_FOOTAGE_ONLY"
+    visual_source_policy: str = "HYBRID_TRUTHFUL"
+    visual_source: str = "MOVIE_DIRECT"  # MOVIE_DIRECT, FAN_ART, OFFICIAL_ARTWORK, NO_VALID_VISUAL
+    description: str = ""
+    source_url: Optional[str] = None
+    original_url: Optional[str] = None
+    creator: Optional[str] = None
+    license: Optional[str] = None
+    license_url: Optional[str] = None
+    rights_status: Optional[str] = None
+    search_query: Optional[str] = None
+    notes: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -128,6 +138,16 @@ class VisualBeatPlan:
             "source_grounding": self.source_grounding,
             "retrieval_hints": self.retrieval_hints,
             "visual_source_policy": self.visual_source_policy,
+            "visual_source": self.visual_source,
+            "description": self.description,
+            "source_url": self.source_url,
+            "original_url": self.original_url,
+            "creator": self.creator,
+            "license": self.license,
+            "license_url": self.license_url,
+            "rights_status": self.rights_status,
+            "search_query": self.search_query,
+            "notes": self.notes,
         }
 
 
@@ -238,10 +258,19 @@ class HarryPotterScriptEngine:
                     forbidden_visuals_detected.append(term)
                     feedback.append(
                         f"FORBIDDEN VISUAL SOURCE: Beat '{b.get('beat_id')}' mentions '{term}'. "
-                        "Visuals must be 100% Harry Potter movie footage only."
+                        "Generic stock and synthetic AI imagery are permanently forbidden."
                     )
-            if b.get("visual_source_policy") != "MOVIE_FOOTAGE_ONLY":
-                feedback.append(f"INVALID VISUAL POLICY on beat {b.get('beat_id')}: must be MOVIE_FOOTAGE_ONLY.")
+            policy = b.get("visual_source_policy", "HYBRID_TRUTHFUL")
+            if policy not in ("MOVIE_FOOTAGE_ONLY", "HYBRID_TRUTHFUL"):
+                feedback.append(f"INVALID VISUAL POLICY on beat {b.get('beat_id')}: must be MOVIE_FOOTAGE_ONLY or HYBRID_TRUTHFUL.")
+
+            v_source = b.get("visual_source")
+            if v_source and v_source not in ("MOVIE_DIRECT", "FAN_ART", "OFFICIAL_ARTWORK", "NO_VALID_VISUAL"):
+                feedback.append(f"INVALID VISUAL SOURCE on beat {b.get('beat_id')}: '{v_source}' is not recognized.")
+
+            if v_source in ("FAN_ART", "OFFICIAL_ARTWORK"):
+                if not b.get("creator") and not b.get("source_url"):
+                    feedback.append(f"MISSING PROVENANCE on artwork beat {b.get('beat_id')}: creator or source_url must be recorded.")
 
         # 7. Standalone Narrative Check
         standalone_indicators = ["as seen previously", "in the previous episode", "as mentioned before"]

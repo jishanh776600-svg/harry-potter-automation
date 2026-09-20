@@ -257,13 +257,42 @@ class HPAutonomousRefillEngine:
         content_type = script.content_type
         logger.info(f"[Refill:Produce] Starting production pipeline for {script_id} ({content_type})...")
 
-        # Step 2: Headless Composition & Rendering (Reuse verified local render if available)
+        # Step 2: Headless Composition & Rendering (Deterministic Fingerprint Cache Check)
+        from engines.hp_render_engine import (
+            compute_render_fingerprint, DEFAULT_BGM_TRACK,
+            FRAMING_POLICY_VERSION, VISUAL_POLICY_VERSION
+        )
+        visual_pol = getattr(script, "visual_source_policy", VISUAL_POLICY_VERSION) or VISUAL_POLICY_VERSION
+        expected_fp = compute_render_fingerprint(
+            script_id=script_id,
+            full_text=getattr(script, "full_text", "") or "",
+            visual_beats_json=getattr(script, "visual_beats_json", "") or "",
+            voice_id="af_bella",
+            bgm_track=DEFAULT_BGM_TRACK,
+            bgm_volume_db=-28.0,
+            framing_policy_version=FRAMING_POLICY_VERSION,
+            visual_policy=visual_pol
+        )
+
         render_rec = session.query(HPRender).filter_by(script_id=script_id).first()
         video_path = None
-        if render_rec and render_rec.qa_status == "PASSED" and render_rec.video_path and Path(render_rec.video_path).exists():
-            logger.info(f"[Refill:Render] Reusing verified existing render for {script_id}: {render_rec.video_path}")
+        is_cache_valid = (
+            render_rec
+            and render_rec.qa_status == "PASSED"
+            and render_rec.video_path
+            and Path(render_rec.video_path).exists()
+            and getattr(render_rec, "render_fingerprint", None) == expected_fp
+        )
+
+        if is_cache_valid:
+            logger.info(f"[Refill:Render] Cache hit: Reusing verified render with matching fingerprint ({expected_fp[:8]}) for {script_id}: {render_rec.video_path}")
             video_path = Path(render_rec.video_path)
         else:
+            if render_rec and getattr(render_rec, "render_fingerprint", None) != expected_fp:
+                logger.info(
+                    f"[Refill:Render] Cache miss for {script_id}: Fingerprint mismatch "
+                    f"({getattr(render_rec, 'render_fingerprint', None)} != {expected_fp[:8]}). Performing fresh render."
+                )
             # Step 1: Ensure Movie Visual Shots exist in HPMovieClip
             accepted_shots_count = session.query(HPMovieClip).filter_by(
                 script_id=script_id,

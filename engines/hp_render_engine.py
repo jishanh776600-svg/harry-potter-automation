@@ -62,6 +62,41 @@ LOCKED_VOICE_RATE = "+0%"
 # BGM Catalog — Strictly Harry Potter dedicated Drive vault asset (Single Canonical BGM)
 DEFAULT_BGM_TRACK = "Esther Abrami - No.6 In My Dreams (1).wav"
 DEFAULT_BGM_DRIVE_ID = "1GwpmcEzrZg_grsDpEfgqf0hxXNfQ6brI"
+FRAMING_POLICY_VERSION = "v2_natural_medium"
+VISUAL_POLICY_VERSION = "HYBRID_TRUTHFUL_V1"
+
+
+def compute_render_fingerprint(
+    script_id: str,
+    full_text: str = "",
+    visual_beats_json: str = "",
+    voice_id: str = LOCKED_VOICE_ID,
+    voice_pitch: str = LOCKED_VOICE_PITCH,
+    voice_rate: str = LOCKED_VOICE_RATE,
+    bgm_track: str = DEFAULT_BGM_TRACK,
+    bgm_volume_db: float = -28.0,
+    framing_policy_version: str = FRAMING_POLICY_VERSION,
+    visual_policy: str = VISUAL_POLICY_VERSION
+) -> str:
+    """
+    Computes a deterministic SHA-256 fingerprint for a production render configuration.
+    Any changes to script text, visual sources, BGM, voice, or framing rules
+    produce a different fingerprint, guaranteeing that stale renders are never reused.
+    """
+    parts = [
+        str(script_id),
+        str(full_text or "").strip(),
+        str(visual_beats_json or "").strip(),
+        str(voice_id),
+        str(voice_pitch),
+        str(voice_rate),
+        str(bgm_track),
+        f"{bgm_volume_db:.1f}",
+        str(framing_policy_version),
+        str(visual_policy)
+    ]
+    normalized = "|".join(parts)
+    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
 
 
 class HPRenderEngine:
@@ -649,14 +684,43 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             bgm_volume_db=-28.0
         )
 
-        # 4. Resolve / Extract Physical Movie Shots
+        # 4. Resolve / Extract Physical Shots (Movie or Artwork)
         # Check if shots already have local files on disk
         shot_files = []
         movies_used = set()
         for sh in shots:
-            movies_used.add(sh.movie_number)
+            if sh.movie_number:
+                movies_used.add(sh.movie_number)
             if sh.file_path and Path(sh.file_path).exists():
                 shot_files.append(Path(sh.file_path))
+            elif getattr(sh, "visual_source", "MOVIE_DIRECT") in ("FAN_ART", "OFFICIAL_ARTWORK"):
+                # Artwork shot clip
+                from engines.fan_art_retrieval_engine import FanArtRetrievalEngine
+                fa_eng = FanArtRetrievalEngine()
+                art_src = getattr(sh, "source_url", "") or ""
+                if art_src.startswith("file://"):
+                    art_path = Path(art_src[7:])
+                else:
+                    art_path = Path(sh.file_path) if sh.file_path else None
+
+                if art_path and art_path.exists():
+                    clip_out = self.clips_dir / f"{script_id}_{sh.beat_id}_fanart.mp4"
+                    fa_eng.format_artwork_to_clip(
+                        artwork_image_path=art_path,
+                        output_clip_path=clip_out,
+                        duration_seconds=sh.duration_seconds
+                    )
+                    shot_files.append(clip_out)
+                    with self.Session() as session:
+                        rec = session.query(HPMovieClip).filter_by(id=sh.id).first()
+                        if rec:
+                            rec.file_path = str(clip_out)
+                            rec.file_size_bytes = clip_out.stat().st_size
+                            session.commit()
+                else:
+                    raise FileNotFoundError(
+                        f"Cannot render {script_id}: Artwork not available for {sh.beat_id}."
+                    )
             else:
                 # Materialize shot clip using MovieRetrievalEngine
                 movie_file, _, _ = self.retrieval_engine.resolve_movie_file(sh.movie_number, allow_download=True)
@@ -740,6 +804,20 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
         # 7. Persist HPRender Record
         render_id = f"render_{script_id}"
+        visual_policy_name = getattr(script, "visual_source_policy", VISUAL_POLICY_VERSION) or VISUAL_POLICY_VERSION
+        render_fp = compute_render_fingerprint(
+            script_id=script_id,
+            full_text=getattr(script, "full_text", "") or "",
+            visual_beats_json=getattr(script, "visual_beats_json", "") or "",
+            voice_id=voice_id,
+            voice_pitch=LOCKED_VOICE_PITCH,
+            voice_rate=LOCKED_VOICE_RATE,
+            bgm_track=bgm_track,
+            bgm_volume_db=-28.0,
+            framing_policy_version=FRAMING_POLICY_VERSION,
+            visual_policy=visual_policy_name
+        )
+
         with self.Session() as session:
             existing = session.query(HPRender).filter_by(id=render_id).first()
             if existing:
@@ -752,12 +830,14 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 existing.narration_audio_path = str(narration_wav)
                 existing.shot_count = len(assembled_shots)
                 existing.movie_numbers_used = ",".join(str(m) for m in sorted(movies_used))
+                existing.visual_policy = visual_policy_name
                 existing.bgm_track = bgm_track
                 existing.master_lufs = measured_lufs
                 existing.subtitles_path = str(ass_path)
                 existing.video_path = str(output_mp4)
                 existing.file_size_bytes = output_mp4.stat().st_size
                 existing.sha256 = final_sha256
+                existing.render_fingerprint = render_fp
                 existing.total_duration_sec = narration_dur
                 existing.qa_status = final_qa_status
                 existing.qa_report_json = json.dumps(qa_report)
@@ -776,7 +856,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                     narration_audio_path=str(narration_wav),
                     shot_count=len(assembled_shots),
                     movie_numbers_used=",".join(str(m) for m in sorted(movies_used)),
-                    visual_policy="MOVIE_FOOTAGE_ONLY",
+                    visual_policy=visual_policy_name,
                     bgm_track=bgm_track,
                     bgm_volume_db=-28.0,
                     master_lufs=measured_lufs,
@@ -785,6 +865,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                     video_path=str(output_mp4),
                     file_size_bytes=output_mp4.stat().st_size,
                     sha256=final_sha256,
+                    render_fingerprint=render_fp,
                     width=1080,
                     height=1920,
                     fps=30.0,

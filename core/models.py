@@ -957,6 +957,12 @@ class HPMovieClip(Base):
     width = Column(Integer, nullable=True)
     height = Column(Integer, nullable=True)
     visual_source_policy = Column(String(64), default="MOVIE_FOOTAGE_ONLY", nullable=False)
+    visual_source = Column(String(32), default="MOVIE_DIRECT", nullable=False)  # MOVIE_DIRECT, FAN_ART, OFFICIAL_ARTWORK, NO_VALID_VISUAL
+    source_url = Column(String(512), nullable=True)
+    creator = Column(String(255), nullable=True)
+    license_name = Column(String(255), nullable=True)
+    rights_status = Column(String(64), nullable=True)
+    provenance_json = Column(Text, nullable=True)
 
     # State
     status = Column(String(32), default="READY_FOR_STEP_10", nullable=False, index=True)
@@ -1006,6 +1012,7 @@ class HPRender(Base):
     video_path = Column(String(512), nullable=False)
     file_size_bytes = Column(Integer, nullable=False)
     sha256 = Column(String(64), nullable=True)
+    render_fingerprint = Column(String(64), nullable=True, index=True)  # Deterministic configuration fingerprint
     width = Column(Integer, default=1080, nullable=False)
     height = Column(Integer, default=1920, nullable=False)
     fps = Column(Float, default=30.0, nullable=False)

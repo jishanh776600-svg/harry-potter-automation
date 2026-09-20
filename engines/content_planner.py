@@ -295,6 +295,21 @@ class ContentPlannerEngine:
                     else:
                         result["visual_status"] = VF_WEAK_CONTEXTUAL
 
+                # Step 3: If movie footage was not found, check truthful fan art / illustration feasibility
+                if result["visual_status"] == VF_NO_FOOTAGE:
+                    try:
+                        from engines.fan_art_retrieval_engine import FanArtRetrievalEngine
+                        fa_engine = FanArtRetrievalEngine()
+                        beat_dict = {"narration_text": description, "action": description}
+                        artwork = fa_engine.search_artwork_for_beat(beat_dict)
+                        if artwork:
+                            result["visual_status"] = "FAN_ART_MATCH"
+                            result["visual_source"] = artwork.source_type.value if hasattr(artwork.source_type, "value") else artwork.source_type
+                            result["creator"] = artwork.creator
+                            result["source_url"] = artwork.source_url
+                    except Exception as fa_err:
+                        logger.debug(f"[VISUAL_FEASIBILITY] Artwork check notice: {fa_err}")
+
             except Exception as e:
                 logger.warning(f"[VISUAL_FEASIBILITY] Search error for '{description[:50]}': {e}")
 
@@ -302,9 +317,9 @@ class ContentPlannerEngine:
             statuses.append(result["visual_status"])
 
         # Determine overall status
-        if all(s == VF_DIRECT_MATCH for s in statuses):
+        if all(s in (VF_DIRECT_MATCH, "FAN_ART_MATCH") for s in statuses):
             overall = VF_DIRECT_MATCH
-        elif all(s in (VF_DIRECT_MATCH, VF_STRONG_CONTEXTUAL) for s in statuses):
+        elif all(s in (VF_DIRECT_MATCH, VF_STRONG_CONTEXTUAL, "FAN_ART_MATCH") for s in statuses):
             overall = VF_STRONG_CONTEXTUAL
         elif VF_NO_FOOTAGE in statuses and len([s for s in statuses if s == VF_NO_FOOTAGE]) >= len(statuses) / 2:
             overall = VF_ADAPTATION_REQUIRED

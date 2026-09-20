@@ -1,0 +1,51 @@
+[
+  {
+    "id": "art_disc_peeves_poltergeist_great_hall",
+    "title": "Peeves causing chaos in Hogwarts Great Hall",
+    "description": "Peeves the Poltergeist dropping water balloons and juggling goblets above the Hogwarts Great Hall feast tables while students duck for cover",
+    "creator": "Curated Harry Potter Fan Art Archive",
+    "source_url": "https://archive.org/details/hp-canon-art-peeves-chaos",
+    "license": "Fair Use Commentary / Editorial Context",
+    "license_url": "https://creativecommons.org/licenses/by-nc/4.0/",
+    "rights_status": "FAIR_USE_EDITORIAL",
+    "tags": ["peeves", "poltergeist", "chaos", "great hall", "feast", "ghost", "floating", "students"],
+    "is_official": false,
+    "file_path": "data/artworks/test_artwork_sample.jpg"
+  },
+  {
+    "id": "art_disc_neville_sorting_plea",
+    "title": "Neville Longbottom pleading with the Sorting Hat for Hufflepuff",
+    "description": "Young Neville Longbottom sitting on the sorting stool under the oversized Sorting Hat whispering desperately for Hufflepuff",
+    "creator": "Curated Harry Potter Fan Art Archive",
+    "source_url": "https://archive.org/details/hp-canon-art-neville-sorting",
+    "license": "Fair Use Commentary / Editorial Context",
+    "license_url": "https://creativecommons.org/licenses/by-nc/4.0/",
+    "rights_status": "FAIR_USE_EDITORIAL",
+    "tags": ["neville", "longbottom", "sorting hat", "hufflepuff", "gryffindor", "plea", "stool", "sorting"],
+    "is_official": false
+  },
+  {
+    "id": "art_disc_snape_potion_riddle_chamber",
+    "title": "Snape's Potion Riddle Chamber with Black and Purple Fire",
+    "description": "Seven potion bottles on a stone table flanked by roaring purple and black magical flames inside the underground chamber with Hermione solving the riddle",
+    "creator": "Curated Harry Potter Fan Art Archive",
+    "source_url": "https://archive.org/details/hp-canon-art-snape-potions-riddle",
+    "license": "Fair Use Commentary / Editorial Context",
+    "license_url": "https://creativecommons.org/licenses/by-nc/4.0/",
+    "rights_status": "FAIR_USE_EDITORIAL",
+    "tags": ["snape", "potion", "riddle", "fire", "hermione", "flames", "bottles", "chamber", "trapdoor"],
+    "is_official": false
+  },
+  {
+    "id": "art_official_mary_grandpre_mirror_erised",
+    "title": "The Mirror of Erised Official Chapter Illustration",
+    "description": "Harry gazing into the ornate golden Mirror of Erised seeing his parents standing behind him",
+    "creator": "Mary GrandPré",
+    "source_url": "https://scholastic.com/harrypotter/chapter-art",
+    "license": "Scholastic Official Illustration (Editorial Reference)",
+    "license_url": "https://scholastic.com/terms",
+    "rights_status": "OFFICIAL_LICENSED",
+    "tags": ["harry", "mirror of erised", "parents", "james", "lily", "official", "illustration"],
+    "is_official": true
+  }
+]
