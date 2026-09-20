@@ -25,8 +25,9 @@ import hashlib
 import logging
 import sqlite3
 import subprocess
+from enum import Enum
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional, Tuple, Set
 from datetime import datetime
 
 from sqlalchemy import create_engine
@@ -35,6 +36,7 @@ from sqlalchemy.orm import sessionmaker
 from config.settings import PROJECT_ROOT, DATABASE_DIR, DB_PATH
 from core.models import Base, MovieAssetRecord, MovieSubtitleChunk, HarryPotterScript, HPMovieClip
 from core.movie_registry import CANONICAL_MOVIES, get_movie_by_number
+from core.event_semantic_engine import EventSemanticVisualEngine, VisualBeatEvent
 from engines.movie_asset_engine import MovieAssetEngine, get_db_connection
 
 logger = logging.getLogger(__name__)
@@ -48,6 +50,24 @@ MIN_CONFIDENCE_THRESHOLD = 50.0
 DEFAULT_TARGET_SHOT_DURATION = 2.2  # Seconds
 MIN_SHOT_DURATION = 1.5
 MAX_SHOT_DURATION = 3.0
+
+
+class ShotScale(str, Enum):
+    CLOSE_UP = "CLOSE_UP"
+    MEDIUM_CLOSE_UP = "MEDIUM_CLOSE_UP"
+    MEDIUM_SHOT = "MEDIUM_SHOT"
+    TWO_SHOT = "TWO_SHOT"
+    WIDE_SHOT = "WIDE_SHOT"
+
+
+KNOWN_CHARACTERS = [
+    "Harry Potter", "Harry", "Dumbledore", "Albus Dumbledore", "McGonagall", "Minerva McGonagall",
+    "Hagrid", "Rubeus Hagrid", "Neville Longbottom", "Neville", "Ron Weasley", "Ron",
+    "Hermione Granger", "Hermione", "Severus Snape", "Snape", "Draco Malfoy", "Malfoy",
+    "Lord Voldemort", "Voldemort", "Vernon Dursley", "Petunia Dursley", "Dudley Dursley",
+    "Dursley", "Vernon", "Petunia", "Dudley", "Sorting Hat", "Hedwig", "Peeves",
+    "Argus Filch", "Filch", "Ollivander", "Quirrell", "Fluffy", "Norbert", "James Potter", "Lily Potter"
+]
 
 
 class MovieRetrievalEngine:
@@ -74,6 +94,7 @@ class MovieRetrievalEngine:
         Base.metadata.create_all(self.engine)
         self.Session = sessionmaker(bind=self.engine)
         self.asset_engine = MovieAssetEngine()
+        self.semantic_event_engine = EventSemanticVisualEngine()
 
     # --------------------------------------------------------------------------
     # 1. VISUAL BEAT QUERY BUILDER
@@ -81,14 +102,23 @@ class MovieRetrievalEngine:
     def build_queries_for_beat(self, beat: Dict[str, Any]) -> List[str]:
         """
         Generates prioritized search queries for a visual beat.
-        Combines retrieval hints, character names, location, and action keywords.
+        Combines retrieval hints, character names, location, action keywords,
+        and automatic text extraction from narration/text/shot_hint.
         """
         queries = []
         hints = beat.get("retrieval_hints", [])
-        characters = beat.get("characters", [])
+        characters = list(beat.get("characters", []))
         location = beat.get("location", "")
         action = beat.get("action", "")
         req = beat.get("visual_requirement", "")
+        raw_text = beat.get("narration_text") or beat.get("text") or beat.get("shot_hint") or ""
+
+        # Fallback character detection from raw text if characters list is empty
+        if not characters and raw_text:
+            for kc in KNOWN_CHARACTERS:
+                if re.search(r"\b" + re.escape(kc) + r"\b", raw_text, re.IGNORECASE):
+                    if kc not in characters:
+                        characters.append(kc)
 
         # 1. Cleaned specific retrieval hints
         if hints:
@@ -113,20 +143,22 @@ class MovieRetrievalEngine:
 
         # 3. Salient action / location nouns
         salient_words = []
-        for text_source in (location, action, req):
+        for text_source in (location, action, req, raw_text):
             words = re.findall(r"[a-zA-Z]{4,}", text_source)
             for w in words:
                 w_lower = w.lower()
                 if w_lower not in (
                     "with", "from", "that", "this", "shot", "approaches",
                     "standing", "looking", "walking", "holding", "silent",
-                    "quiet", "suburban", "evening", "across", "under", "front", "side"
+                    "quiet", "suburban", "evening", "across", "under", "front", "side",
+                    "completely", "reveals", "their", "there", "about", "which", "would",
+                    "before", "after", "while", "during"
                 ):
                     if w not in salient_words:
                         salient_words.append(w)
         if salient_words:
             queries.append(" ".join(salient_words[:3]))
-            for sw in salient_words[:5]:
+            for sw in salient_words[:6]:
                 if sw not in queries:
                     queries.append(sw)
 
@@ -144,15 +176,50 @@ class MovieRetrievalEngine:
     def search_candidates_for_beat(
         self,
         beat: Dict[str, Any],
-        max_candidates: int = 15
+        max_candidates: int = 15,
+        canonical_event: Optional[Any] = None
     ) -> List[Dict[str, Any]]:
         """
         Queries the movie subtitles FTS5 index across generated queries.
         Prioritizes the beat's preferred_movie_number, then falls back globally.
+        If a canonical event is provided, directly ensures the exact ground-truth scene chunks are present.
         """
         queries = self.build_queries_for_beat(beat)
         preferred_m = beat.get("preferred_movie_number")
         candidates_by_id = {}
+
+        # Round 0: Inject ground-truth canonical scene chunks if provided
+        if canonical_event:
+            m_num = canonical_event.movie_number
+            st_sec = float(canonical_event.scene_start_sec)
+            end_sec = float(canonical_event.scene_end_sec)
+            with self.Session() as session:
+                chunks = (
+                    session.query(MovieSubtitleChunk)
+                    .filter(
+                        MovieSubtitleChunk.movie_number == m_num,
+                        MovieSubtitleChunk.end_seconds >= max(0.0, st_sec - 15.0),
+                        MovieSubtitleChunk.start_seconds <= end_sec + 15.0
+                    )
+                    .all()
+                )
+                for ch in chunks:
+                    if ch.id not in candidates_by_id:
+                        candidates_by_id[ch.id] = {
+                            "chunk_id": ch.id,
+                            "movie_number": ch.movie_number,
+                            "movie_title": ch.movie_title,
+                            "start_seconds": ch.start_seconds,
+                            "end_seconds": ch.end_seconds,
+                            "start_timecode": ch.start_timecode,
+                            "end_timecode": ch.end_timecode,
+                            "duration_seconds": ch.duration_seconds,
+                            "text": ch.text,
+                            "video_filename": ch.movie.video_filename if ch.movie else "",
+                            "video_drive_id": ch.movie.video_drive_id if ch.movie else "",
+                            "relevance_rank": -1.0,
+                            "matched_query": f"[CANONICAL: {canonical_event.event_summary[:30]}]"
+                        }
 
         # Round 1: Preferred movie search
         if preferred_m:
@@ -181,8 +248,10 @@ class MovieRetrievalEngine:
     # --------------------------------------------------------------------------
     def expand_candidate_context(self, candidate: Dict[str, Any]) -> Dict[str, Any]:
         """Expands candidate context by fetching preceding and succeeding subtitle chunks."""
-        chunk_id = candidate["chunk_id"]
-        movie_num = candidate["movie_number"]
+        chunk_id = candidate.get("chunk_id")
+        if not chunk_id:
+            return candidate
+        movie_num = candidate.get("movie_number", 1)
 
         with self.Session() as session:
             current = session.query(MovieSubtitleChunk).filter_by(id=chunk_id).first()
@@ -223,95 +292,406 @@ class MovieRetrievalEngine:
         return candidate
 
     # --------------------------------------------------------------------------
-    # 4. MULTI-FACTOR RERANKING & SCORING
+    # 4. SHOT SCALE & CHARACTER FRAMING REASONING
+    # --------------------------------------------------------------------------
+    @staticmethod
+    def infer_target_shot_scale(beat: Dict[str, Any]) -> ShotScale:
+        """
+        Infers the target visual shot scale from beat requirements:
+        - CLOSE_UP / EXTREME_CLOSE_UP for emotion, facial reactions, realization, or small iconic props.
+        - TWO_SHOT for explicit dialogue/confrontation/interaction between two characters.
+        - MEDIUM_CLOSE_UP / MEDIUM_SHOT for character action, gesture, or speech.
+        - WIDE_SHOT only when environment, location, architecture, or spatial movement is primary.
+        """
+        combined = " ".join([
+            str(beat.get("visual_requirement", "")),
+            str(beat.get("action", "")),
+            str(beat.get("narration_text", "")),
+            str(beat.get("text", "")),
+            str(beat.get("shot_hint", "")),
+            str(beat.get("emotional_context", ""))
+        ]).lower()
+
+        # 1. Close-up cues: facial reaction, emotion, realization, eyes, intimate gaze
+        cu_cues = [
+            "close-up", "close up", "extreme close-up", "cu", "ecu", "reaction", "facial",
+            "emotion", "realization", "fear", "surprise", "shock", "tears", "eyes widen",
+            "eyes", "whisper", "whispers", "whispering", "face", "smiling", "smile",
+            "scar", "lettering", "inscription", "ring", "wand tip", "bewildered",
+            "urgent expression", "worried look", "gaze", "gazing", "stare", "mesmerized"
+        ]
+        if any(re.search(r"\b" + re.escape(cue) + r"\b", combined) for cue in cu_cues):
+            return ShotScale.CLOSE_UP
+
+        # 2. Two-shot cues: direct interaction/dialogue between two characters
+        chars = beat.get("characters", [])
+        two_shot_cues = [
+            "two-shot", "two shot", "confronts", "facing each other", "walks beside",
+            "side by side", "whispering to", "talking to", "speaking with", "handing the child",
+            "together down", "conversing", "conferring"
+        ]
+        if any(re.search(r"\b" + re.escape(cue) + r"\b", combined) for cue in two_shot_cues):
+            return ShotScale.TWO_SHOT
+        if len(chars) >= 2 and any(w in combined for w in ("talk", "speak", "greet", "whisper", "warn", "convers", "confer", "discuss")):
+            return ShotScale.TWO_SHOT
+
+        # 3. Wide shot cues: environment, landscape, architecture, crowd
+        wide_cues = [
+            "wide shot", "wide", "establishing", "landscape", "castle", "great hall filled",
+            "crowd", "ruins", "forest", "quidditch pitch", "pitch black street", "sky",
+            "hundreds of owls", "suburban pavement", "avenue", "street sign"
+        ]
+        if any(re.search(r"\b" + re.escape(cue) + r"\b", combined) for cue in wide_cues) and not chars:
+            return ShotScale.WIDE_SHOT
+
+        # 4. Action cues -> Medium shot / Medium Close-up
+        return ShotScale.MEDIUM_SHOT
+
+    def infer_candidate_framing_and_scale(
+        self,
+        candidate: Dict[str, Any],
+        beat: Dict[str, Any],
+        canonical_event: Optional[Any] = None
+    ) -> Dict[str, Any]:
+        """
+        Determines the candidate's shot scale and character prominence:
+        - If matching a canonical event, leverages authoritative event camera descriptors.
+        - Otherwise analyzes dialogue structure, speaker presence, and scene indicators.
+        """
+        cand_text = candidate.get("text", "").strip()
+        cand_context = candidate.get("expanded_context", "")
+        combined = f"{cand_text} {cand_context}".lower()
+
+        # Check canonical event matching
+        is_canonical = False
+        if canonical_event:
+            ev_start = float(canonical_event.scene_start_sec)
+            ev_end = float(canonical_event.scene_end_sec)
+            c_start = float(candidate.get("start_seconds", 0.0))
+            c_end = float(candidate.get("end_seconds", 0.0))
+            if (c_start <= ev_end + 3.0) and (c_end >= ev_start - 3.0):
+                is_canonical = True
+                ev_summary = canonical_event.event_summary.lower()
+                if any(w in ev_summary for w in ("close-up", "face", "scar", "lighter", "glass ball", "inscription", "eyes")):
+                    return {"shot_scale": ShotScale.CLOSE_UP, "prominence": 1.0, "is_canonical": True}
+                elif any(w in ev_summary for w in ("two professors", "walking together", "greets", "talking quietly")):
+                    return {"shot_scale": ShotScale.TWO_SHOT, "prominence": 0.85, "is_canonical": True}
+                elif any(w in ev_summary for w in ("stepping off", "sitting motionless", "cat sitting")):
+                    return {"shot_scale": ShotScale.MEDIUM_CLOSE_UP, "prominence": 0.80, "is_canonical": True}
+                elif any(w in ev_summary for w in ("street sign", "sky", "street going dark")):
+                    return {"shot_scale": ShotScale.WIDE_SHOT, "prominence": 0.35, "is_canonical": True}
+
+        # Check beat characters
+        beat_chars = beat.get("characters", [])
+        if not beat_chars:
+            raw_text = beat.get("narration_text") or beat.get("text") or ""
+            for kc in KNOWN_CHARACTERS:
+                if re.search(r"\b" + re.escape(kc) + r"\b", raw_text, re.IGNORECASE):
+                    beat_chars.append(kc)
+
+        char_tokens = []
+        for c in beat_chars:
+            for tok in re.findall(r"[a-zA-Z]{4,}", c.lower()):
+                if tok not in ("baby", "professor", "uncle", "aunt"):
+                    char_tokens.append(tok)
+        has_named_char = (
+            any(c.lower() in combined for c in beat_chars)
+            or any(tok in combined for tok in char_tokens)
+        )
+
+        # Facial / emotional / gaze actions -> Close-up
+        if any(w in combined for w in ("eyes", "face", "smile", "smiling", "tears", "stare", "staring", "glance", "gazing", "gaze", "whisper", "gasp", "looking", "looked closely", "shock", "widening", "despair")):
+            if has_named_char or not beat_chars:
+                return {"shot_scale": ShotScale.CLOSE_UP, "prominence": 0.90, "is_canonical": False}
+
+        # Dialogue-based cinema directing grammar:
+        # Two speakers with alternating lines (- ...) -> Two-shot or dialogue exchange
+        if cand_text.count("- ") >= 2:
+            return {"shot_scale": ShotScale.TWO_SHOT, "prominence": 0.75, "is_canonical": False}
+
+        # Check if text contains direct emotional expressions or whisper tags
+        if any(w in combined for w in ("[whispers]", "[gasps]", "[sighs]", "[screams]", "afraid so", "try not to wake")):
+            return {"shot_scale": ShotScale.CLOSE_UP, "prominence": 0.90, "is_canonical": False}
+
+        # Short dialogue lines (< 8 words) centered on character -> Close-up or Medium Close-up
+        word_count = len(cand_text.split())
+        if has_named_char and word_count <= 8:
+            return {"shot_scale": ShotScale.CLOSE_UP, "prominence": 0.85, "is_canonical": False}
+        elif has_named_char and word_count <= 18:
+            return {"shot_scale": ShotScale.MEDIUM_CLOSE_UP, "prominence": 0.80, "is_canonical": False}
+
+        # Crowd or ambient announcements
+        if any(w in combined for w in ("cheering", "applause", "students", "silence in the hall", "welcome to hogwarts", "across long tables")):
+            return {"shot_scale": ShotScale.WIDE_SHOT, "prominence": 0.20, "is_canonical": False}
+
+        # Default fallback
+        if has_named_char:
+            return {"shot_scale": ShotScale.MEDIUM_SHOT, "prominence": 0.70, "is_canonical": False}
+        else:
+            return {"shot_scale": ShotScale.WIDE_SHOT, "prominence": 0.30, "is_canonical": False}
+
+    # --------------------------------------------------------------------------
+    # 5. MULTI-FACTOR RERANKING & QUALITY SCORING (A through H)
     # --------------------------------------------------------------------------
     def score_candidate(
         self,
         candidate: Dict[str, Any],
-        beat: Dict[str, Any]
+        beat: Dict[str, Any],
+        canonical_event: Optional[Any] = None,
+        used_intervals: Optional[List[Tuple[int, float, float]]] = None
     ) -> Dict[str, Any]:
         """
-        Multi-Factor Scoring (0 to 100 points):
-          1. Character Match (0 - 30 pts)
-          2. Action / Keyword Match (0 - 25 pts)
-          3. Location / Object Match (0 - 15 pts)
-          4. Lexical BM25 (0 - 15 pts)
-          5. Preferred Movie Match (0 - 15 pts)
-          6. Duration Suitability (0 - 10 pts)
+        Multi-Factor Scoring (0 to 100 points) evaluating:
+          A. Semantic relevance to the narration/beat (0 - 25 pts)
+          B. Named-character presence (0 - 20 pts)
+          C. Character prominence / framing (0 - 15 pts)
+          D. Action relevance (0 - 10 pts)
+          E. Reaction / emotion relevance (0 - 10 pts)
+          F. Shot scale suitability (0 - 10 pts)
+          G. Temporal & context relevance (0 - 10 pts)
+          H. Anti-loop & uniqueness constraint (penalty: 0 or 100 pts)
         """
         text = candidate.get("text", "").lower()
         context = candidate.get("expanded_context", "").lower()
         combined_text = f"{text} {context}"
 
-        score_details = {}
+        target_scale = self.infer_target_shot_scale(beat)
+        framing_info = self.infer_candidate_framing_and_scale(candidate, beat, canonical_event=canonical_event)
+        cand_scale = framing_info["shot_scale"]
+        prominence_factor = framing_info["prominence"]
+        is_canonical = framing_info.get("is_canonical", False)
 
-        # 1. Character Match (0-30 pts)
-        characters = [c.lower() for c in beat.get("characters", [])]
-        char_points = 0.0
-        for char in characters:
-            tokens = [t for t in re.split(r"\s+", char) if len(t) >= 4]
-            if char in combined_text:
-                char_points += 30.0
-                break
-            elif any(t in combined_text for t in tokens):
-                char_points += 20.0
-                break
-        char_score = min(30.0, char_points)
-        score_details["character_score"] = char_score
+        c_movie = int(candidate.get("movie_number", 1))
+        c_start = float(candidate.get("start_seconds", 0.0))
+        c_end = float(candidate.get("end_seconds", 0.0))
 
-        # 2. Action / Visual Keyword Match (0-25 pts)
-        action_words = set(re.findall(r"[a-zA-Z]{4,}", beat.get("action", "").lower()))
-        hint_words = set(re.findall(r"[a-zA-Z]{4,}", " ".join(beat.get("retrieval_hints", [])).lower()))
-        target_keywords = action_words.union(hint_words)
-        matched_kw_count = sum(1 for kw in target_keywords if kw in combined_text)
-        action_score = min(25.0, matched_kw_count * 8.5)
-        score_details["action_score"] = round(action_score, 1)
+        # ----------------------------------------------------------------------
+        # NON-CANONICAL MOVIE REJECTION GATE (Movies 1-8 strictly)
+        # ----------------------------------------------------------------------
+        if not get_movie_by_number(c_movie):
+            zero_details = {
+                "semantic_relevance": 0.0,
+                "named_character_presence": 0.0,
+                "character_prominence": 0.0,
+                "action_relevance": 0.0,
+                "reaction_emotion_relevance": 0.0,
+                "shot_scale_score": 0.0,
+                "temporal_context_relevance": 0.0,
+                "anti_loop_penalty": 0.0,
+                "A_semantic_relevance": 0.0,
+                "B_named_character_presence": 0.0,
+                "C_character_prominence": 0.0,
+                "D_action_relevance": 0.0,
+                "E_reaction_emotion_relevance": 0.0,
+                "F_shot_scale_suitability": 0.0,
+                "G_temporal_context_relevance": 0.0,
+                "H_anti_loop_penalty": 0.0,
+                "target_shot_scale": target_scale.value,
+                "candidate_shot_scale": cand_scale.value,
+                "selection_reasoning": f"REJECTED: Movie {c_movie} is not a canonical Harry Potter movie (1-8)."
+            }
+            candidate["score"] = 0.0
+            candidate["total_score"] = 0.0
+            candidate["score_details"] = zero_details
+            return candidate
 
-        # 3. Location / Object Match (0-15 pts)
-        loc_words = set(re.findall(r"[a-zA-Z]{4,}", beat.get("location", "").lower()))
-        req_words = set(re.findall(r"[a-zA-Z]{4,}", beat.get("visual_requirement", "").lower()))
-        loc_target = loc_words.union(req_words)
-        matched_loc_count = sum(1 for kw in loc_target if kw in combined_text)
-        loc_score = min(15.0, matched_loc_count * 5.0)
-        score_details["location_score"] = round(loc_score, 1)
+        # ----------------------------------------------------------------------
+        # H. Anti-Loop & Uniqueness Constraint (0 or 100 pt penalty)
+        # ----------------------------------------------------------------------
+        loop_penalty = 0.0
+        if used_intervals:
+            for (u_movie, u_start, u_end) in used_intervals:
+                if u_movie == c_movie:
+                    overlap_duration = max(0.0, min(c_end, u_end) - max(c_start, u_start))
+                    if overlap_duration > 1.0:
+                        loop_penalty = 100.0
+                        break
 
-        # 4. Lexical BM25 (0-15 pts)
-        rank = float(candidate.get("relevance_rank", 0.0))
-        bm25_score = max(0.0, min(15.0, 15.0 - abs(rank) * 1.5))
-        score_details["bm25_score"] = round(bm25_score, 1)
-
-        # 5. Preferred Movie Match (0-15 pts)
-        pref_m = beat.get("preferred_movie_number")
-        movie_score = 15.0 if (pref_m and candidate.get("movie_number") == pref_m) else 0.0
-        score_details["preferred_movie_score"] = movie_score
-
-        # 6. Duration Suitability (0-10 pts)
-        duration = float(candidate.get("duration_seconds", 0.0))
-        if 2.0 <= duration <= 15.0:
-            dur_score = 10.0
+        # ----------------------------------------------------------------------
+        # A. Semantic Relevance (0 - 25 pts)
+        # ----------------------------------------------------------------------
+        if is_canonical:
+            sem_score = 25.0
         else:
-            dur_score = 5.0
-        score_details["duration_score"] = dur_score
+            rank = float(candidate.get("relevance_rank", 0.0))
+            rank_pts = max(0.0, min(10.0, 10.0 - abs(rank) * 1.0))
+            req_words = set(re.findall(r"[a-zA-Z]{4,}", str(beat.get("visual_requirement", "")).lower()))
+            nar_words = set(re.findall(r"[a-zA-Z]{4,}", str(beat.get("narration_text", "") or beat.get("text", "")).lower()))
+            overlap_count = sum(1 for w in req_words.union(nar_words) if w in combined_text)
+            kw_pts = min(15.0, overlap_count * 5.0)
+            sem_score = min(25.0, rank_pts + kw_pts)
 
-        total_score = char_score + action_score + loc_score + bm25_score + movie_score + dur_score
-        total_score = round(min(100.0, max(0.0, total_score)), 2)
+        # ----------------------------------------------------------------------
+        # B. Named-Character Presence (0 - 20 pts)
+        # ----------------------------------------------------------------------
+        beat_chars = list(beat.get("characters", []))
+        if not beat_chars:
+            raw_t = str(beat.get("narration_text") or beat.get("text") or "")
+            for kc in KNOWN_CHARACTERS:
+                if re.search(r"\b" + re.escape(kc) + r"\b", raw_t, re.IGNORECASE):
+                    beat_chars.append(kc)
+
+        if not beat_chars:
+            char_score = 15.0  # Neutral non-character beat
+        else:
+            char_points = 0.0
+            primary_char = beat_chars[0].lower()
+            tokens = [t for t in re.split(r"\s+", primary_char) if len(t) >= 4]
+
+            if is_canonical and canonical_event and any(primary_char in c.lower() for c in canonical_event.associated_characters):
+                char_points = 20.0
+            elif primary_char in combined_text:
+                char_points = 20.0
+            elif any(t in combined_text for t in tokens):
+                char_points = 16.0
+            elif len(beat_chars) > 1:
+                sec_char = beat_chars[1].lower()
+                sec_tokens = [t for t in re.split(r"\s+", sec_char) if len(t) >= 4]
+                if sec_char in combined_text or any(t in combined_text for t in sec_tokens):
+                    char_points = 12.0
+            char_score = min(20.0, char_points)
+
+        # ----------------------------------------------------------------------
+        # C. Character Prominence / Framing (0 - 15 pts)
+        # ----------------------------------------------------------------------
+        if beat_chars:
+            if char_score > 0.0:
+                if cand_scale in (ShotScale.CLOSE_UP, ShotScale.MEDIUM_CLOSE_UP):
+                    prom_score = 15.0 * prominence_factor
+                elif cand_scale == ShotScale.TWO_SHOT:
+                    prom_score = 12.0 * prominence_factor
+                elif cand_scale == ShotScale.MEDIUM_SHOT:
+                    prom_score = 10.0 * prominence_factor
+                else:
+                    # Distant wide shot where character is tiny -> severe penalty
+                    prom_score = 2.0
+            else:
+                prom_score = 0.0
+        else:
+            prom_score = 15.0 * prominence_factor
+        prom_score = round(max(0.0, min(15.0, prom_score)), 1)
+
+        # ----------------------------------------------------------------------
+        # D. Action Relevance (0 - 10 pts)
+        # ----------------------------------------------------------------------
+        action_text = str(beat.get("action", "")).lower()
+        action_words = set(re.findall(r"[a-zA-Z]{4,}", action_text))
+        if is_canonical:
+            action_score = 10.0
+        elif action_words:
+            matched_actions = sum(1 for aw in action_words if aw in combined_text)
+            action_score = min(10.0, matched_actions * 4.0)
+            if action_score == 0.0:
+                action_score = 3.0  # Baseline
+        else:
+            action_score = 7.0
+
+        # ----------------------------------------------------------------------
+        # E. Reaction / Emotion Relevance (0 - 10 pts)
+        # ----------------------------------------------------------------------
+        combined_emotion = f"{beat.get('emotional_context', '')} {beat.get('action', '')} {beat.get('narration_text', '')} {beat.get('text', '')}".lower()
+        has_emotion = any(w in combined_emotion for w in ("fear", "realization", "shock", "surprise", "warmth", "gravity", "urgent", "bewildered", "embarrassment", "dismay", "shame", "reaction", "reacting", "emotion", "astonishment", "gaze", "stare"))
+        if is_canonical:
+            react_score = 10.0
+        elif has_emotion:
+            if cand_scale == ShotScale.CLOSE_UP:
+                react_score = 10.0
+            elif cand_scale in (ShotScale.MEDIUM_CLOSE_UP, ShotScale.TWO_SHOT):
+                react_score = 7.5
+            else:
+                react_score = 2.0  # Mismatch: wide shot cannot convey facial reaction
+        else:
+            react_score = 7.0  # Neutral baseline
+
+        # ----------------------------------------------------------------------
+        # F. Shot Scale Suitability (0 - 10 pts)
+        # ----------------------------------------------------------------------
+        if cand_scale == target_scale:
+            scale_score = 10.0
+        elif (target_scale == ShotScale.CLOSE_UP and cand_scale == ShotScale.MEDIUM_CLOSE_UP) or \
+             (target_scale == ShotScale.MEDIUM_SHOT and cand_scale == ShotScale.TWO_SHOT):
+            scale_score = 7.5
+        elif target_scale == ShotScale.CLOSE_UP and cand_scale == ShotScale.MEDIUM_SHOT:
+            scale_score = 4.0
+        elif target_scale == ShotScale.CLOSE_UP and cand_scale == ShotScale.WIDE_SHOT:
+            scale_score = 1.0  # Severe penalty: requested close-up but got wide
+        else:
+            scale_score = 5.0
+
+        # ----------------------------------------------------------------------
+        # G. Temporal & Context Relevance (0 - 10 pts)
+        # ----------------------------------------------------------------------
+        pref_m = beat.get("preferred_movie_number")
+        if pref_m and c_movie == pref_m:
+            temp_score = 10.0
+        elif not pref_m:
+            temp_score = 7.0
+        else:
+            temp_score = 2.0
+
+        # Total Composite Score
+        total_score = sem_score + char_score + prom_score + action_score + react_score + scale_score + temp_score - loop_penalty
+        total_score = round(max(0.0, min(100.0, total_score)), 2)
+
+        # Reasoning explanation
+        reasoning = (
+            f"Scale: {cand_scale.value} (Target: {target_scale.value}, match: {scale_score}/10). "
+            f"Character: {char_score}/20, Prominence: {prom_score}/15. "
+            f"Semantic: {sem_score}/25, Action: {action_score}/10, Reaction: {react_score}/10."
+        )
+        if loop_penalty > 0:
+            reasoning += " REJECTED BY ANTI-LOOP (timestamp overlap with previous shot)."
+
+        score_details = {
+            "semantic_relevance": round(sem_score, 1),
+            "named_character_presence": round(char_score, 1),
+            "character_prominence": round(prom_score, 1),
+            "action_relevance": round(action_score, 1),
+            "reaction_emotion_relevance": round(react_score, 1),
+            "shot_scale_score": round(scale_score, 1),
+            "temporal_context_relevance": round(temp_score, 1),
+            "anti_loop_penalty": round(loop_penalty, 1),
+            "A_semantic_relevance": round(sem_score, 1),
+            "B_named_character_presence": round(char_score, 1),
+            "C_character_prominence": round(prom_score, 1),
+            "D_action_relevance": round(action_score, 1),
+            "E_reaction_emotion_relevance": round(react_score, 1),
+            "F_shot_scale_suitability": round(scale_score, 1),
+            "G_temporal_context_relevance": round(temp_score, 1),
+            "H_anti_loop_penalty": round(loop_penalty, 1),
+            "target_shot_scale": target_scale.value,
+            "candidate_shot_scale": cand_scale.value,
+            "selection_reasoning": reasoning
+        }
 
         candidate["score"] = total_score
+        candidate["total_score"] = total_score
         candidate["score_details"] = score_details
+        candidate["framing"] = framing_info
         return candidate
 
     def rerank_candidates(
         self,
         beat: Dict[str, Any],
-        candidates: List[Dict[str, Any]]
+        candidates: List[Dict[str, Any]],
+        canonical_event: Optional[Any] = None,
+        used_intervals: Optional[List[Tuple[int, float, float]]] = None
     ) -> List[Dict[str, Any]]:
         """Scores and ranks candidates in descending order of composite score."""
-        scored = [self.score_candidate(c, beat) for c in candidates]
+        scored = [
+            self.score_candidate(
+                c,
+                beat,
+                canonical_event=canonical_event,
+                used_intervals=used_intervals
+            )
+            for c in candidates
+        ]
         scored.sort(key=lambda x: x["score"], reverse=True)
         return scored
 
     # --------------------------------------------------------------------------
-    # 5. CONFIDENCE GATE & VISUAL POLICY ENFORCEMENT
+    # 6. CONFIDENCE GATE & VISUAL POLICY ENFORCEMENT
     # --------------------------------------------------------------------------
     def evaluate_confidence_gate(
         self,
@@ -335,19 +715,21 @@ class MovieRetrievalEngine:
             return False, "REJECTED", f"LOW_RETRIEVAL_CONFIDENCE (Score {score:.1f} < {threshold:.1f})"
 
     # --------------------------------------------------------------------------
-    # 6. BEAT -> RAPID-FIRE SHOT UNITS RESOLUTION
+    # 7. BEAT -> RAPID-FIRE SHOT UNITS RESOLUTION (WITH ANTI-LOOP)
     # --------------------------------------------------------------------------
     def resolve_beat_to_shots(
         self,
         beat: Dict[str, Any],
         ranked_candidates: List[Dict[str, Any]],
-        target_shots_per_beat: int = 2
+        used_intervals: Optional[List[Tuple[int, float, float]]] = None,
+        target_shots_per_beat: int = 2,
+        canonical_event: Optional[Any] = None
     ) -> List[Dict[str, Any]]:
         """
         ARCHITECTURAL ADVANCEMENT:
         Decomposes 1 visual beat into 2 to 3 rapid-fire movie shot units (1.5s - 3.0s each).
         Uses distinct high-confidence scene candidates or sub-cuts from focal scenes.
-        NEVER uses unrelated footage.
+        Enforces strict anti-loop and interval uniqueness.
         """
         valid_candidates = [
             c for c in ranked_candidates
@@ -363,9 +745,23 @@ class MovieRetrievalEngine:
 
         # Strategy A: Select top distinct high-confidence candidates for the beat
         if len(valid_candidates) >= 2:
-            for cand in valid_candidates[:target_shots_per_beat]:
+            for cand in valid_candidates:
+                if len(shots) >= target_shots_per_beat:
+                    break
+
                 src_start = float(cand["start_seconds"])
                 src_end = float(cand["end_seconds"])
+                m_num = int(cand["movie_number"])
+
+                # Check anti-loop interval overlap
+                if used_intervals:
+                    overlap = any(
+                        (u_movie == m_num and max(src_start, u_start) < min(src_end, u_end) - 1.0)
+                        for (u_movie, u_start, u_end) in used_intervals
+                    )
+                    if overlap:
+                        continue
+
                 # Pacing: clamp shot to 1.5s - 3.0s (default ~2.2s)
                 shot_duration = min(MAX_SHOT_DURATION, max(MIN_SHOT_DURATION, src_end - src_start))
                 if shot_duration > MAX_SHOT_DURATION:
@@ -385,19 +781,20 @@ class MovieRetrievalEngine:
                     "duration_seconds": round(shot_duration, 3),
                     "sub_role": "FOCAL_ACTION" if shot_idx == 1 else "REACTION_OR_LOCATION"
                 })
+                if used_intervals is not None:
+                    used_intervals.append((m_num, clip_start, clip_end))
                 shot_idx += 1
 
-        # Strategy B: If only 1 distinct scene candidate is valid, decompose it into 2 rapid cuts
-        else:
+        # Strategy B: If only 1 distinct scene candidate was valid/selected, decompose into 2 rapid cuts
+        if len(shots) < target_shots_per_beat and valid_candidates:
             primary = valid_candidates[0]
+            m_num = int(primary["movie_number"])
             src_start = float(primary["start_seconds"])
             src_end = float(primary["end_seconds"])
             total_dur = src_end - src_start
 
-            if total_dur >= 4.0:
-                # Cut 1: Initial focus / reaction (2.2s)
-                dur_1 = min(2.5, total_dur / 2.0)
-                dur_1 = max(MIN_SHOT_DURATION, dur_1)
+            if not shots:
+                dur_1 = min(2.5, max(MIN_SHOT_DURATION, total_dur / 2.0))
                 shots.append({
                     "shot_id": "shot_1",
                     "shot_index": 1,
@@ -409,34 +806,25 @@ class MovieRetrievalEngine:
                     "duration_seconds": round(dur_1, 3),
                     "sub_role": "ESTABLISHING_OR_ACTION"
                 })
-                # Cut 2: Follow-through / dialogue payoff (2.2s)
-                dur_2 = min(MAX_SHOT_DURATION, max(MIN_SHOT_DURATION, total_dur - dur_1))
-                start_2 = src_start + dur_1
+                if used_intervals is not None:
+                    used_intervals.append((m_num, src_start, src_start + dur_1))
+
+            if len(shots) == 1 and total_dur >= (MIN_SHOT_DURATION * 2):
+                c1_end = shots[0]["clip_end_seconds"]
+                dur_2 = min(MAX_SHOT_DURATION, max(MIN_SHOT_DURATION, src_end - c1_end))
                 shots.append({
                     "shot_id": "shot_2",
                     "shot_index": 2,
                     "candidate": primary,
                     "source_start_seconds": round(src_start, 3),
                     "source_end_seconds": round(src_end, 3),
-                    "clip_start_seconds": round(start_2, 3),
-                    "clip_end_seconds": round(start_2 + dur_2, 3),
+                    "clip_start_seconds": round(c1_end, 3),
+                    "clip_end_seconds": round(c1_end + dur_2, 3),
                     "duration_seconds": round(dur_2, 3),
-                    "sub_role": "DIALOGUE_PAYOFF"
+                    "sub_role": "DIALOGUE_OR_REACTION_PAYOFF"
                 })
-            else:
-                # Single rapid shot
-                dur = min(MAX_SHOT_DURATION, max(MIN_SHOT_DURATION, total_dur))
-                shots.append({
-                    "shot_id": "shot_1",
-                    "shot_index": 1,
-                    "candidate": primary,
-                    "source_start_seconds": round(src_start, 3),
-                    "source_end_seconds": round(src_end, 3),
-                    "clip_start_seconds": round(src_start, 3),
-                    "clip_end_seconds": round(src_start + dur, 3),
-                    "duration_seconds": round(dur, 3),
-                    "sub_role": "FOCAL_ACTION"
-                })
+                if used_intervals is not None:
+                    used_intervals.append((m_num, c1_end, c1_end + dur_2))
 
         return shots
 
@@ -700,11 +1088,24 @@ class MovieRetrievalEngine:
             if not script:
                 raise ValueError(f"Script not found: {script_id}")
             beats = json.loads(script.visual_beats_json)
+            # Ensure idempotency: remove prior clip records for this script before inserting fresh ones
+            session.query(HPMovieClip).filter_by(script_id=script_id).delete()
+            session.commit()
 
+        canonical_events_map = {}
+        try:
+            canonical_events = self.semantic_event_engine.get_canonical_events_for_short(script_id)
+            for ev in canonical_events:
+                canonical_events_map[ev.beat_id] = ev
+        except Exception as e:
+            logger.debug(f"Could not load canonical events for {script_id}: {e}")
+
+        used_intervals = []
         script_shots = []
 
         for beat in beats:
             beat_id = beat.get("beat_id", "beat_1")
+            canonical_event = canonical_events_map.get(beat_id)
 
             # 1. Search candidates
             candidates = self.search_candidates_for_beat(beat)
@@ -713,11 +1114,11 @@ class MovieRetrievalEngine:
             for c in candidates:
                 self.expand_candidate_context(c)
 
-            # 3. Score & Rerank
-            ranked = self.rerank_candidates(beat, candidates)
+            # 3. Score & Rerank with visual-semantic matching and framing
+            ranked = self.rerank_candidates(beat, candidates, canonical_event=canonical_event, used_intervals=used_intervals)
 
-            # 4. Decompose beat into rapid-fire shots (1.5s - 3.0s each)
-            shots = self.resolve_beat_to_shots(beat, ranked, target_shots_per_beat=2)
+            # 4. Decompose beat into rapid-fire shots (1.5s - 3.0s each) with anti-loop intervals
+            shots = self.resolve_beat_to_shots(beat, ranked, target_shots_per_beat=2, canonical_event=canonical_event, used_intervals=used_intervals)
 
             if not shots:
                 # No candidate met the gate; record rejected shot
