@@ -180,9 +180,14 @@ class HybridVisualEngine:
                 license=provenance.license,
                 license_url=provenance.license_url,
                 rights_status=provenance.rights_status.value,
+                approval_status=provenance.approval_status.value if hasattr(provenance, "approval_status") else "APPROVED",
                 search_query=provenance.search_query,
                 duration_seconds=beat_dur,
-                notes=f"Artwork presentation: aspect ratio preserved (no zoom)"
+                notes=f"Artwork presentation: aspect ratio preserved (no zoom)",
+                characters=provenance.characters,
+                actions=provenance.actions,
+                objects=provenance.objects,
+                locations=provenance.locations
             )
 
             return {

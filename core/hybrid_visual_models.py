@@ -8,9 +8,9 @@ Defines canonical data contracts for truthful visual source resolution:
 4. NO_VALID_VISUAL   — Neither movie footage nor approved artwork exists.
 
 Permanent Rules:
-- NEVER generic stock imagery (Pexels, Unsplash, generic B-roll permanently forbidden).
+- NEVER generic stock imagery (Pexels, Unsplash, Pixabay, Shutterstock, Getty, iStock permanently forbidden).
 - NEVER unrelated movie footage to fill time.
-- NEVER generate a bespoke AI image for every novel scene.
+- NEVER generate a bespoke AI image for every novel scene (NO DALL-E, Midjourney, Stable Diffusion, Pollinations, Flux).
 - EVERY VISUAL MUST REPRESENT THE SPECIFIC NARRATION BEAT.
 """
 from dataclasses import dataclass, field, asdict
@@ -29,18 +29,38 @@ class VisualSourceType(str, Enum):
 
 class RightsStatus(str, Enum):
     """Licensing and rights status for visual assets."""
-    VERIFIED_FREE = "VERIFIED_FREE"              # Explicit CC0, Public Domain, or verified commercial license
-    CREATIVE_COMMONS = "CREATIVE_COMMONS"        # CC-BY / CC-BY-SA attribution required
-    OFFICIAL_LICENSED = "OFFICIAL_LICENSED"      # Studio / publisher licensed
-    FAIR_USE_EDITORIAL = "FAIR_USE_EDITORIAL"    # Transformative commentary / criticism with attribution
-    RIGHTS_UNVERIFIED = "RIGHTS_UNVERIFIED"      # Web discovery without verified license (quarantined)
+    RIGHTS_VERIFIED = "RIGHTS_VERIFIED"          # Explicit commercial-use license, public domain, or verified creator permission
+    RIGHTS_UNVERIFIED = "RIGHTS_UNVERIFIED"      # Web discovery without verified commercial license (quarantined)
+    RIGHTS_REJECTED = "RIGHTS_REJECTED"          # Explicitly forbidden or non-compliant license
+
+    # Legacy aliases preserved for backward compatibility
+    VERIFIED_FREE = "VERIFIED_FREE"
+    CREATIVE_COMMONS = "CREATIVE_COMMONS"
+    OFFICIAL_LICENSED = "OFFICIAL_LICENSED"
+    FAIR_USE_EDITORIAL = "FAIR_USE_EDITORIAL"
+
+    @property
+    def is_production_eligible(self) -> bool:
+        """Returns True if rights are sufficiently established for autonomous production."""
+        return self in (
+            RightsStatus.RIGHTS_VERIFIED,
+            RightsStatus.VERIFIED_FREE,
+            RightsStatus.OFFICIAL_LICENSED,
+        )
+
+
+class ApprovalStatus(str, Enum):
+    """Editorial and automation approval status for acquired artwork."""
+    APPROVED = "APPROVED"          # Rights verified, semantic fit validated, ready for production
+    QUARANTINED = "QUARANTINED"    # Rights unverified or review needed; blocked from production
+    REJECTED = "REJECTED"          # License rejected, forbidden provider, or corrupt asset
 
 
 # Forbidden visual sources that must NEVER be used
 FORBIDDEN_SOURCE_PROVIDERS = {
     "pexels", "unsplash", "pixabay", "shutterstock", "getty", "istock",
     "generic_stock", "generic_broll", "pollinations", "midjourney",
-    "dall-e", "stable_diffusion", "ai_generated_placeholder"
+    "dall-e", "stable_diffusion", "ai_generated_placeholder", "flux"
 }
 
 
@@ -55,6 +75,7 @@ class VisualProvenance:
     license: Optional[str] = None                       # License identifier or description
     license_url: Optional[str] = None                   # Link to license terms
     rights_status: RightsStatus = RightsStatus.RIGHTS_UNVERIFIED
+    approval_status: ApprovalStatus = ApprovalStatus.QUARANTINED
     retrieved_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     image_hash: Optional[str] = None                    # SHA-256 hash of image file
     search_query: str = ""                              # Exact targeted query that discovered it
@@ -62,11 +83,21 @@ class VisualProvenance:
     associated_beat_id: Optional[str] = None            # Associated narration beat ID
     notes: Optional[str] = None                         # Additional editorial or context notes
     file_path: Optional[str] = None                     # Local path to downloaded/cached asset
+    characters: List[str] = field(default_factory=list)
+    actions: List[str] = field(default_factory=list)
+    objects: List[str] = field(default_factory=list)
+    locations: List[str] = field(default_factory=list)
+    book_number: Optional[int] = None
+    chapter_number: Optional[int] = None
+    mime_type: Optional[str] = None
+    file_size_bytes: Optional[int] = None
+    image_dimensions: Optional[Tuple[int, int]] = None
 
     def to_dict(self) -> Dict[str, Any]:
         d = asdict(self)
         d["source_type"] = self.source_type.value if isinstance(self.source_type, VisualSourceType) else self.source_type
         d["rights_status"] = self.rights_status.value if isinstance(self.rights_status, RightsStatus) else self.rights_status
+        d["approval_status"] = self.approval_status.value if isinstance(self.approval_status, ApprovalStatus) else self.approval_status
         return d
 
     @classmethod
@@ -74,25 +105,51 @@ class VisualProvenance:
         source_type = data.get("source_type", VisualSourceType.FAN_ART)
         if isinstance(source_type, str):
             source_type = VisualSourceType(source_type)
-        rights_status = data.get("rights_status", RightsStatus.RIGHTS_UNVERIFIED)
-        if isinstance(rights_status, str):
-            rights_status = RightsStatus(rights_status)
+
+        raw_rights = data.get("rights_status", RightsStatus.RIGHTS_UNVERIFIED)
+        if isinstance(raw_rights, str):
+            try:
+                rights_status = RightsStatus(raw_rights)
+            except ValueError:
+                rights_status = RightsStatus.RIGHTS_UNVERIFIED
+        else:
+            rights_status = raw_rights
+
+        raw_approval = data.get("approval_status", ApprovalStatus.QUARANTINED)
+        if isinstance(raw_approval, str):
+            try:
+                approval_status = ApprovalStatus(raw_approval)
+            except ValueError:
+                approval_status = ApprovalStatus.QUARANTINED
+        else:
+            approval_status = raw_approval
+
         return cls(
             asset_id=data.get("asset_id", ""),
             source_type=source_type,
             source_url=data.get("source_url", ""),
             original_url=data.get("original_url"),
             creator=data.get("creator"),
-            license=data.get("license"),
+            license=data.get("license") or data.get("license_name"),
             license_url=data.get("license_url"),
             rights_status=rights_status,
+            approval_status=approval_status,
             retrieved_at=data.get("retrieved_at", datetime.now(timezone.utc).isoformat()),
             image_hash=data.get("image_hash"),
             search_query=data.get("search_query", ""),
-            visual_description=data.get("visual_description", ""),
+            visual_description=data.get("visual_description", "") or data.get("description", ""),
             associated_beat_id=data.get("associated_beat_id"),
             notes=data.get("notes"),
-            file_path=data.get("file_path"),
+            file_path=data.get("file_path") or data.get("local_path"),
+            characters=data.get("characters", []),
+            actions=data.get("actions", []),
+            objects=data.get("objects", []),
+            locations=data.get("locations", []),
+            book_number=data.get("book_number"),
+            chapter_number=data.get("chapter_number"),
+            mime_type=data.get("mime_type"),
+            file_size_bytes=data.get("file_size_bytes"),
+            image_dimensions=data.get("image_dimensions"),
         )
 
 
@@ -108,12 +165,17 @@ class StoryboardBeatMetadata:
     license: Optional[str] = None
     license_url: Optional[str] = None
     rights_status: Optional[str] = None
+    approval_status: Optional[str] = None
     search_query: Optional[str] = None
     notes: Optional[str] = None
     movie_number: Optional[int] = None
     clip_start_seconds: Optional[float] = None
     clip_end_seconds: Optional[float] = None
     duration_seconds: float = 2.5
+    characters: List[str] = field(default_factory=list)
+    actions: List[str] = field(default_factory=list)
+    objects: List[str] = field(default_factory=list)
+    locations: List[str] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         d = asdict(self)
