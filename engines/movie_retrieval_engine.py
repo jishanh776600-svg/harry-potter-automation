@@ -56,6 +56,7 @@ class ShotScale(str, Enum):
     CLOSE_UP = "CLOSE_UP"
     MEDIUM_CLOSE_UP = "MEDIUM_CLOSE_UP"
     MEDIUM_SHOT = "MEDIUM_SHOT"
+    MEDIUM_WIDE = "MEDIUM_WIDE"
     TWO_SHOT = "TWO_SHOT"
     WIDE_SHOT = "WIDE_SHOT"
 
@@ -297,11 +298,13 @@ class MovieRetrievalEngine:
     @staticmethod
     def infer_target_shot_scale(beat: Dict[str, Any]) -> ShotScale:
         """
-        Infers the target visual shot scale from beat requirements:
-        - CLOSE_UP / EXTREME_CLOSE_UP for emotion, facial reactions, realization, or small iconic props.
-        - TWO_SHOT for explicit dialogue/confrontation/interaction between two characters.
-        - MEDIUM_CLOSE_UP / MEDIUM_SHOT for character action, gesture, or speech.
-        - WIDE_SHOT only when environment, location, architecture, or spatial movement is primary.
+        Infers the target visual shot scale adhering strictly to the Natural Cinematic Framing Policy:
+        1. CLOSE_UP / MCU: ONLY when narration specifically calls for facial expression, eyes, tears,
+           shock, fear, realization, smile, or intimate emotional reaction.
+        2. TWO_SHOT: When two characters converse, interact, or confront each other.
+        3. WIDE_SHOT: When environment, landscape, architecture, or spatial movement is primary without character focus.
+        4. MEDIUM_WIDE: When character moves through or inhabits an expansive environment (e.g. "walks into Great Hall").
+        5. MEDIUM_SHOT: Natural default for character actions, gestures, and general mentions.
         """
         combined = " ".join([
             str(beat.get("visual_requirement", "")),
@@ -312,39 +315,62 @@ class MovieRetrievalEngine:
             str(beat.get("emotional_context", ""))
         ]).lower()
 
-        # 1. Close-up cues: facial reaction, emotion, realization, eyes, intimate gaze
-        cu_cues = [
-            "close-up", "close up", "extreme close-up", "cu", "ecu", "reaction", "facial",
-            "emotion", "realization", "fear", "surprise", "shock", "tears", "eyes widen",
-            "eyes", "whisper", "whispers", "whispering", "face", "smiling", "smile",
-            "scar", "lettering", "inscription", "ring", "wand tip", "bewildered",
-            "urgent expression", "worried look", "gaze", "gazing", "stare", "mesmerized"
+        # 1. Strict Close-up cues: ONLY explicit facial expression/reaction or intense emotional feature
+        strict_close_cues = [
+            "close-up", "close up", "extreme close-up", "cu", "ecu",
+            "facial expression", "facial reaction", "face filled with", "expression filled with",
+            "eyes widen", "eyes filled", "tears in his eyes", "tears in her eyes", "crying",
+            "intimate reaction", "shocked face", "look of horror", "look of fear", "look of shock",
+            "tears welling", "tearful emotion", "face in horror", "smile spread", "warm smile"
         ]
-        if any(re.search(r"\b" + re.escape(cue) + r"\b", combined) for cue in cu_cues):
+        if any(cue in combined for cue in strict_close_cues):
             return ShotScale.CLOSE_UP
 
-        # 2. Two-shot cues: direct interaction/dialogue between two characters
-        chars = beat.get("characters", [])
+        # Check for facial emotion pairing (e.g. "eyes" or "face" + "shock" or "fear" or "realization")
+        has_facial_element = any(w in combined for w in ("face", "eyes", "expression", "tears"))
+        has_intimate_emotion = any(w in combined for w in ("fear", "shock", "terror", "realization", "disbelief", "astonishment", "weeping", "smile", "embarrassment", "dismay"))
+        if has_facial_element and has_intimate_emotion:
+            return ShotScale.CLOSE_UP
+
+        # 2. Two-shot cues: interaction / dialogue between two characters
+        chars = list(beat.get("characters", []))
+        if not chars:
+            raw_t = str(beat.get("narration_text") or beat.get("text") or "")
+            for kc in KNOWN_CHARACTERS:
+                if re.search(r"\b" + re.escape(kc) + r"\b", raw_t, re.IGNORECASE):
+                    if kc not in chars:
+                        chars.append(kc)
+
         two_shot_cues = [
             "two-shot", "two shot", "confronts", "facing each other", "walks beside",
             "side by side", "whispering to", "talking to", "speaking with", "handing the child",
             "together down", "conversing", "conferring"
         ]
-        if any(re.search(r"\b" + re.escape(cue) + r"\b", combined) for cue in two_shot_cues):
+        if any(cue in combined for cue in two_shot_cues):
             return ShotScale.TWO_SHOT
         if len(chars) >= 2 and any(w in combined for w in ("talk", "speak", "greet", "whisper", "warn", "convers", "confer", "discuss")):
             return ShotScale.TWO_SHOT
 
-        # 3. Wide shot cues: environment, landscape, architecture, crowd
-        wide_cues = [
-            "wide shot", "wide", "establishing", "landscape", "castle", "great hall filled",
-            "crowd", "ruins", "forest", "quidditch pitch", "pitch black street", "sky",
-            "hundreds of owls", "suburban pavement", "avenue", "street sign"
+        # 3. Environmental / Spatial Context cues
+        env_cues = [
+            "landscape", "castle", "lake", "black lake", "sky", "forest", "forbidden forest",
+            "quidditch pitch", "ruins", "street sign", "privet drive sign",
+            "great hall filled", "hundreds of owls", "corridor stretching"
         ]
-        if any(re.search(r"\b" + re.escape(cue) + r"\b", combined) for cue in wide_cues) and not chars:
+        has_env = any(cue in combined for cue in env_cues)
+
+        if has_env and not chars:
             return ShotScale.WIDE_SHOT
 
-        # 4. Action cues -> Medium shot / Medium Close-up
+        if has_env and chars:
+            # Character walking into or inhabiting an expansive space -> Medium Wide preserves context
+            return ShotScale.MEDIUM_WIDE
+
+        # 4. Action cues with environment / space -> Medium Wide
+        if any(w in combined for w in ("walks into", "walked into", "enters", "entered", "strides through", "running across", "approaching")):
+            return ShotScale.MEDIUM_WIDE
+
+        # 5. Default natural framing for character mention / action -> MEDIUM_SHOT
         return ShotScale.MEDIUM_SHOT
 
     def infer_candidate_framing_and_scale(
@@ -356,38 +382,39 @@ class MovieRetrievalEngine:
         """
         Determines the candidate's shot scale and character prominence:
         - If matching a canonical event, leverages authoritative event camera descriptors.
-        - Otherwise analyzes dialogue structure, speaker presence, and scene indicators.
+        - Otherwise analyzes dialogue structure, speaker presence, and natural scene composition.
         """
         cand_text = candidate.get("text", "").strip()
         cand_context = candidate.get("expanded_context", "")
         combined = f"{cand_text} {cand_context}".lower()
 
         # Check canonical event matching
-        is_canonical = False
         if canonical_event:
             ev_start = float(canonical_event.scene_start_sec)
             ev_end = float(canonical_event.scene_end_sec)
             c_start = float(candidate.get("start_seconds", 0.0))
             c_end = float(candidate.get("end_seconds", 0.0))
             if (c_start <= ev_end + 3.0) and (c_end >= ev_start - 3.0):
-                is_canonical = True
                 ev_summary = canonical_event.event_summary.lower()
-                if any(w in ev_summary for w in ("close-up", "face", "scar", "lighter", "glass ball", "inscription", "eyes")):
+                if any(w in ev_summary for w in ("close-up", "face in shock", "eyes widen", "tears")):
                     return {"shot_scale": ShotScale.CLOSE_UP, "prominence": 1.0, "is_canonical": True}
-                elif any(w in ev_summary for w in ("two professors", "walking together", "greets", "talking quietly")):
-                    return {"shot_scale": ShotScale.TWO_SHOT, "prominence": 0.85, "is_canonical": True}
-                elif any(w in ev_summary for w in ("stepping off", "sitting motionless", "cat sitting")):
-                    return {"shot_scale": ShotScale.MEDIUM_CLOSE_UP, "prominence": 0.80, "is_canonical": True}
-                elif any(w in ev_summary for w in ("street sign", "sky", "street going dark")):
-                    return {"shot_scale": ShotScale.WIDE_SHOT, "prominence": 0.35, "is_canonical": True}
+                elif any(w in ev_summary for w in ("two professors", "walking together", "greets", "talking quietly", "conferring")):
+                    return {"shot_scale": ShotScale.TWO_SHOT, "prominence": 1.0, "is_canonical": True}
+                elif any(w in ev_summary for w in ("walks into", "striding down", "approaching", "walking across")):
+                    return {"shot_scale": ShotScale.MEDIUM_WIDE, "prominence": 1.0, "is_canonical": True}
+                elif any(w in ev_summary for w in ("stepping off", "sitting motionless", "cat sitting", "picks up", "holding", "standing")):
+                    return {"shot_scale": ShotScale.MEDIUM_SHOT, "prominence": 1.0, "is_canonical": True}
+                elif any(w in ev_summary for w in ("street sign", "sky", "street going dark", "landscape", "castle")):
+                    return {"shot_scale": ShotScale.WIDE_SHOT, "prominence": 0.50, "is_canonical": True}
 
         # Check beat characters
-        beat_chars = beat.get("characters", [])
+        beat_chars = list(beat.get("characters", []))
         if not beat_chars:
             raw_text = beat.get("narration_text") or beat.get("text") or ""
             for kc in KNOWN_CHARACTERS:
                 if re.search(r"\b" + re.escape(kc) + r"\b", raw_text, re.IGNORECASE):
-                    beat_chars.append(kc)
+                    if kc not in beat_chars:
+                        beat_chars.append(kc)
 
         char_tokens = []
         for c in beat_chars:
@@ -399,36 +426,45 @@ class MovieRetrievalEngine:
             or any(tok in combined for tok in char_tokens)
         )
 
-        # Facial / emotional / gaze actions -> Close-up
-        if any(w in combined for w in ("eyes", "face", "smile", "smiling", "tears", "stare", "staring", "glance", "gazing", "gaze", "whisper", "gasp", "looking", "looked closely", "shock", "widening", "despair")):
-            if has_named_char or not beat_chars:
-                return {"shot_scale": ShotScale.CLOSE_UP, "prominence": 0.90, "is_canonical": False}
-
-        # Dialogue-based cinema directing grammar:
-        # Two speakers with alternating lines (- ...) -> Two-shot or dialogue exchange
+        # 1. Dialogue between two speakers -> TWO_SHOT
         if cand_text.count("- ") >= 2:
-            return {"shot_scale": ShotScale.TWO_SHOT, "prominence": 0.75, "is_canonical": False}
+            return {"shot_scale": ShotScale.TWO_SHOT, "prominence": 1.0, "is_canonical": False}
 
-        # Check if text contains direct emotional expressions or whisper tags
-        if any(w in combined for w in ("[whispers]", "[gasps]", "[sighs]", "[screams]", "afraid so", "try not to wake")):
-            return {"shot_scale": ShotScale.CLOSE_UP, "prominence": 0.90, "is_canonical": False}
-
-        # Short dialogue lines (< 8 words) centered on character -> Close-up or Medium Close-up
-        word_count = len(cand_text.split())
-        if has_named_char and word_count <= 8:
+        # 2. Close-up cues: explicit close-up or intense facial reaction in candidate text
+        cu_indicators = [
+            "close-up", "close up", "extreme close-up", "cu", "ecu",
+            "face filled with", "eyes filled with", "tears welling", "in tears",
+            "eyes widen", "look of horror", "look of fear", "sobbing", "weeping"
+        ]
+        if any(w in combined for w in cu_indicators):
             return {"shot_scale": ShotScale.CLOSE_UP, "prominence": 0.85, "is_canonical": False}
-        elif has_named_char and word_count <= 18:
-            return {"shot_scale": ShotScale.MEDIUM_CLOSE_UP, "prominence": 0.80, "is_canonical": False}
 
-        # Crowd or ambient announcements
-        if any(w in combined for w in ("cheering", "applause", "students", "silence in the hall", "welcome to hogwarts", "across long tables")):
-            return {"shot_scale": ShotScale.WIDE_SHOT, "prominence": 0.20, "is_canonical": False}
+        # 3. Wide shot cues: landscape, panoramic, distant setting, crowd
+        wide_indicators = [
+            "panoramic", "wide shot", "wide view", "landscape", "establishing shot",
+            "cheering crowd", "applause from all tables", "students seated across",
+            "silence in the hall", "welcome to hogwarts", "across long tables",
+            "massive ornate", "distant view", "in the distance"
+        ]
+        if any(w in combined for w in wide_indicators):
+            return {"shot_scale": ShotScale.WIDE_SHOT, "prominence": 0.40, "is_canonical": False}
 
-        # Default fallback
-        if has_named_char:
-            return {"shot_scale": ShotScale.MEDIUM_SHOT, "prominence": 0.70, "is_canonical": False}
+        # 4. Movement / traversing environment -> MEDIUM_WIDE
+        mw_indicators = [
+            "walked into", "walks into", "entered the", "enters the",
+            "striding down", "running across", "approaching"
+        ]
+        if any(w in combined for w in mw_indicators):
+            return {"shot_scale": ShotScale.MEDIUM_WIDE, "prominence": 1.0, "is_canonical": False}
+
+        # 5. Default natural framing:
+        # If candidate features named character -> MEDIUM_SHOT (natural composition, full prominence)
+        # Otherwise -> WIDE_SHOT (ambient/environment)
+        cand_has_character = any(kc.lower() in combined for kc in KNOWN_CHARACTERS)
+        if cand_has_character or has_named_char:
+            return {"shot_scale": ShotScale.MEDIUM_SHOT, "prominence": 1.0, "is_canonical": False}
         else:
-            return {"shot_scale": ShotScale.WIDE_SHOT, "prominence": 0.30, "is_canonical": False}
+            return {"shot_scale": ShotScale.WIDE_SHOT, "prominence": 0.40, "is_canonical": False}
 
     # --------------------------------------------------------------------------
     # 5. MULTI-FACTOR RERANKING & QUALITY SCORING (A through H)
@@ -554,20 +590,33 @@ class MovieRetrievalEngine:
         # ----------------------------------------------------------------------
         # C. Character Prominence / Framing (0 - 15 pts)
         # ----------------------------------------------------------------------
+        # "Character prominence" must NOT mean "largest possible face."
+        # It means: character is identifiable, sufficiently visible, not tiny,
+        # surrounding context is preserved, and composition remains natural.
         if beat_chars:
             if char_score > 0.0:
-                if cand_scale in (ShotScale.CLOSE_UP, ShotScale.MEDIUM_CLOSE_UP):
+                if cand_scale in (ShotScale.MEDIUM_SHOT, ShotScale.MEDIUM_WIDE, ShotScale.TWO_SHOT, ShotScale.MEDIUM_CLOSE_UP):
+                    # Natural cinematic framing: character is visible AND context is preserved!
                     prom_score = 15.0 * prominence_factor
-                elif cand_scale == ShotScale.TWO_SHOT:
-                    prom_score = 12.0 * prominence_factor
-                elif cand_scale == ShotScale.MEDIUM_SHOT:
-                    prom_score = 10.0 * prominence_factor
+                elif cand_scale == ShotScale.CLOSE_UP:
+                    if target_scale in (ShotScale.CLOSE_UP, ShotScale.MEDIUM_CLOSE_UP):
+                        # Close-up specifically requested for facial reaction/emotion
+                        prom_score = 15.0 * prominence_factor
+                    else:
+                        # Unnecessary close-up zoom: loses surrounding context!
+                        prom_score = 8.0 * prominence_factor
+                elif cand_scale == ShotScale.WIDE_SHOT:
+                    if target_scale in (ShotScale.WIDE_SHOT, ShotScale.MEDIUM_WIDE):
+                        prom_score = 12.0 * prominence_factor
+                    else:
+                        # Character too distant/tiny
+                        prom_score = 4.0
                 else:
-                    # Distant wide shot where character is tiny -> severe penalty
-                    prom_score = 2.0
+                    prom_score = 10.0 * prominence_factor
             else:
                 prom_score = 0.0
         else:
+            # Environmental / non-character beat
             prom_score = 15.0 * prominence_factor
         prom_score = round(max(0.0, min(15.0, prom_score)), 1)
 
@@ -589,34 +638,83 @@ class MovieRetrievalEngine:
         # ----------------------------------------------------------------------
         # E. Reaction / Emotion Relevance (0 - 10 pts)
         # ----------------------------------------------------------------------
+        # Close-up should receive a reaction bonus ONLY when the beat actually focuses
+        # on facial emotion, tears, fear, realization, shock, or smile.
         combined_emotion = f"{beat.get('emotional_context', '')} {beat.get('action', '')} {beat.get('narration_text', '')} {beat.get('text', '')}".lower()
-        has_emotion = any(w in combined_emotion for w in ("fear", "realization", "shock", "surprise", "warmth", "gravity", "urgent", "bewildered", "embarrassment", "dismay", "shame", "reaction", "reacting", "emotion", "astonishment", "gaze", "stare"))
+        has_emotion = any(w in combined_emotion for w in ("fear", "realization", "shock", "surprise", "warmth", "gravity", "urgent", "bewildered", "embarrassment", "dismay", "shame", "reaction", "reacting", "emotion", "astonishment", "tears", "crying"))
+        requires_close_emotion = target_scale in (ShotScale.CLOSE_UP, ShotScale.MEDIUM_CLOSE_UP) or (has_emotion and any(w in combined_emotion for w in ("face", "eyes", "tears", "expression", "look of")))
+
         if is_canonical:
             react_score = 10.0
-        elif has_emotion:
-            if cand_scale == ShotScale.CLOSE_UP:
+        elif requires_close_emotion:
+            if cand_scale in (ShotScale.CLOSE_UP, ShotScale.MEDIUM_CLOSE_UP):
                 react_score = 10.0
-            elif cand_scale in (ShotScale.MEDIUM_CLOSE_UP, ShotScale.TWO_SHOT):
-                react_score = 7.5
+            elif cand_scale in (ShotScale.MEDIUM_SHOT, ShotScale.TWO_SHOT):
+                react_score = 7.0
             else:
-                react_score = 2.0  # Mismatch: wide shot cannot convey facial reaction
+                react_score = 2.0  # Wide shot cannot convey close facial emotion
         else:
-            react_score = 7.0  # Neutral baseline
+            # Normal action or general scene: natural medium shots are optimal
+            if cand_scale in (ShotScale.MEDIUM_SHOT, ShotScale.MEDIUM_WIDE, ShotScale.TWO_SHOT):
+                react_score = 8.5
+            elif cand_scale == ShotScale.WIDE_SHOT:
+                react_score = 7.0
+            else:
+                # Close-up on normal non-emotional beat feels forced
+                react_score = 6.0
 
         # ----------------------------------------------------------------------
         # F. Shot Scale Suitability (0 - 10 pts)
         # ----------------------------------------------------------------------
         if cand_scale == target_scale:
             scale_score = 10.0
-        elif (target_scale == ShotScale.CLOSE_UP and cand_scale == ShotScale.MEDIUM_CLOSE_UP) or \
-             (target_scale == ShotScale.MEDIUM_SHOT and cand_scale == ShotScale.TWO_SHOT):
-            scale_score = 7.5
-        elif target_scale == ShotScale.CLOSE_UP and cand_scale == ShotScale.MEDIUM_SHOT:
-            scale_score = 4.0
-        elif target_scale == ShotScale.CLOSE_UP and cand_scale == ShotScale.WIDE_SHOT:
-            scale_score = 1.0  # Severe penalty: requested close-up but got wide
+        elif target_scale == ShotScale.MEDIUM_SHOT:
+            if cand_scale in (ShotScale.MEDIUM_WIDE, ShotScale.TWO_SHOT, ShotScale.MEDIUM_CLOSE_UP):
+                scale_score = 8.5
+            elif cand_scale == ShotScale.WIDE_SHOT:
+                scale_score = 6.0
+            elif cand_scale == ShotScale.CLOSE_UP:
+                scale_score = 3.0  # Unnecessary zoom penalty
+            else:
+                scale_score = 5.0
+        elif target_scale == ShotScale.MEDIUM_WIDE:
+            if cand_scale in (ShotScale.MEDIUM_SHOT, ShotScale.TWO_SHOT, ShotScale.WIDE_SHOT):
+                scale_score = 8.5
+            elif cand_scale == ShotScale.MEDIUM_CLOSE_UP:
+                scale_score = 5.0
+            elif cand_scale == ShotScale.CLOSE_UP:
+                scale_score = 2.0  # Unnecessary zoom penalty
+            else:
+                scale_score = 5.0
+        elif target_scale == ShotScale.TWO_SHOT:
+            if cand_scale in (ShotScale.MEDIUM_SHOT, ShotScale.MEDIUM_WIDE):
+                scale_score = 8.5
+            elif cand_scale == ShotScale.MEDIUM_CLOSE_UP:
+                scale_score = 6.0
+            elif cand_scale == ShotScale.CLOSE_UP:
+                scale_score = 3.0
+            else:
+                scale_score = 5.0
+        elif target_scale == ShotScale.CLOSE_UP:
+            if cand_scale == ShotScale.MEDIUM_CLOSE_UP:
+                scale_score = 8.5
+            elif cand_scale == ShotScale.MEDIUM_SHOT:
+                scale_score = 5.0
+            elif cand_scale in (ShotScale.MEDIUM_WIDE, ShotScale.WIDE_SHOT):
+                scale_score = 1.0  # Too distant when close emotion was requested
+            else:
+                scale_score = 4.0
+        elif target_scale == ShotScale.WIDE_SHOT:
+            if cand_scale == ShotScale.MEDIUM_WIDE:
+                scale_score = 8.5
+            elif cand_scale == ShotScale.MEDIUM_SHOT:
+                scale_score = 5.0
+            elif cand_scale in (ShotScale.MEDIUM_CLOSE_UP, ShotScale.CLOSE_UP):
+                scale_score = 1.0  # Extreme zoom when wide landscape was requested
+            else:
+                scale_score = 4.0
         else:
-            scale_score = 5.0
+            scale_score = 6.0
 
         # ----------------------------------------------------------------------
         # G. Temporal & Context Relevance (0 - 10 pts)
