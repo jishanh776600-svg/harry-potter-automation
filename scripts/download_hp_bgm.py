@@ -7,15 +7,24 @@ from googleapiclient.http import MediaIoBaseDownload
 import subprocess
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-creds_file = PROJECT_ROOT / "credentials" / "hp_token.json"
 music_dir = PROJECT_ROOT / "assets" / "music"
 music_dir.mkdir(parents=True, exist_ok=True)
+
+token_candidates = [
+    PROJECT_ROOT / "credentials" / "hp_token.json",
+    PROJECT_ROOT / "token.json",
+    Path("credentials/hp_token.json"),
+    Path("token.json")
+]
+creds_file = next((p for p in token_candidates if p.exists()), None)
+if not creds_file:
+    raise FileNotFoundError("Could not find hp_token.json or token.json in project credentials.")
 
 creds = Credentials.from_authorized_user_file(str(creds_file))
 drive = build("drive", "v3", credentials=creds)
 
-file_id = "1Ec4XKRvjYgIOZuYJ2GdFZMimIq5yZUnE"
-filename = "HARRY POTTER _ ULTIMATE BGM _ NO COPYRIGHT [kVmIrNDYPIk].mp3"
+file_id = "1GwpmcEzrZg_grsDpEfgqf0hxXNfQ6brI"
+filename = "Esther Abrami - No.6 In My Dreams (1).mp3"
 dest_mp3 = music_dir / filename
 
 print(f"Downloading {filename} (id: {file_id}) from Harry Potter Google Drive...")
