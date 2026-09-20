@@ -609,8 +609,10 @@ class AssetFetcher:
         # ----------------------------------------------------
         # HARD INVARIANT: STORY FORGE HYBRID VISUAL POLICY
         # ----------------------------------------------------
-        # If query explicitly requests forbidden generic stock or AI generation:
-        if any(f in q_lower for f in ["pexels", "unsplash", "stock footage", "generic stock", "generic b-roll"]):
+        if any(f in q_lower for f in [
+            "pexels", "unsplash", "pixabay", "shutterstock", "getty", "istock",
+            "stock footage", "generic stock", "generic b-roll", "generic broll"
+        ]):
             raise ValueError(
                 f"[HYBRID_VISUAL_SYSTEM] Forbidden generic stock requested: '{query}'. "
                 "Generic stock fallback is permanently disabled for STORY FORGE."

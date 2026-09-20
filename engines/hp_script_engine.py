@@ -87,8 +87,8 @@ FORBIDDEN_LITERARY_WORDS = [
 ]
 
 FORBIDDEN_VISUAL_TERMS = [
-    "ai image", "ai generated", "stock footage", "pexels", "unsplash",
-    "generic b-roll", "generic stock", "external video",
+    "ai image", "ai generated", "stock footage", "pexels", "unsplash", "pixabay",
+    "shutterstock", "getty", "istock", "generic b-roll", "generic stock", "external video",
     "consistory", "pollinations", "midjourney", "dall-e", "stable diffusion"
 ]
 

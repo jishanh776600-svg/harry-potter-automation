@@ -38,7 +38,7 @@ class RightsStatus(str, Enum):
 
 # Forbidden visual sources that must NEVER be used
 FORBIDDEN_SOURCE_PROVIDERS = {
-    "pexels", "unsplash", "shutterstock", "getty", "istock",
+    "pexels", "unsplash", "pixabay", "shutterstock", "getty", "istock",
     "generic_stock", "generic_broll", "pollinations", "midjourney",
     "dall-e", "stable_diffusion", "ai_generated_placeholder"
 }

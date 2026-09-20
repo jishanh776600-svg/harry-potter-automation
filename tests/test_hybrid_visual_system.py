@@ -352,3 +352,87 @@ def test_artwork_presentation_formatting(tmp_path):
         assert v_streams[0]["width"] == 1080
         assert v_streams[0]["height"] == 1920
         assert len(a_streams) == 0  # 100% audio-muted invariant!
+
+
+# ------------------------------------------------------------------------------
+# 9. CONCEPTUAL BEAT PATH: NEVILLE REMEMBRALL SCENARIO
+# ------------------------------------------------------------------------------
+def test_neville_remembrall_novel_only_visual_path(tmp_path):
+    """
+    Validates the 3-step decision flow on conceptual beat:
+    'The Remembrall turns red when Neville forgets his clothes.'
+    1. If exact movie clip exists -> MOVIE_DIRECT
+    2. If no exact movie clip exists but approved artwork exists -> FAN_ART
+    3. If neither exists -> NO_VALID_VISUAL
+    """
+    hybrid_engine = HybridVisualEngine(clips_dir=tmp_path)
+
+    beat = {
+        "beat_id": "beat_neville_remembrall",
+        "narration_text": "The Remembrall turns red when Neville forgets his clothes.",
+        "characters": ["Neville"],
+        "action": "Remembrall glowing red forgetting",
+        "objects": ["Remembrall"],
+        "duration_seconds": 2.5
+    }
+
+    # Case 1: Exact movie clip exists
+    movie_candidate = {
+        "movie_number": 1,
+        "movie_title": "Sorcerer's Stone",
+        "retrieval_score": 85.0,
+        "score": 85.0,
+        "chunk_id": "chunk_remembrall",
+        "clip_start_seconds": 1500.0,
+        "clip_end_seconds": 1502.5,
+        "duration_seconds": 2.5,
+        "framing": "MEDIUM_SHOT"
+    }
+    with patch.object(hybrid_engine.movie_engine, "search_candidates_for_beat", return_value=[movie_candidate]), \
+         patch.object(hybrid_engine.movie_engine, "expand_candidate_context"), \
+         patch.object(hybrid_engine.movie_engine, "rerank_candidates", return_value=[movie_candidate]), \
+         patch.object(hybrid_engine.movie_engine, "resolve_beat_to_shots", return_value=[movie_candidate]), \
+         patch.object(hybrid_engine.movie_engine, "resolve_movie_file", return_value=(Path("mock_movie.mp4"), "LOCAL", "mock_id")), \
+         patch.object(Path, "exists", return_value=True), \
+         patch.object(hybrid_engine.movie_engine, "extract_rapid_shot", return_value={"file_path": "data/clips/mock_remembrall.mp4"}):
+
+        res_movie = hybrid_engine.resolve_beat_visual(beat, script_id="test_remembrall")
+        assert res_movie["status"] == "ACCEPTED"
+        assert res_movie["visual_source"] == VisualSourceType.MOVIE_DIRECT
+
+    # Case 2: No exact movie clip exists, but approved artwork exists
+    dummy_art_path = tmp_path / "neville_remembrall_art.jpg"
+    dummy_art_path.write_bytes(b"dummy image data")
+
+    mock_provenance = VisualProvenance(
+        asset_id="art_neville_remembrall",
+        source_type=VisualSourceType.FAN_ART,
+        source_url="https://archive.org/details/hp-canon-art-neville-remembrall",
+        creator="Curated Artist Archive",
+        license="Fair Use Editorial Reference",
+        rights_status=RightsStatus.RIGHTS_UNVERIFIED,
+        visual_description="Neville holding glowing red Remembrall",
+        associated_beat_id="beat_neville_remembrall",
+        file_path=str(dummy_art_path)
+    )
+
+    with patch.object(hybrid_engine.movie_engine, "search_candidates_for_beat", return_value=[]), \
+         patch.object(hybrid_engine.fan_art_engine, "search_artwork_for_beat", return_value=mock_provenance), \
+         patch.object(hybrid_engine.fan_art_engine, "format_artwork_to_clip", return_value=tmp_path / "out.mp4"):
+
+        res_art = hybrid_engine.resolve_beat_visual(beat, script_id="test_remembrall")
+        assert res_art["status"] == "ACCEPTED"
+        assert res_art["visual_source"] == VisualSourceType.FAN_ART
+        assert res_art["provenance"] is not None
+        assert res_art["provenance"].creator == "Curated Artist Archive"
+        assert res_art["provenance"].rights_status == RightsStatus.RIGHTS_UNVERIFIED
+
+    # Case 3: Neither exists
+    with patch.object(hybrid_engine.movie_engine, "search_candidates_for_beat", return_value=[]), \
+         patch.object(hybrid_engine.fan_art_engine, "search_artwork_for_beat", return_value=None):
+
+        res_none = hybrid_engine.resolve_beat_visual(beat, script_id="test_remembrall")
+        assert res_none["status"] == "NO_VALID_VISUAL"
+        assert res_none["visual_source"] == VisualSourceType.NO_VALID_VISUAL
+        assert res_none["clip_file_path"] is None
+
