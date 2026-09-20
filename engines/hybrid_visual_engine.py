@@ -179,6 +179,8 @@ class HybridVisualEngine:
                 creator=provenance.creator,
                 license=provenance.license,
                 license_url=provenance.license_url,
+                artist_license_status=provenance.artist_license_status.value if hasattr(provenance, "artist_license_status") else None,
+                commercial_clearance=provenance.commercial_clearance.value if hasattr(provenance, "commercial_clearance") else None,
                 rights_status=provenance.rights_status.value,
                 approval_status=provenance.approval_status.value if hasattr(provenance, "approval_status") else "APPROVED",
                 search_query=provenance.search_query,

@@ -1,34 +1,35 @@
 """
-STORY FORGE Real Fan-Art & Illustration Acquisition Layer Test Suite
-=====================================================================
-Validates all 13 pre-production acquisition and rights requirements:
+STORY FORGE Hardened Rights Gate & Real Fan-Art Acquisition Test Suite
+======================================================================
+Validates the hardened two-dimensional rights architecture:
 1. targeted query generation
 2. candidate discovery
-3. provenance extraction
-4. RIGHTS_VERIFIED candidate accepted
-5. RIGHTS_UNVERIFIED candidate quarantined
-6. RIGHTS_REJECTED candidate rejected
-7. duplicate hash rejected
-8. wrong-scene artwork rejected
-9. movie clip always beats artwork
-10. no valid artwork -> NO_VALID_VISUAL
-11. generic stock rejected
-12. artwork successfully formatted to 1080x1920/30fps (audio-muted)
-13. provenance survives into storyboard metadata
-+ deterministic render fingerprinting cache invalidation
+3. provenance extraction captures artist license and commercial clearance
+4. artist license verified != commercial clearance (fan art with CC-BY quarantined for review)
+5. official or pre-cleared artwork achieves COMMERCIAL_PRODUCTION_CLEARED
+6. unverified platform quarantined
+7. forbidden provider permanently rejected
+8. duplicate hash rejected
+9. wrong-scene artwork rejected
+10. movie clip always beats artwork
+11. no valid artwork -> NO_VALID_VISUAL
+12. generic stock rejected
+13. artwork formatted to 1080x1920/30fps
+14. provenance survives into storyboard metadata
+15. deterministic render fingerprinting cache invalidation
 """
 import os
 import json
 import pytest
 import hashlib
-import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from config.settings import PROJECT_ROOT, DB_PATH
 from core.hybrid_visual_models import (
-    VisualSourceType, RightsStatus, ApprovalStatus, VisualProvenance,
-    StoryboardBeatMetadata, FORBIDDEN_SOURCE_PROVIDERS
+    VisualSourceType, ArtistLicenseStatus, CommercialClearanceStatus,
+    RightsStatus, ApprovalStatus, VisualProvenance, StoryboardBeatMetadata,
+    FORBIDDEN_SOURCE_PROVIDERS
 )
 from engines.fan_art_retrieval_engine import (
     FanArtRetrievalEngine, ArtworkCandidate, CuratedRegistryProvider,
@@ -60,11 +61,9 @@ def test_01_targeted_query_generation():
     }
     queries = FanArtRetrievalEngine.generate_targeted_queries(beat)
     assert len(queries) >= 1
-    # Must contain specific character, action/location/object
     q_str = " ".join(queries).lower()
     assert "peeves" in q_str
     assert "great hall" in q_str or "chaos" in q_str
-    # Must NOT be bare generic "Harry Potter fan art"
     assert queries[0].strip().lower() != "harry potter fan art"
 
 
@@ -85,8 +84,10 @@ def test_02_candidate_discovery():
         "original_url": "https://archive.org/download/hp-peeves/img.jpg",
         "creator": "Archive Artist",
         "license_name": "Public Domain",
-        "rights_status": "RIGHTS_VERIFIED",
-        "approval_status": "APPROVED",
+        "artist_license_status": "ARTIST_LICENSE_VERIFIED",
+        "commercial_clearance": "COMMERCIAL_PRODUCTION_REVIEW_REQUIRED",
+        "rights_status": "RIGHTS_UNVERIFIED",
+        "approval_status": "QUARANTINED",
         "local_path": "data/artworks/test_artwork_sample.jpg"
     }]
     provider = CuratedRegistryProvider(registry_data)
@@ -99,8 +100,8 @@ def test_02_candidate_discovery():
 # ------------------------------------------------------------------------------
 # 3. PROVENANCE EXTRACTION TEST
 # ------------------------------------------------------------------------------
-def test_03_provenance_extraction():
-    """Validates that all required provenance fields are captured and retained."""
+def test_03_provenance_extraction_captures_license_and_clearance():
+    """Validates that all required provenance and clearance fields are captured."""
     cand = ArtworkCandidate(
         candidate_id="art_provenance_01",
         title="Neville Longbottom Remembrall",
@@ -118,89 +119,124 @@ def test_03_provenance_extraction():
         book_number=1,
         chapter_number=9
     )
-    rights_st, app_st, reason = FanArtRetrievalEngine.evaluate_rights_status(cand)
-    assert rights_st == RightsStatus.RIGHTS_VERIFIED
+    art_st, comm_st, rights_st, app_st, reason = FanArtRetrievalEngine.evaluate_rights_status(cand)
+    assert art_st == ArtistLicenseStatus.ARTIST_LICENSE_VERIFIED
+    assert comm_st == CommercialClearanceStatus.COMMERCIAL_PRODUCTION_REVIEW_REQUIRED
     assert cand.source_url == "https://archive.org/details/hp-neville-remembrall"
     assert cand.creator == "Canon Fan Artist"
-    assert cand.license_name == "Creative Commons Attribution 4.0"
     assert "Remembrall" in cand.objects
 
 
 # ------------------------------------------------------------------------------
-# 4. RIGHTS_VERIFIED CANDIDATE ACCEPTED TEST
+# 4. ARTIST LICENSE != COMMERCIAL CLEARANCE TEST
 # ------------------------------------------------------------------------------
-def test_04_rights_verified_candidate_accepted():
-    """Validates that explicit CC / Public Domain licenses pass the rights gate as RIGHTS_VERIFIED."""
+def test_04_artist_license_verified_but_derivative_fan_art_requires_review():
+    """
+    CRITICAL TEST: Validates that an artist's CC-BY license on derivative Harry Potter fan art
+    does NOT automatically clear commercial production. It must remain review-required and quarantined.
+    """
     cand = ArtworkCandidate(
-        candidate_id="art_pd_01",
-        title="Hogwarts Castle Vintage Illustration",
-        description="Public domain sketch of Hogwarts Castle",
-        source_provider="wikimedia_commons",
-        source_url="https://commons.wikimedia.org/wiki/File:Hogwarts_Sketch.jpg",
-        original_url="https://upload.wikimedia.org/Hogwarts_Sketch.jpg",
-        creator="Historical Illustrator",
-        license_name="Public Domain",
-        license_url="https://creativecommons.org/publicdomain/mark/1.0/"
+        candidate_id="art_fan_ccby_01",
+        title="Peeves Great Hall Drawing",
+        description="Peeves dropping water balloons in the Great Hall",
+        source_provider="curated_archive",
+        source_url="https://archive.org/details/hp-peeves-art",
+        original_url="https://archive.org/download/hp-peeves-art/peeves.jpg",
+        creator="Independent Fan Illustrator",
+        license_name="Creative Commons Attribution 4.0 International (CC BY 4.0)",
+        characters=["Peeves"],
+        actions=["chaos", "dropping water balloons"],
+        objects=["water balloons"]
     )
-    rights_st, app_st, reason = FanArtRetrievalEngine.evaluate_rights_status(cand)
+    art_st, comm_st, rights_st, app_st, reason = FanArtRetrievalEngine.evaluate_rights_status(cand)
+    # Artist license is verified
+    assert art_st == ArtistLicenseStatus.ARTIST_LICENSE_VERIFIED
+    # But commercial clearance for copyrighted Harry Potter IP requires review!
+    assert comm_st == CommercialClearanceStatus.COMMERCIAL_PRODUCTION_REVIEW_REQUIRED
+    # Quarantined from autonomous production
+    assert app_st == ApprovalStatus.QUARANTINED
+    assert rights_st.is_production_eligible is False
+
+
+# ------------------------------------------------------------------------------
+# 5. PRODUCTION-CLEARED ARTWORK ACCEPTED TEST
+# ------------------------------------------------------------------------------
+def test_05_official_artwork_or_cleared_asset_accepted():
+    """Validates that official licensed illustrations achieve COMMERCIAL_PRODUCTION_CLEARED and APPROVED."""
+    cand = ArtworkCandidate(
+        candidate_id="art_scholastic_01",
+        title="Mirror of Erised Chapter Illustration",
+        description="Official Scholastic chapter illustration of Mirror of Erised",
+        source_provider="curated",
+        source_url="https://scholastic.com/hp/erised",
+        original_url="https://scholastic.com/hp/erised.jpg",
+        creator="Mary GrandPré",
+        license_name="Scholastic Official Illustration Editorial Release",
+        is_official=True
+    )
+    art_st, comm_st, rights_st, app_st, reason = FanArtRetrievalEngine.evaluate_rights_status(cand)
+    assert art_st == ArtistLicenseStatus.ARTIST_LICENSE_VERIFIED
+    assert comm_st == CommercialClearanceStatus.COMMERCIAL_PRODUCTION_CLEARED
     assert rights_st == RightsStatus.RIGHTS_VERIFIED
     assert app_st == ApprovalStatus.APPROVED
     assert rights_st.is_production_eligible is True
 
 
 # ------------------------------------------------------------------------------
-# 5. RIGHTS_UNVERIFIED CANDIDATE QUARANTINED TEST
+# 6. UNVERIFIED PLATFORMS QUARANTINED TEST
 # ------------------------------------------------------------------------------
-def test_05_rights_unverified_candidate_quarantined():
-    """Validates that web discovery without explicit commercial license is quarantined."""
-    cand = ArtworkCandidate(
-        candidate_id="art_deviant_01",
-        title="Neville Painting",
-        description="Fan painting from DeviantArt",
-        source_provider="deviantart",
-        source_url="https://www.deviantart.com/artist/art/neville-remembrall",
-        original_url="https://images-wixmp.com/neville.jpg",
-        creator="DeviantArtUser",
-        license_name="All Rights Reserved"
-    )
-    rights_st, app_st, reason = FanArtRetrievalEngine.evaluate_rights_status(cand)
-    assert rights_st == RightsStatus.RIGHTS_UNVERIFIED
-    assert app_st == ApprovalStatus.QUARANTINED
-    assert rights_st.is_production_eligible is False
-    assert "quarantined" in reason.lower()
+def test_06_unverified_platform_quarantined():
+    """Validates that social/art sharing platforms without verified commercial terms are quarantined."""
+    for platform in ["deviantart", "artstation", "tumblr", "reddit", "pinterest"]:
+        cand = ArtworkCandidate(
+            candidate_id=f"art_{platform}_01",
+            title="Fan Art",
+            description="Character artwork",
+            source_provider=platform,
+            source_url=f"https://www.{platform}.com/artwork/123",
+            original_url=f"https://images.{platform}.com/123.jpg",
+            creator="ArtistName",
+            license_name=None
+        )
+        art_st, comm_st, rights_st, app_st, reason = FanArtRetrievalEngine.evaluate_rights_status(cand)
+        assert art_st == ArtistLicenseStatus.ARTIST_LICENSE_UNVERIFIED
+        assert comm_st == CommercialClearanceStatus.COMMERCIAL_PRODUCTION_REVIEW_REQUIRED
+        assert app_st == ApprovalStatus.QUARANTINED
+        assert rights_st.is_production_eligible is False
 
 
 # ------------------------------------------------------------------------------
-# 6. RIGHTS_REJECTED CANDIDATE REJECTED TEST
+# 7. FORBIDDEN PROVIDERS REJECTED TEST
 # ------------------------------------------------------------------------------
-def test_06_rights_rejected_candidate_rejected():
-    """Validates that forbidden generic stock providers are permanently rejected."""
-    cand = ArtworkCandidate(
-        candidate_id="art_pexels_01",
-        title="Stock Castle",
-        description="Stock footage castle",
-        source_provider="pexels",
-        source_url="https://www.pexels.com/photo/castle-123/",
-        original_url="https://images.pexels.com/photos/123/castle.jpg",
-        license_name="Pexels License"
-    )
-    rights_st, app_st, reason = FanArtRetrievalEngine.evaluate_rights_status(cand)
-    assert rights_st == RightsStatus.RIGHTS_REJECTED
-    assert app_st == ApprovalStatus.REJECTED
-    assert rights_st.is_production_eligible is False
+def test_07_rights_rejected_candidate_rejected():
+    """Validates that forbidden generic stock and synthetic AI providers are rejected."""
+    for forbidden in ["pexels", "unsplash", "pixabay", "shutterstock", "getty", "istock", "midjourney", "flux"]:
+        cand = ArtworkCandidate(
+            candidate_id=f"art_{forbidden}_01",
+            title="Stock Image",
+            description="Generic stock image",
+            source_provider=forbidden,
+            source_url=f"https://www.{forbidden}.com/photo/123",
+            original_url=f"https://images.{forbidden}.com/123.jpg",
+            license_name="Stock License"
+        )
+        art_st, comm_st, rights_st, app_st, reason = FanArtRetrievalEngine.evaluate_rights_status(cand)
+        assert art_st == ArtistLicenseStatus.ARTIST_LICENSE_REJECTED
+        assert comm_st == CommercialClearanceStatus.COMMERCIAL_PRODUCTION_REJECTED
+        assert rights_st == RightsStatus.RIGHTS_REJECTED
+        assert app_st == ApprovalStatus.REJECTED
 
 
 # ------------------------------------------------------------------------------
-# 7. DUPLICATE HASH REJECTED TEST
+# 8. DUPLICATE HASH REJECTED TEST
 # ------------------------------------------------------------------------------
-def test_07_duplicate_hash_rejected(tmp_path):
+def test_08_duplicate_hash_rejected(tmp_path):
     """Validates that an artwork file with an identical SHA-256 hash is recognized as duplicate."""
     engine = FanArtRetrievalEngine(downloads_dir=tmp_path)
     sample_art = PROJECT_ROOT / "data" / "artworks" / "test_artwork_sample.jpg"
 
     if sample_art.exists():
         expected_hash = engine.compute_image_hash(sample_art)
-        # Register the hash in known hashes
         engine._known_hashes.add(expected_hash.lower())
 
         cand = ArtworkCandidate(
@@ -210,10 +246,11 @@ def test_07_duplicate_hash_rejected(tmp_path):
             source_provider="curated",
             source_url="https://example.com/art",
             original_url="https://example.com/art.jpg",
+            artist_license_status=ArtistLicenseStatus.ARTIST_LICENSE_VERIFIED,
+            commercial_clearance=CommercialClearanceStatus.COMMERCIAL_PRODUCTION_CLEARED,
             rights_status=RightsStatus.RIGHTS_VERIFIED
         )
 
-        # Mock download returning the same bytes as sample_art
         mock_resp = MagicMock()
         mock_resp.status_code = 200
         mock_resp.headers = {"Content-Type": "image/jpeg"}
@@ -221,14 +258,13 @@ def test_07_duplicate_hash_rejected(tmp_path):
 
         with patch("requests.get", return_value=mock_resp):
             downloaded = engine.download_and_validate_artwork(cand)
-            # Duplicate must NOT create a new duplicate file
             assert downloaded is None or Path(downloaded).resolve() == sample_art.resolve()
 
 
 # ------------------------------------------------------------------------------
-# 8. WRONG-SCENE ARTWORK REJECTED TEST
+# 9. WRONG-SCENE ARTWORK REJECTED TEST
 # ------------------------------------------------------------------------------
-def test_08_wrong_scene_artwork_rejected():
+def test_09_wrong_scene_artwork_rejected():
     """Validates that a random portrait is rejected when beat requires specific event objects/actions."""
     beat = {
         "beat_id": "beat_remembrall_red",
@@ -239,7 +275,6 @@ def test_08_wrong_scene_artwork_rejected():
         "duration_seconds": 2.5
     }
 
-    # Irrelevant candidate: Random Neville portrait standing in hallway
     wrong_cand = ArtworkCandidate(
         candidate_id="art_wrong_neville",
         title="Neville Portrait in Corridor",
@@ -253,7 +288,6 @@ def test_08_wrong_scene_artwork_rejected():
     )
     score_wrong = FanArtRetrievalEngine.score_artwork_candidate(wrong_cand, beat)
 
-    # Correct candidate: Neville with Remembrall glowing red
     correct_cand = ArtworkCandidate(
         candidate_id="art_correct_neville",
         title="Neville and Glowing Red Remembrall",
@@ -267,14 +301,14 @@ def test_08_wrong_scene_artwork_rejected():
     )
     score_correct = FanArtRetrievalEngine.score_artwork_candidate(correct_cand, beat)
 
-    assert score_wrong < 35.0  # Rejected by wrong-scene penalty
-    assert score_correct >= 60.0  # Accepted with strong score
+    assert score_wrong < 35.0
+    assert score_correct >= 60.0
 
 
 # ------------------------------------------------------------------------------
-# 9. MOVIE CLIP ALWAYS BEATS ARTWORK TEST
+# 10. MOVIE CLIP ALWAYS BEATS ARTWORK TEST
 # ------------------------------------------------------------------------------
-def test_09_movie_clip_always_beats_artwork(tmp_path):
+def test_10_movie_clip_always_beats_artwork(tmp_path):
     """Validates that MOVIE_DIRECT takes absolute precedence over available artwork."""
     hybrid_engine = HybridVisualEngine(clips_dir=tmp_path)
 
@@ -299,6 +333,8 @@ def test_09_movie_clip_always_beats_artwork(tmp_path):
         source_url="https://archive.org/details/hp-art",
         creator="Artist",
         license="Public Domain",
+        artist_license_status=ArtistLicenseStatus.ARTIST_LICENSE_VERIFIED,
+        commercial_clearance=CommercialClearanceStatus.COMMERCIAL_PRODUCTION_CLEARED,
         rights_status=RightsStatus.RIGHTS_VERIFIED,
         approval_status=ApprovalStatus.APPROVED,
         file_path=str(dummy_art)
@@ -323,13 +359,13 @@ def test_09_movie_clip_always_beats_artwork(tmp_path):
 
         res = hybrid_engine.resolve_beat_visual(beat, script_id="test_priority")
         assert res["status"] == "ACCEPTED"
-        assert res["visual_source"] == VisualSourceType.MOVIE_DIRECT  # Movie wins!
+        assert res["visual_source"] == VisualSourceType.MOVIE_DIRECT
 
 
 # ------------------------------------------------------------------------------
-# 10. NO VALID ARTWORK -> NO_VALID_VISUAL TEST
+# 11. NO VALID ARTWORK -> NO_VALID_VISUAL TEST
 # ------------------------------------------------------------------------------
-def test_10_no_valid_artwork_results_in_no_valid_visual():
+def test_11_no_valid_artwork_results_in_no_valid_visual():
     """Validates that when neither movie nor artwork exists, NO_VALID_VISUAL is returned."""
     hybrid_engine = HybridVisualEngine()
 
@@ -350,9 +386,9 @@ def test_10_no_valid_artwork_results_in_no_valid_visual():
 
 
 # ------------------------------------------------------------------------------
-# 11. GENERIC STOCK REJECTED TEST
+# 12. GENERIC STOCK REJECTED TEST
 # ------------------------------------------------------------------------------
-def test_11_generic_stock_rejected():
+def test_12_generic_stock_rejected():
     """Validates that requesting generic stock raises hard errors across engine layers."""
     hybrid_engine = HybridVisualEngine()
 
@@ -368,9 +404,9 @@ def test_11_generic_stock_rejected():
 
 
 # ------------------------------------------------------------------------------
-# 12. ARTWORK FORMATTED TO 1080x1920/30FPS (AUDIO-MUTED) TEST
+# 13. ARTWORK FORMATTED TO 1080x1920/30FPS (AUDIO-MUTED) TEST
 # ------------------------------------------------------------------------------
-def test_12_artwork_formatted_to_1080x1920_30fps(tmp_path):
+def test_13_artwork_formatted_to_1080x1920_30fps(tmp_path):
     """Validates that format_artwork_to_clip generates an audio-muted 1080x1920 30fps MP4."""
     engine = FanArtRetrievalEngine()
     sample_art = PROJECT_ROOT / "data" / "artworks" / "test_artwork_sample.jpg"
@@ -399,14 +435,14 @@ def test_12_artwork_formatted_to_1080x1920_30fps(tmp_path):
         assert len(v_streams) == 1
         assert v_streams[0]["width"] == 1080
         assert v_streams[0]["height"] == 1920
-        assert len(a_streams) == 0  # 100% audio-muted invariant!
+        assert len(a_streams) == 0
 
 
 # ------------------------------------------------------------------------------
-# 13. PROVENANCE SURVIVES INTO STORYBOARD METADATA TEST
+# 14. PROVENANCE SURVIVES INTO STORYBOARD METADATA TEST
 # ------------------------------------------------------------------------------
-def test_13_provenance_survives_into_storyboard_metadata(tmp_path):
-    """Validates that full provenance metadata survives into StoryboardBeatMetadata."""
+def test_14_provenance_survives_into_storyboard_metadata(tmp_path):
+    """Validates that full provenance and clearance metadata survives into StoryboardBeatMetadata."""
     hybrid_engine = HybridVisualEngine(clips_dir=tmp_path)
     dummy_art = tmp_path / "neville_remembrall_art.jpg"
     dummy_art.write_bytes(b"dummy image data")
@@ -417,8 +453,9 @@ def test_13_provenance_survives_into_storyboard_metadata(tmp_path):
         source_url="https://archive.org/details/hp-canon-art-neville-remembrall",
         original_url="https://archive.org/download/hp-canon-art/remembrall.jpg",
         creator="Grand Archival Illustrator",
-        license="Creative Commons Attribution 4.0",
-        license_url="https://creativecommons.org/licenses/by/4.0/",
+        license="Scholastic Official Illustration",
+        artist_license_status=ArtistLicenseStatus.ARTIST_LICENSE_VERIFIED,
+        commercial_clearance=CommercialClearanceStatus.COMMERCIAL_PRODUCTION_CLEARED,
         rights_status=RightsStatus.RIGHTS_VERIFIED,
         approval_status=ApprovalStatus.APPROVED,
         visual_description="Neville holding glowing red Remembrall",
@@ -448,7 +485,8 @@ def test_13_provenance_survives_into_storyboard_metadata(tmp_path):
         meta: StoryboardBeatMetadata = res["shot_metadata"]
         assert meta.creator == "Grand Archival Illustrator"
         assert meta.source_url == "https://archive.org/details/hp-canon-art-neville-remembrall"
-        assert meta.license == "Creative Commons Attribution 4.0"
+        assert meta.artist_license_status == "ARTIST_LICENSE_VERIFIED"
+        assert meta.commercial_clearance == "COMMERCIAL_PRODUCTION_CLEARED"
         assert meta.rights_status == "RIGHTS_VERIFIED"
         assert meta.approval_status == "APPROVED"
         assert "Remembrall" in meta.objects
@@ -456,9 +494,9 @@ def test_13_provenance_survives_into_storyboard_metadata(tmp_path):
 
 
 # ------------------------------------------------------------------------------
-# 14. DETERMINISTIC RENDER FINGERPRINT & CACHE SAFETY TEST
+# 15. DETERMINISTIC RENDER FINGERPRINT & CACHE SAFETY TEST
 # ------------------------------------------------------------------------------
-def test_14_render_fingerprint_cache_invalidation():
+def test_15_render_fingerprint_cache_invalidation():
     """Validates that config or visual changes trigger fingerprint mismatch (cache miss)."""
     base_fp = compute_render_fingerprint(
         script_id="hps_test_01",
@@ -469,7 +507,6 @@ def test_14_render_fingerprint_cache_invalidation():
         framing_policy_version=FRAMING_POLICY_VERSION,
         visual_policy=VISUAL_POLICY_VERSION
     )
-    # Changing visual source from MOVIE_DIRECT to FAN_ART -> cache miss!
     fanart_fp = compute_render_fingerprint(
         script_id="hps_test_01",
         full_text="Test narration for Harry Potter short.",

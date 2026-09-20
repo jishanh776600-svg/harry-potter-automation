@@ -7,11 +7,12 @@ Defines canonical data contracts for truthful visual source resolution:
 3. OFFICIAL_ARTWORK  — Official/licensed artwork (e.g. Mary GrandPré, Jim Kay, MinaLima).
 4. NO_VALID_VISUAL   — Neither movie footage nor approved artwork exists.
 
-Permanent Rules:
-- NEVER generic stock imagery (Pexels, Unsplash, Pixabay, Shutterstock, Getty, iStock permanently forbidden).
-- NEVER unrelated movie footage to fill time.
-- NEVER generate a bespoke AI image for every novel scene (NO DALL-E, Midjourney, Stable Diffusion, Pollinations, Flux).
-- EVERY VISUAL MUST REPRESENT THE SPECIFIC NARRATION BEAT.
+Strict Rights Architecture:
+- ARTIST_LICENSE_STATUS: What the creator/illustrator declared (verified, unverified, rejected).
+- COMMERCIAL_CLEARANCE_STATUS: Whether the asset is legally cleared for autonomous commercial
+  YouTube video production (cleared, review required, rejected).
+  * Invariant: A CC-BY or open license from an artist on derivative Harry Potter fan art does
+    NOT convey commercial production clearance; it remains review-required.
 """
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
@@ -27,11 +28,25 @@ class VisualSourceType(str, Enum):
     NO_VALID_VISUAL = "NO_VALID_VISUAL"    # No truthful visual available; adapt or flag
 
 
+class ArtistLicenseStatus(str, Enum):
+    """Status of the artist/creator license declaration."""
+    ARTIST_LICENSE_VERIFIED = "ARTIST_LICENSE_VERIFIED"      # Permissive license (CC0, CC-BY, Public Domain, verified grant)
+    ARTIST_LICENSE_UNVERIFIED = "ARTIST_LICENSE_UNVERIFIED"  # Missing, ambiguous, all-rights-reserved, or unverified platform
+    ARTIST_LICENSE_REJECTED = "ARTIST_LICENSE_REJECTED"      # Explicitly prohibited or forbidden provider
+
+
+class CommercialClearanceStatus(str, Enum):
+    """Status of commercial production clearance for autonomous monetization."""
+    COMMERCIAL_PRODUCTION_CLEARED = "COMMERCIAL_PRODUCTION_CLEARED"                # Explicitly cleared for autonomous production
+    COMMERCIAL_PRODUCTION_REVIEW_REQUIRED = "COMMERCIAL_PRODUCTION_REVIEW_REQUIRED"  # Derivative fan work or uncertain IP status; quarantined
+    COMMERCIAL_PRODUCTION_REJECTED = "COMMERCIAL_PRODUCTION_REJECTED"              # Legally/contractually barred from commercial production
+
+
 class RightsStatus(str, Enum):
-    """Licensing and rights status for visual assets."""
-    RIGHTS_VERIFIED = "RIGHTS_VERIFIED"          # Explicit commercial-use license, public domain, or verified creator permission
-    RIGHTS_UNVERIFIED = "RIGHTS_UNVERIFIED"      # Web discovery without verified commercial license (quarantined)
-    RIGHTS_REJECTED = "RIGHTS_REJECTED"          # Explicitly forbidden or non-compliant license
+    """Composite licensing and rights status for visual assets."""
+    RIGHTS_VERIFIED = "RIGHTS_VERIFIED"          # Permissive creator license AND commercial production cleared
+    RIGHTS_UNVERIFIED = "RIGHTS_UNVERIFIED"      # Creator license unverified OR commercial clearance requires review (quarantined)
+    RIGHTS_REJECTED = "RIGHTS_REJECTED"          # Explicitly forbidden or non-compliant
 
     # Legacy aliases preserved for backward compatibility
     VERIFIED_FREE = "VERIFIED_FREE"
@@ -41,7 +56,7 @@ class RightsStatus(str, Enum):
 
     @property
     def is_production_eligible(self) -> bool:
-        """Returns True if rights are sufficiently established for autonomous production."""
+        """Returns True if rights and clearance are sufficiently established for autonomous production."""
         return self in (
             RightsStatus.RIGHTS_VERIFIED,
             RightsStatus.VERIFIED_FREE,
@@ -51,9 +66,9 @@ class RightsStatus(str, Enum):
 
 class ApprovalStatus(str, Enum):
     """Editorial and automation approval status for acquired artwork."""
-    APPROVED = "APPROVED"          # Rights verified, semantic fit validated, ready for production
-    QUARANTINED = "QUARANTINED"    # Rights unverified or review needed; blocked from production
-    REJECTED = "REJECTED"          # License rejected, forbidden provider, or corrupt asset
+    APPROVED = "APPROVED"          # Rights and commercial clearance verified; ready for autonomous production
+    QUARANTINED = "QUARANTINED"    # Creator unverified or commercial review required; blocked from autonomous production
+    REJECTED = "REJECTED"          # Prohibited license, forbidden stock provider, or corrupt asset
 
 
 # Forbidden visual sources that must NEVER be used
@@ -66,7 +81,7 @@ FORBIDDEN_SOURCE_PROVIDERS = {
 
 @dataclass
 class VisualProvenance:
-    """Complete provenance and licensing lineage for an artwork or visual asset."""
+    """Complete provenance, licensing lineage, and clearance for an artwork or visual asset."""
     asset_id: str
     source_type: VisualSourceType
     source_url: str                                     # Web page or collection URL where found
@@ -74,6 +89,8 @@ class VisualProvenance:
     creator: Optional[str] = None                       # Artist / illustrator / creator name
     license: Optional[str] = None                       # License identifier or description
     license_url: Optional[str] = None                   # Link to license terms
+    artist_license_status: ArtistLicenseStatus = ArtistLicenseStatus.ARTIST_LICENSE_UNVERIFIED
+    commercial_clearance: CommercialClearanceStatus = CommercialClearanceStatus.COMMERCIAL_PRODUCTION_REVIEW_REQUIRED
     rights_status: RightsStatus = RightsStatus.RIGHTS_UNVERIFIED
     approval_status: ApprovalStatus = ApprovalStatus.QUARANTINED
     retrieved_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
@@ -96,6 +113,8 @@ class VisualProvenance:
     def to_dict(self) -> Dict[str, Any]:
         d = asdict(self)
         d["source_type"] = self.source_type.value if isinstance(self.source_type, VisualSourceType) else self.source_type
+        d["artist_license_status"] = self.artist_license_status.value if isinstance(self.artist_license_status, ArtistLicenseStatus) else self.artist_license_status
+        d["commercial_clearance"] = self.commercial_clearance.value if isinstance(self.commercial_clearance, CommercialClearanceStatus) else self.commercial_clearance
         d["rights_status"] = self.rights_status.value if isinstance(self.rights_status, RightsStatus) else self.rights_status
         d["approval_status"] = self.approval_status.value if isinstance(self.approval_status, ApprovalStatus) else self.approval_status
         return d
@@ -105,6 +124,24 @@ class VisualProvenance:
         source_type = data.get("source_type", VisualSourceType.FAN_ART)
         if isinstance(source_type, str):
             source_type = VisualSourceType(source_type)
+
+        raw_artist = data.get("artist_license_status", ArtistLicenseStatus.ARTIST_LICENSE_UNVERIFIED)
+        if isinstance(raw_artist, str):
+            try:
+                artist_license_status = ArtistLicenseStatus(raw_artist)
+            except ValueError:
+                artist_license_status = ArtistLicenseStatus.ARTIST_LICENSE_UNVERIFIED
+        else:
+            artist_license_status = raw_artist
+
+        raw_clearance = data.get("commercial_clearance", CommercialClearanceStatus.COMMERCIAL_PRODUCTION_REVIEW_REQUIRED)
+        if isinstance(raw_clearance, str):
+            try:
+                commercial_clearance = CommercialClearanceStatus(raw_clearance)
+            except ValueError:
+                commercial_clearance = CommercialClearanceStatus.COMMERCIAL_PRODUCTION_REVIEW_REQUIRED
+        else:
+            commercial_clearance = raw_clearance
 
         raw_rights = data.get("rights_status", RightsStatus.RIGHTS_UNVERIFIED)
         if isinstance(raw_rights, str):
@@ -132,6 +169,8 @@ class VisualProvenance:
             creator=data.get("creator"),
             license=data.get("license") or data.get("license_name"),
             license_url=data.get("license_url"),
+            artist_license_status=artist_license_status,
+            commercial_clearance=commercial_clearance,
             rights_status=rights_status,
             approval_status=approval_status,
             retrieved_at=data.get("retrieved_at", datetime.now(timezone.utc).isoformat()),
@@ -164,6 +203,8 @@ class StoryboardBeatMetadata:
     creator: Optional[str] = None
     license: Optional[str] = None
     license_url: Optional[str] = None
+    artist_license_status: Optional[str] = None
+    commercial_clearance: Optional[str] = None
     rights_status: Optional[str] = None
     approval_status: Optional[str] = None
     search_query: Optional[str] = None

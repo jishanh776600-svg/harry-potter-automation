@@ -1,29 +1,22 @@
 """
 STORY FORGE Fan-Art & Official Artwork Retrieval Engine
 ======================================================
-Coordinates targeted discovery, rights evaluation, safe acquisition,
+Coordinates targeted discovery, two-dimensional rights evaluation, safe acquisition,
 deduplication, semantic ranking, and presentation formatting for existing
-Harry Potter illustrations and artwork depicting novel-only scenes.
+Harry Potter illustrations depicting novel-only scenes.
 
-Strict Invariants:
-1. NO AI IMAGE GENERATION:
-   Strictly searches for existing artwork. Never uses DALL-E, Midjourney,
-   Stable Diffusion, Pollinations, Flux, or synthetic image generators.
-2. TARGETED DISCOVERY:
-   Queries must be rich and event-specific (character + action + object + location).
-   Never broad "Harry Potter fan art".
-3. STRICT SOURCE & RIGHTS GATE:
-   - RIGHTS_VERIFIED: Explicit commercial / public domain / verified license.
-   - RIGHTS_UNVERIFIED: Quarantined for review; blocked from autonomous production.
-   - RIGHTS_REJECTED: Forbidden generic stock (Pexels, Unsplash, Pixabay, etc.) or restricted.
-4. SAFE DOWNLOAD & INTEGRITY:
-   Streaming download with 25MB ceiling, MIME check, PIL decode verification,
-   SHA-256 deduplication, non-destructive storage.
-5. SEMANTIC RELEVANCE RANKING:
-   Multi-factor scoring (A-H) penalizing wrong-scene images.
-6. BROADCAST-SAFE PRESENTATION:
-   Converts artwork to 1080x1920 30 FPS MP4 with ambient blurred background and
-   strict -an (0 audio streams).
+Strict Rights Architecture:
+1. ARTIST LICENSE EVALUATION:
+   Determines whether the creator granted a permissive license (CC0, CC-BY, Public Domain, etc.).
+2. COMMERCIAL PRODUCTION CLEARANCE EVALUATION:
+   Determines whether the asset is cleared for autonomous commercial video production.
+   * INVIOLABLE PRINCIPLE: A CC-BY or open license on derivative Harry Potter fan art does
+     NOT convey commercial clearance for third-party Harry Potter IP; it remains
+     COMMERCIAL_PRODUCTION_REVIEW_REQUIRED and QUARANTINED.
+3. ABSOLUTE MOVIE PRIORITY:
+   If an exact filmed event exists in Movies 1–8, MOVIE_DIRECT always wins.
+4. GENERIC STOCK / AI BLOCKS:
+   Pexels, Unsplash, Pixabay, Shutterstock, Getty, iStock, Midjourney, DALL-E, etc. are permanently rejected.
 """
 import os
 import re
@@ -41,8 +34,8 @@ import requests
 
 from config.settings import PROJECT_ROOT
 from core.hybrid_visual_models import (
-    VisualSourceType, RightsStatus, ApprovalStatus, VisualProvenance,
-    FORBIDDEN_SOURCE_PROVIDERS
+    VisualSourceType, ArtistLicenseStatus, CommercialClearanceStatus,
+    RightsStatus, ApprovalStatus, VisualProvenance, FORBIDDEN_SOURCE_PROVIDERS
 )
 
 logger = logging.getLogger(__name__)
@@ -62,6 +55,7 @@ CLIPS_DIR.mkdir(parents=True, exist_ok=True)
 MAX_IMAGE_FILE_SIZE = 25 * 1024 * 1024  # 25 MB ceiling
 MIN_IMAGE_DIMENSION = 300               # Minimum pixel width/height for usable art
 MIN_SEMANTIC_MATCH_SCORE = 45.0         # Minimum score to accept artwork for a beat
+MAX_CONTROLLED_DOWNLOADS = 10           # Maximum downloads allowed during dry run
 
 
 @dataclass
@@ -76,6 +70,8 @@ class ArtworkCandidate:
     creator: Optional[str] = None
     license_name: Optional[str] = None
     license_url: Optional[str] = None
+    artist_license_status: ArtistLicenseStatus = ArtistLicenseStatus.ARTIST_LICENSE_UNVERIFIED
+    commercial_clearance: CommercialClearanceStatus = CommercialClearanceStatus.COMMERCIAL_PRODUCTION_REVIEW_REQUIRED
     rights_status: RightsStatus = RightsStatus.RIGHTS_UNVERIFIED
     approval_status: ApprovalStatus = ApprovalStatus.QUARANTINED
     characters: List[str] = field(default_factory=list)
@@ -123,6 +119,19 @@ class CuratedRegistryProvider(ArtworkDiscoveryProvider):
     ) -> List[ArtworkCandidate]:
         candidates = []
         for item in self.registry_items:
+            # Parse artist license and commercial clearance if already recorded
+            raw_art = item.get("artist_license_status", ArtistLicenseStatus.ARTIST_LICENSE_UNVERIFIED.value)
+            try:
+                art_st = ArtistLicenseStatus(raw_art)
+            except ValueError:
+                art_st = ArtistLicenseStatus.ARTIST_LICENSE_UNVERIFIED
+
+            raw_comm = item.get("commercial_clearance", CommercialClearanceStatus.COMMERCIAL_PRODUCTION_REVIEW_REQUIRED.value)
+            try:
+                comm_st = CommercialClearanceStatus(raw_comm)
+            except ValueError:
+                comm_st = CommercialClearanceStatus.COMMERCIAL_PRODUCTION_REVIEW_REQUIRED
+
             cand = ArtworkCandidate(
                 candidate_id=item.get("asset_id") or item.get("id", ""),
                 title=item.get("title") or item.get("scene", ""),
@@ -133,6 +142,8 @@ class CuratedRegistryProvider(ArtworkDiscoveryProvider):
                 creator=item.get("creator"),
                 license_name=item.get("license_name") or item.get("license"),
                 license_url=item.get("license_url"),
+                artist_license_status=art_st,
+                commercial_clearance=comm_st,
                 characters=item.get("characters", []),
                 actions=item.get("actions", []),
                 objects=item.get("objects", []),
@@ -152,7 +163,6 @@ class CuratedRegistryProvider(ArtworkDiscoveryProvider):
 class WikimediaCommonsDiscoveryProvider(ArtworkDiscoveryProvider):
     """
     Searches Wikimedia Commons API for public domain and CC-licensed Harry Potter illustrations.
-    Queries the MediaWiki action=query API endpoint.
     """
     provider_name = "wikimedia_commons"
     API_URL = "https://commons.wikimedia.org/w/api.php"
@@ -195,7 +205,6 @@ class WikimediaCommonsDiscoveryProvider(ArtworkDiscoveryProvider):
                     ext_meta = info.get("extmetadata", {})
                     license_name = ext_meta.get("LicenseShortName", {}).get("value", "Public Domain")
                     creator = ext_meta.get("Artist", {}).get("value", "Wikimedia Contributor")
-                    # Clean HTML tags from creator
                     creator_clean = re.sub(r"<[^>]+>", "", creator).strip()
                     desc = ext_meta.get("ImageDescription", {}).get("value", page_info.get("title", ""))
                     desc_clean = re.sub(r"<[^>]+>", "", desc).strip()
@@ -227,8 +236,7 @@ class WikimediaCommonsDiscoveryProvider(ArtworkDiscoveryProvider):
 
 class InternetArchiveDiscoveryProvider(ArtworkDiscoveryProvider):
     """
-    Searches Internet Archive (archive.org) metadata API for public domain and
-    curated Harry Potter illustration archives.
+    Searches Internet Archive (archive.org) metadata API for cataloged Harry Potter illustration collections.
     """
     provider_name = "internet_archive"
     SEARCH_URL = "https://archive.org/advancedsearch.php"
@@ -244,7 +252,6 @@ class InternetArchiveDiscoveryProvider(ArtworkDiscoveryProvider):
 
         for q in queries[:1]:
             try:
-                # Query public domain / creative commons items matching query
                 query_str = f"({q}) AND mediatype:(image)"
                 params = {
                     "q": query_str,
@@ -289,7 +296,7 @@ class InternetArchiveDiscoveryProvider(ArtworkDiscoveryProvider):
 class FanArtRetrievalEngine:
     """
     Manages targeted query generation, candidate discovery across legitimate sources,
-    strict rights gating, safe download/validation, deduplication, semantic ranking,
+    strict two-dimensional rights gating, safe acquisition, deduplication, semantic ranking,
     and video presentation formatting.
     """
 
@@ -366,13 +373,6 @@ class FanArtRetrievalEngine:
         """
         Generates event-specific, semantically rich search queries from a narration beat.
         Never outputs broad 'Harry Potter fan art'.
-
-        Incorporates:
-        - Characters (Harry, Peeves, Neville, etc.)
-        - Specific action / verb (chaos, sorting, riddle, execution, glowing red, etc.)
-        - Specific object (Remembrall, potion bottles, sorting hat, etc.)
-        - Location (Great Hall, corridors, trapdoor, Shrieking Shack, etc.)
-        - Book/chapter reference when relevant
         """
         characters = beat.get("characters", [])
         if isinstance(characters, str):
@@ -421,22 +421,27 @@ class FanArtRetrievalEngine:
             q4 = f"Harry Potter {' '.join(key_words[:5])} illustration"
             queries.append(q4)
 
-        # Deduplicate while preserving order
         unique_queries = list(dict.fromkeys(queries))
         return unique_queries
 
     # --------------------------------------------------------------------------
-    # 2. STRICT SOURCE & RIGHTS GATE
+    # 2. TWO-DIMENSIONAL RIGHTS & COMMERCIAL CLEARANCE GATE
     # --------------------------------------------------------------------------
     @staticmethod
-    def evaluate_rights_status(candidate: ArtworkCandidate) -> Tuple[RightsStatus, ApprovalStatus, str]:
+    def evaluate_rights_status(
+        candidate: ArtworkCandidate
+    ) -> Tuple[ArtistLicenseStatus, CommercialClearanceStatus, RightsStatus, ApprovalStatus, str]:
         """
-        Deterministically evaluates rights status.
-        Only artwork with sufficiently established usage rights is eligible for production.
+        Deterministically evaluates:
+        1. ArtistLicenseStatus: What the creator/illustrator declared (VERIFIED, UNVERIFIED, REJECTED).
+        2. CommercialClearanceStatus: Whether legally cleared for autonomous commercial video production
+           (COMMERCIAL_PRODUCTION_CLEARED, COMMERCIAL_PRODUCTION_REVIEW_REQUIRED, COMMERCIAL_PRODUCTION_REJECTED).
+        3. Composite RightsStatus and ApprovalStatus.
 
-        - RIGHTS_VERIFIED: Explicit commercial / CC0 / Public Domain / Verified creator consent.
-        - RIGHTS_UNVERIFIED: Quarantined for review; cannot be used autonomously.
-        - RIGHTS_REJECTED: Forbidden provider or prohibited license.
+        Core Invariant:
+        An artist providing a CC-BY or CC0 license on derivative Harry Potter fan art does NOT
+        convey commercial rights for third-party Harry Potter IP. Such fan art remains
+        COMMERCIAL_PRODUCTION_REVIEW_REQUIRED and QUARANTINED.
         """
         combined = f"{candidate.source_provider} {candidate.source_url} {candidate.license_name or ''} {candidate.license_url or ''}".lower()
 
@@ -444,52 +449,74 @@ class FanArtRetrievalEngine:
         for forbidden in FORBIDDEN_SOURCE_PROVIDERS:
             if forbidden in combined:
                 return (
+                    ArtistLicenseStatus.ARTIST_LICENSE_REJECTED,
+                    CommercialClearanceStatus.COMMERCIAL_PRODUCTION_REJECTED,
                     RightsStatus.RIGHTS_REJECTED,
                     ApprovalStatus.REJECTED,
                     f"Forbidden source provider or stock domain detected: '{forbidden}'"
                 )
 
+        # 2. Artist License Evaluation
         lic = (candidate.license_name or "").lower()
-        if any(term in lic for term in [
+        has_permissive_artist_license = any(term in lic for term in [
             "public domain", "cc0", "cc-zero", "pd-old", "cc by 4.0", "cc-by-4.0",
             "cc by-sa", "cc-by-sa", "cc-by", "cc by", "creative commons attribution",
-            "attribution 4.0", "attribution 3.0"
-        ]):
-            # Check if non-commercial restriction is present
-            if "nc" in lic or "non-commercial" in lic or "noncommercial" in lic:
-                return (
-                    RightsStatus.RIGHTS_UNVERIFIED,
-                    ApprovalStatus.QUARANTINED,
-                    "License has Non-Commercial restriction; requires creator clearance before commercial production."
-                )
-            return (
-                RightsStatus.RIGHTS_VERIFIED,
-                ApprovalStatus.APPROVED,
-                f"Verified permissive license: {candidate.license_name}"
-            )
+            "attribution 4.0", "attribution 3.0", "permissive", "verified creator grant"
+        ])
+        has_non_commercial = any(term in lic for term in ["nc", "non-commercial", "noncommercial"])
 
-        if candidate.is_official and any(term in lic for term in ["official", "scholastic", "bloomsbury"]):
-            return (
-                RightsStatus.RIGHTS_VERIFIED,
-                ApprovalStatus.APPROVED,
-                f"Verified official editorial license: {candidate.license_name}"
-            )
+        if has_permissive_artist_license or (candidate.is_official and any(term in lic for term in ["official", "scholastic", "bloomsbury", "warner bros"])):
+            artist_status = ArtistLicenseStatus.ARTIST_LICENSE_VERIFIED
+        elif any(p in combined for p in ["deviantart", "artstation", "tumblr", "reddit", "pinterest", "instagram", "twitter", "x.com"]) or not candidate.license_name:
+            artist_status = ArtistLicenseStatus.ARTIST_LICENSE_UNVERIFIED
+        else:
+            artist_status = ArtistLicenseStatus.ARTIST_LICENSE_UNVERIFIED
 
-        # 3. Platforms without verified commercial license declaration are quarantined
-        unverified_platforms = ["deviantart", "artstation", "tumblr", "reddit", "pinterest", "instagram", "twitter", "x.com"]
-        if any(p in combined for p in unverified_platforms) or not candidate.license_name:
-            return (
-                RightsStatus.RIGHTS_UNVERIFIED,
-                ApprovalStatus.QUARANTINED,
-                "Web discovery without verified commercial reuse declaration. Quarantined for editorial review."
-            )
-
-        # 4. Fair use editorial / commentary default (quarantined until approved)
-        return (
-            RightsStatus.RIGHTS_UNVERIFIED,
-            ApprovalStatus.QUARANTINED,
-            f"Unverified licensing lineage: '{candidate.license_name}'. Quarantined."
+        # 3. Commercial Production Clearance Evaluation
+        is_hp_derivative = (
+            bool(candidate.characters)
+            or any(w in (candidate.title + " " + candidate.description).lower() for w in [
+                "harry potter", "hogwarts", "neville", "peeves", "sorting hat",
+                "remembrall", "dumbledore", "voldemort", "snape", "quidditch", "buckbeak"
+            ])
         )
+
+        if candidate.is_official and any(term in lic for term in ["official", "scholastic", "bloomsbury", "warner bros"]):
+            commercial_clearance = CommercialClearanceStatus.COMMERCIAL_PRODUCTION_CLEARED
+            clearance_reason = f"Official studio/publisher editorial release: {candidate.license_name}"
+        elif "pre-1928" in lic or "historical public domain" in lic:
+            commercial_clearance = CommercialClearanceStatus.COMMERCIAL_PRODUCTION_CLEARED
+            clearance_reason = "Historical public domain artwork without active character copyright."
+        elif is_hp_derivative:
+            if has_non_commercial:
+                commercial_clearance = CommercialClearanceStatus.COMMERCIAL_PRODUCTION_REVIEW_REQUIRED
+                clearance_reason = "Artist license has Non-Commercial restriction on copyrighted Harry Potter IP; requires review."
+            elif artist_status == ArtistLicenseStatus.ARTIST_LICENSE_VERIFIED:
+                commercial_clearance = CommercialClearanceStatus.COMMERCIAL_PRODUCTION_REVIEW_REQUIRED
+                clearance_reason = "Artist license verified (CC/open), but derivative work depicts copyrighted Harry Potter IP; autonomous commercial clearance requires review."
+            else:
+                commercial_clearance = CommercialClearanceStatus.COMMERCIAL_PRODUCTION_REVIEW_REQUIRED
+                clearance_reason = "Artist license unverified and depicts copyrighted Harry Potter IP; quarantined."
+        else:
+            if artist_status == ArtistLicenseStatus.ARTIST_LICENSE_VERIFIED and not has_non_commercial:
+                commercial_clearance = CommercialClearanceStatus.COMMERCIAL_PRODUCTION_CLEARED
+                clearance_reason = "Verified permissive commercial license."
+            else:
+                commercial_clearance = CommercialClearanceStatus.COMMERCIAL_PRODUCTION_REVIEW_REQUIRED
+                clearance_reason = "Uncertain commercial clearance."
+
+        # 4. Composite RightsStatus and ApprovalStatus
+        if commercial_clearance == CommercialClearanceStatus.COMMERCIAL_PRODUCTION_CLEARED and artist_status == ArtistLicenseStatus.ARTIST_LICENSE_VERIFIED:
+            rights_status = RightsStatus.RIGHTS_VERIFIED
+            approval_status = ApprovalStatus.APPROVED
+        elif commercial_clearance == CommercialClearanceStatus.COMMERCIAL_PRODUCTION_REJECTED or artist_status == ArtistLicenseStatus.ARTIST_LICENSE_REJECTED:
+            rights_status = RightsStatus.RIGHTS_REJECTED
+            approval_status = ApprovalStatus.REJECTED
+        else:
+            rights_status = RightsStatus.RIGHTS_UNVERIFIED
+            approval_status = ApprovalStatus.QUARANTINED
+
+        return (artist_status, commercial_clearance, rights_status, approval_status, clearance_reason)
 
     # --------------------------------------------------------------------------
     # 3. DOWNLOAD & INTEGRITY VALIDATION
@@ -498,14 +525,15 @@ class FanArtRetrievalEngine:
         """
         Safely downloads an image candidate, verifies MIME type, decodes via PIL,
         calculates SHA-256, enforces deduplication, and stores in the appropriate directory.
+        - COMMERCIAL_PRODUCTION_CLEARED -> downloads/
+        - COMMERCIAL_PRODUCTION_REVIEW_REQUIRED / UNVERIFIED -> quarantine/
         Never overwrites existing files. Rejects files > 25MB or non-images.
         """
         if not candidate.original_url:
             logger.debug(f"[FanArtEngine] Candidate {candidate.candidate_id} lacks original_url; cannot download.")
             return None
 
-        # Determine target directory based on rights
-        target_dir = self.downloads_dir if candidate.rights_status == RightsStatus.RIGHTS_VERIFIED else self.quarantine_dir
+        target_dir = self.downloads_dir if candidate.commercial_clearance == CommercialClearanceStatus.COMMERCIAL_PRODUCTION_CLEARED else self.quarantine_dir
         ext = ".jpg"
         temp_file = target_dir / f"temp_{candidate.candidate_id}{ext}"
 
@@ -516,13 +544,11 @@ class FanArtRetrievalEngine:
                 logger.warning(f"[FanArtEngine] Download failed ({resp.status_code}) for {candidate.original_url}")
                 return None
 
-            # MIME validation
             content_type = resp.headers.get("Content-Type", "").lower()
             if content_type and not any(ct in content_type for ct in ["image/jpeg", "image/png", "image/webp", "image/jpg"]):
                 logger.warning(f"[FanArtEngine] Invalid Content-Type '{content_type}' for {candidate.candidate_id}. Aborting.")
                 return None
 
-            # Size check and stream write
             total_bytes = 0
             with open(temp_file, "wb") as f:
                 for chunk in resp.iter_content(chunk_size=65536):
@@ -551,20 +577,17 @@ class FanArtRetrievalEngine:
                 logger.warning(f"[FanArtEngine] Corrupt or invalid image for {candidate.candidate_id}: {e}")
                 return None
 
-            # Minimum dimension check
             if w < MIN_IMAGE_DIMENSION or h < MIN_IMAGE_DIMENSION:
                 temp_file.unlink(missing_ok=True)
                 logger.warning(f"[FanArtEngine] Image {candidate.candidate_id} resolution too low ({w}x{h}). Rejected.")
                 return None
 
-            # Calculate SHA-256 hash
             sha256 = self.compute_image_hash(temp_file)
 
             # Deduplication check
             if sha256.lower() in self._known_hashes:
                 temp_file.unlink(missing_ok=True)
                 logger.info(f"[FanArtEngine] Duplicate image hash {sha256[:12]} already in registry. Skipping duplicate.")
-                # Locate existing asset path
                 for item in self._curated_registry:
                     if (item.get("image_hash") or "").lower() == sha256.lower() and item.get("local_path"):
                         candidate.file_path = item["local_path"]
@@ -572,10 +595,8 @@ class FanArtRetrievalEngine:
                         return Path(item["local_path"])
                 return None
 
-            # Final destination path
             dest_file = target_dir / f"{candidate.candidate_id}{ext}"
             if dest_file.exists():
-                # Avoid overwriting
                 dest_file = target_dir / f"{candidate.candidate_id}_{sha256[:8]}{ext}"
 
             temp_file.rename(dest_file)
@@ -602,6 +623,8 @@ class FanArtRetrievalEngine:
                 "creator": candidate.creator,
                 "license_name": candidate.license_name,
                 "license_url": candidate.license_url,
+                "artist_license_status": candidate.artist_license_status.value,
+                "commercial_clearance": candidate.commercial_clearance.value,
                 "rights_status": candidate.rights_status.value,
                 "approval_status": candidate.approval_status.value,
                 "local_path": candidate.file_path,
@@ -642,8 +665,8 @@ class FanArtRetrievalEngine:
           H. Rights status gate (+5 bonus for RIGHTS_VERIFIED, -100 penalty for RIGHTS_REJECTED)
 
         Wrong-Scene Penalty:
-          If the beat requires specific objects/actions (e.g. Remembrall, Sorting Hat)
-          and the candidate has neither the object nor the action, applies a heavy -50 penalty.
+          If the beat requires specific objects/actions and candidate has neither,
+          applies a heavy -50 penalty so generic portraits are rejected.
         """
         meta_str = f"{candidate.title} {candidate.description} {' '.join(candidate.tags)} {' '.join(candidate.actions)} {' '.join(candidate.objects)}".lower()
         score = 0.0
@@ -705,15 +728,10 @@ class FanArtRetrievalEngine:
         elif candidate.rights_status == RightsStatus.RIGHTS_VERIFIED:
             score += 5.0
 
-        # ----------------------------------------------------------------------
-        # WRONG-SCENE REJECTION / PENALTY:
-        # If the beat is specifically about a distinctive magical object or action
-        # (e.g. Remembrall, Sorting Hat, potion fire) and the artwork has 0 match
-        # on both object and action, heavily penalize so generic portraits are rejected!
-        # ----------------------------------------------------------------------
-        critical_objects = [o for o in objects if o.lower() in ("remembrall", "sorting hat", "potion", "mirror of erised", "invisibility cloak")]
+        # Wrong-scene penalty
+        critical_objects = [o for o in objects if o.lower() in ("remembrall", "sorting hat", "potion", "mirror of erised", "invisibility cloak", "axe")]
         if critical_objects and not matched_obj and not (action_tokens and matched_act):
-            score -= 50.0  # Heavy penalty: random portrait rejected!
+            score -= 50.0
 
         candidate.semantic_score = max(0.0, min(100.0, score))
         return candidate.semantic_score
@@ -736,7 +754,6 @@ class FanArtRetrievalEngine:
         queries = self.generate_targeted_queries(beat, novel_context=novel_context)
         logger.info(f"[FanArtEngine] Generated targeted queries for {beat.get('beat_id')}: {queries}")
 
-        # Gather candidates from all providers
         all_candidates: List[ArtworkCandidate] = []
         for provider in self.providers:
             try:
@@ -748,10 +765,11 @@ class FanArtRetrievalEngine:
         if not all_candidates:
             return None
 
-        # Evaluate rights and score each candidate
         scored_candidates: List[ArtworkCandidate] = []
         for cand in all_candidates:
-            rights_st, app_st, reason = self.evaluate_rights_status(cand)
+            art_st, comm_st, rights_st, app_st, reason = self.evaluate_rights_status(cand)
+            cand.artist_license_status = art_st
+            cand.commercial_clearance = comm_st
             cand.rights_status = rights_st
             cand.approval_status = app_st
 
@@ -765,27 +783,25 @@ class FanArtRetrievalEngine:
         if not scored_candidates:
             return None
 
-        # Sort descending by semantic score
         scored_candidates.sort(key=lambda c: c.semantic_score, reverse=True)
         top_cand = scored_candidates[0]
 
-        # Check if physical asset exists locally
         local_path = None
         if top_cand.file_path:
             p = PROJECT_ROOT / top_cand.file_path
             if p.exists():
                 local_path = p
 
-        # If not present locally and acquisition is allowed:
         if not local_path and allow_acquisition and top_cand.original_url:
             local_path = self.download_and_validate_artwork(top_cand)
 
-        # STRICT RIGHTS SAFEGUARD:
-        # Only artwork with established usage rights (RIGHTS_VERIFIED) is eligible for autonomous production.
-        # Unverified artwork remains quarantined in data/artworks/quarantine/ and returns None.
-        if top_cand.rights_status != RightsStatus.RIGHTS_VERIFIED:
+        # STRICT PRODUCTION CLEARANCE GATE:
+        # Autonomous production requires BOTH artist license verified AND commercial clearance cleared.
+        if (top_cand.commercial_clearance != CommercialClearanceStatus.COMMERCIAL_PRODUCTION_CLEARED or
+            top_cand.artist_license_status != ArtistLicenseStatus.ARTIST_LICENSE_VERIFIED):
             logger.info(
-                f"[FanArtEngine] Candidate {top_cand.candidate_id} has rights_status '{top_cand.rights_status.value}'. "
+                f"[FanArtEngine] Candidate {top_cand.candidate_id} is not production-cleared "
+                f"(artist: {top_cand.artist_license_status.value}, clearance: {top_cand.commercial_clearance.value}). "
                 "Quarantined from autonomous production. Human review required."
             )
             return None
@@ -804,6 +820,8 @@ class FanArtRetrievalEngine:
             creator=top_cand.creator or "Verified Illustrator",
             license=top_cand.license_name,
             license_url=top_cand.license_url,
+            artist_license_status=top_cand.artist_license_status,
+            commercial_clearance=top_cand.commercial_clearance,
             rights_status=top_cand.rights_status,
             approval_status=ApprovalStatus.APPROVED,
             retrieved_at=datetime.now(timezone.utc).isoformat(),
@@ -822,7 +840,172 @@ class FanArtRetrievalEngine:
         )
 
     # --------------------------------------------------------------------------
-    # 6. ARTWORK-TO-VIDEO PRESENTATION FORMATTER
+    # 6. CONTROLLED REAL DISCOVERY DRY RUN (SECTION 3 & 4 REQUIREMENTS)
+    # --------------------------------------------------------------------------
+    def run_controlled_discovery_test(
+        self,
+        targets: Optional[List[Dict[str, Any]]] = None
+    ) -> Dict[str, Any]:
+        """
+        Executes a controlled discovery-only dry run on targeted novel-only Harry Potter scenes.
+        Does NOT trigger video production, YouTube activity, or buffer refill.
+        Enforces a maximum of 10 downloaded assets total across the dry run.
+        """
+        if targets is None:
+            targets = [
+                {
+                    "target_id": "target_peeves",
+                    "scene": "Peeves Great Hall Chaos",
+                    "narration_text": "Peeves the Poltergeist swooped through the Great Hall, dropping water balloons onto screaming students.",
+                    "characters": ["Peeves"],
+                    "action": "chaos dropping water balloons",
+                    "objects": ["water balloons", "goblets"],
+                    "location": "Great Hall",
+                    "book_number": 1,
+                    "chapter_number": 7
+                },
+                {
+                    "target_id": "target_neville_sorting",
+                    "scene": "Neville Sorting Plea",
+                    "narration_text": "Young Neville sat under the oversized Sorting Hat whispering desperately for Hufflepuff.",
+                    "characters": ["Neville Longbottom"],
+                    "action": "whispering desperately for Hufflepuff",
+                    "objects": ["Sorting Hat", "sorting stool"],
+                    "location": "Great Hall",
+                    "book_number": 1,
+                    "chapter_number": 7
+                },
+                {
+                    "target_id": "target_snape_riddle",
+                    "scene": "Snape Potion Riddle Chamber",
+                    "narration_text": "Seven potion bottles stood on a table flanked by roaring purple and black magical flames.",
+                    "characters": ["Hermione Granger", "Harry Potter"],
+                    "action": "solving potion riddle",
+                    "objects": ["potion bottles", "purple fire", "black fire"],
+                    "location": "Potions Chamber beneath trapdoor",
+                    "book_number": 1,
+                    "chapter_number": 16
+                },
+                {
+                    "target_id": "target_mirror_erised",
+                    "scene": "Mirror of Erised / Mary GrandPré artwork",
+                    "narration_text": "Harry gazed into the ornate golden Mirror of Erised, seeing his parents James and Lily standing behind him.",
+                    "characters": ["Harry Potter", "James Potter", "Lily Potter"],
+                    "action": "gazing into mirror seeing parents",
+                    "objects": ["Mirror of Erised", "golden frame"],
+                    "location": "Disused Classroom",
+                    "book_number": 1,
+                    "chapter_number": 12,
+                    "is_official": True
+                },
+                {
+                    "target_id": "target_neville_remembrall",
+                    "scene": "Neville Remembrall Turns Red",
+                    "narration_text": "The glass ball turns bright scarlet in Neville's hand when he forgets his robes.",
+                    "characters": ["Neville Longbottom"],
+                    "action": "Remembrall glowing red forgetting",
+                    "objects": ["Remembrall"],
+                    "location": "Great Hall",
+                    "book_number": 1,
+                    "chapter_number": 9
+                },
+                {
+                    "target_id": "target_buckbeak_execution",
+                    "scene": "Buckbeak Execution Novel Scene",
+                    "narration_text": "Buckbeak waited tethered in Hagrid's pumpkin patch as the executioner axe gleamed in the twilight.",
+                    "characters": ["Buckbeak", "Hagrid"],
+                    "action": "tethered waiting near pumpkin patch",
+                    "objects": ["executioner axe", "pumpkins"],
+                    "location": "Hagrid's Hut pumpkin patch",
+                    "book_number": 3,
+                    "chapter_number": 16
+                }
+            ]
+
+        results = {
+            "total_targets_searched": len(targets),
+            "candidates_discovered": 0,
+            "downloaded": 0,
+            "quarantined": 0,
+            "rejected": 0,
+            "production_cleared": 0,
+            "review_required": 0,
+            "target_evaluations": []
+        }
+
+        download_count = 0
+
+        for t in targets:
+            queries = self.generate_targeted_queries(t)
+            target_eval = {
+                "scene": t["scene"],
+                "queries_generated": queries,
+                "candidates": []
+            }
+
+            discovered_for_target: List[ArtworkCandidate] = []
+            for provider in self.providers:
+                try:
+                    cands = provider.search_candidates(queries, t, limit=3)
+                    discovered_for_target.extend(cands)
+                except Exception as e:
+                    logger.debug(f"Provider {provider.provider_name} failed: {e}")
+
+            for cand in discovered_for_target:
+                results["candidates_discovered"] += 1
+                art_st, comm_st, rights_st, app_st, reason = self.evaluate_rights_status(cand)
+                cand.artist_license_status = art_st
+                cand.commercial_clearance = comm_st
+                cand.rights_status = rights_st
+                cand.approval_status = app_st
+
+                score = self.score_artwork_candidate(cand, t)
+
+                if rights_st == RightsStatus.RIGHTS_REJECTED:
+                    results["rejected"] += 1
+                    status_label = "REJECTED"
+                elif comm_st == CommercialClearanceStatus.COMMERCIAL_PRODUCTION_CLEARED and art_st == ArtistLicenseStatus.ARTIST_LICENSE_VERIFIED:
+                    results["production_cleared"] += 1
+                    status_label = "PRODUCTION_CLEARED"
+                else:
+                    results["review_required"] += 1
+                    status_label = "REVIEW_REQUIRED (QUARANTINED)"
+
+                cand_record = {
+                    "candidate_id": cand.candidate_id,
+                    "title": cand.title,
+                    "source_provider": cand.source_provider,
+                    "source_url": cand.source_url,
+                    "creator": cand.creator,
+                    "license_name": cand.license_name,
+                    "artist_license_status": art_st.value,
+                    "commercial_clearance": comm_st.value,
+                    "rights_status": rights_st.value,
+                    "approval_status": app_st.value,
+                    "semantic_score": score,
+                    "reason": reason,
+                    "local_path": cand.file_path
+                }
+
+                # Safe download simulation / execution (within limit)
+                if cand.original_url and not cand.file_path and download_count < MAX_CONTROLLED_DOWNLOADS:
+                    if rights_st != RightsStatus.RIGHTS_REJECTED and score >= MIN_SEMANTIC_MATCH_SCORE:
+                        dl_path = self.download_and_validate_artwork(cand)
+                        if dl_path:
+                            download_count += 1
+                            cand_record["downloaded_path"] = str(dl_path)
+                            if app_st == ApprovalStatus.QUARANTINED:
+                                results["quarantined"] += 1
+
+                target_eval["candidates"].append(cand_record)
+
+            results["target_evaluations"].append(target_eval)
+
+        results["downloaded"] = download_count
+        return results
+
+    # --------------------------------------------------------------------------
+    # 7. ARTWORK-TO-VIDEO PRESENTATION FORMATTER
     # --------------------------------------------------------------------------
     @staticmethod
     def compute_image_hash(image_path: Path) -> str:
@@ -843,14 +1026,7 @@ class FanArtRetrievalEngine:
     ) -> Path:
         """
         Converts a still artwork image into an audio-muted (-an) 1080x1920 30 FPS MP4 clip.
-
-        Natural Presentation Invariants:
-        - NO aggressive zoom/cropping: The full artwork subject must remain visible.
-        - Uses classic broadcast vertical layout:
-          Blurred, darkened ambient background scaled to fill 1080x1920,
-          overlaid with the sharp, correctly proportioned original artwork centered.
-        - Strict audio muting: 0 audio streams guaranteed.
-        - 30 FPS, H.264 video.
+        Preserves aspect ratio over blurred, darkened ambient background.
         """
         output_clip_path.parent.mkdir(parents=True, exist_ok=True)
         img_str = str(artwork_image_path.resolve()).replace("\\", "/")
@@ -883,7 +1059,6 @@ class FanArtRetrievalEngine:
         if res.returncode != 0:
             raise RuntimeError(f"FFmpeg artwork formatting failed: {res.stderr[-300:]}")
 
-        # Probe output clip to verify invariants: single video stream, 0 audio streams, 1080x1920
         probe_cmd = [
             "ffprobe", "-v", "error",
             "-show_entries", "stream=codec_type,width,height",
