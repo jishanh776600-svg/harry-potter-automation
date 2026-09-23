@@ -356,14 +356,22 @@ def run_production():
 
     candidate_id = "hps_disc_neville_sorting_hat_hufflepuff_b1"
     output_mp4 = RENDERS_DIR / f"{candidate_id}.mp4"
+    narration_wav = DATA_DIR / "voice" / f"narration_{candidate_id}.wav"
     output_master_wav = DATA_DIR / "voice" / f"master_{candidate_id}.wav"
     output_ass = DATA_DIR / "captions" / f"{candidate_id}.ass"
+    words_json_path = DATA_DIR / "captions" / f"{candidate_id}_words.json"
     CLIPS_DIR = DATA_DIR / "clips" / candidate_id
     CLIPS_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Clean out old clips and stale render so everything is freshly generated
+    # Clean out old clips, audio, words, and stale render so everything is freshly generated
     if output_mp4.exists():
         output_mp4.unlink(missing_ok=True)
+    if narration_wav.exists():
+        narration_wav.unlink(missing_ok=True)
+    if words_json_path.exists():
+        words_json_path.unlink(missing_ok=True)
+    if output_ass.exists():
+        output_ass.unlink(missing_ok=True)
     for stale_clip in CLIPS_DIR.glob("*.mp4"):
         stale_clip.unlink(missing_ok=True)
 
@@ -396,7 +404,6 @@ def run_production():
     # 3. Audio Narration Synthesis (Bella, Kokoro ONNX)
     print("\n--- Step 1 & Audio: Narration Track ---")
     tts_engine = TTSEngine()
-    narration_wav = DATA_DIR / "voice" / f"narration_{candidate_id}.wav"
     if narration_wav.exists() and narration_wav.stat().st_size > 50_000:
         p_res = subprocess.run([
             "ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(narration_wav)
@@ -778,6 +785,11 @@ def run_production():
             if r.status != QACheckStatus.PASS:
                 print(f"  • {r.name}: {r.diagnostic_message}")
         sys.exit(1)
+
+    assert media_audio_report.overall_audio_valid, "CRITICAL: Final Media Audio Verifier failed!"
+    assert media_visual_report.overall_visual_valid, "CRITICAL: Final Media Visual Verifier failed!"
+    assert media_audio_report.sfx_detected_count == media_audio_report.sfx_expected_count, f"CRITICAL: SFX count mismatch: {media_audio_report.sfx_detected_count}/{media_audio_report.sfx_expected_count}"
+    assert passed_checks_count == 10, f"CRITICAL: Expected 10/10 QA checks, passed {passed_checks_count}/10!"
 
     # 13. Deposit into Google Drive 01_READY
     print("\n--- Google Drive Deposit: 01_READY ---")
