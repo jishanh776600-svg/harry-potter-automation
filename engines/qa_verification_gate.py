@@ -59,6 +59,15 @@ from core.qa_types import (
     QACheckResult,
     QAPackageReport,
 )
+from engines.final_media_audio_verifier import (
+    FinalMediaAudioVerifier,
+    MediaAudioVerificationReport,
+    SFXCueVerificationResult,
+)
+from engines.final_media_visual_verifier import (
+    FinalMediaVisualVerifier,
+    MediaVisualVerificationReport,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -96,6 +105,8 @@ class QAVerificationGate:
         audio_metrics: Optional[Dict[str, Any]] = None,
         rendered_video_path: Optional[str] = None,
         candidate_type: str = "deep_discovery",
+        final_media_audio_report: Optional[MediaAudioVerificationReport] = None,
+        final_media_visual_report: Optional[MediaVisualVerificationReport] = None,
     ) -> QAPackageReport:
         """
         Executes all 10 QA verification checks against the candidate package.
@@ -110,6 +121,22 @@ class QAVerificationGate:
             or (hasattr(story_plan, "discovery_tier") and str(story_plan.discovery_tier).upper() in ("NOVEL_STORY", "NOVEL_STORY_CANDIDATE"))
         )
         resolved_tier = "novel_story" if is_novel_story else "deep_discovery"
+
+        # Automatic final media verification when rendered_video_path exists
+        if rendered_video_path and Path(rendered_video_path).exists():
+            media_p = Path(rendered_video_path)
+            if final_media_audio_report is None:
+                expected_cues = [c.to_dict() for c in sfx_plan.cues] if sfx_plan else []
+                final_media_audio_report = FinalMediaAudioVerifier().verify_final_media_audio(
+                    media_path=media_p,
+                    expected_bgm=True,
+                    expected_sfx_cues=expected_cues,
+                )
+            if final_media_visual_report is None:
+                final_media_visual_report = FinalMediaVisualVerifier().verify_final_media_visual(
+                    media_path=media_p,
+                    editorial_timeline=editorial_timeline,
+                )
 
         # CHECK 1: DURATION
         checks.append(self._check_01_duration(editorial_timeline, resolved_tier))
@@ -126,11 +153,11 @@ class QAVerificationGate:
         # CHECK 5: CAPTION SAFE ZONE
         checks.append(self._check_05_caption_safe_zone(editorial_timeline, resolved_tier))
 
-        # CHECK 6: AUDIO LOUDNESS / PEAK
-        checks.append(self._check_06_audio_loudness_peak(audio_metrics))
+        # CHECK 6: AUDIO LOUDNESS / PEAK & FINAL MEDIA AUDIO PRESENCE
+        checks.append(self._check_06_audio_loudness_peak(audio_metrics, final_media_audio_report))
 
-        # CHECK 7: VISUAL INTEGRITY
-        checks.append(self._check_07_visual_integrity(editorial_timeline, preprocessed_assets, rendered_video_path))
+        # CHECK 7: VISUAL INTEGRITY & FINAL MEDIA VISUAL INTEGRITY
+        checks.append(self._check_07_visual_integrity(editorial_timeline, preprocessed_assets, rendered_video_path, final_media_visual_report))
 
         # CHECK 8: VISUAL REPETITION
         checks.append(self._check_08_visual_repetition(editorial_timeline))
@@ -499,22 +526,93 @@ class QAVerificationGate:
         )
 
     # --------------------------------------------------------------------------
-    # CHECK 6: AUDIO LOUDNESS / PEAK
+    # CHECK 6: AUDIO LOUDNESS / PEAK & FINAL MEDIA AUDIO PRESENCE
     # --------------------------------------------------------------------------
-    def _check_06_audio_loudness_peak(self, metrics: Optional[Dict[str, Any]]) -> QACheckResult:
-        if not metrics or metrics.get("integrated_lufs") is None:
-            return QACheckResult(
-                check_id="check_06_audio_loudness_peak",
-                name="Audio Master Loudness & True Peak",
-                status=QACheckStatus.NOT_APPLICABLE,
-                severity=QASeverity.PASS,
-                measured_value="None (Downstream assembly pending)",
-                expected_value_range="-12.5 to -13.5 LUFS, peak <= -0.1 dBTP",
-                diagnostic_message="Final master audio not yet integrated; loudness audit deferred to final assembly.",
-            )
+    def _check_06_audio_loudness_peak(
+        self,
+        metrics: Optional[Dict[str, Any]],
+        media_audio_report: Optional[MediaAudioVerificationReport] = None,
+    ) -> QACheckResult:
+        # Final-media audio verification if report is provided (PART J, K, L)
+        if media_audio_report:
+            if media_audio_report.is_silent:
+                return QACheckResult(
+                    check_id="check_06_audio_loudness_peak",
+                    name="Audio Master Loudness & True Peak",
+                    status=QACheckStatus.FAIL,
+                    severity=QASeverity.BLOCKER,
+                    measured_value="SILENT_AUDIO_STREAM",
+                    expected_value_range="Active broadcast audio stream",
+                    diagnostic_message="Critical audio failure: Final rendered MP4 audio track is completely silent or missing.",
+                    remediation_suggestion="Inspect audio mixing pipeline and ensure audio muxing is active.",
+                )
 
-        lufs = float(metrics.get("integrated_lufs", -99.0))
-        peak = float(metrics.get("true_peak_dbtp", 0.0))
+            if media_audio_report.bgm_expected and not media_audio_report.bgm_detected:
+                return QACheckResult(
+                    check_id="check_06_audio_loudness_peak",
+                    name="Audio Master Loudness & True Peak",
+                    status=QACheckStatus.FAIL,
+                    severity=QASeverity.ERROR,
+                    measured_value=f"BGM: {media_audio_report.bgm_energy_dbfs:.1f} dBFS (INADMISSIBLE / SILENT)",
+                    expected_value_range="Audible BGM present",
+                    diagnostic_message="Planned BGM is missing or effectively silent in final rendered MP4 media.",
+                    remediation_suggestion="Remix soundtrack ensuring BGM is not suppressed by excessive attenuation or amix weighting.",
+                )
+
+            if media_audio_report.sfx_expected_count > 0 and not media_audio_report.all_expected_sfx_detected:
+                missing_cues = [r.category for r in media_audio_report.sfx_cue_results if not r.is_detected]
+                return QACheckResult(
+                    check_id="check_06_audio_loudness_peak",
+                    name="Audio Master Loudness & True Peak",
+                    status=QACheckStatus.FAIL,
+                    severity=QASeverity.ERROR,
+                    measured_value=f"SFX Detected: {media_audio_report.sfx_detected_count}/{media_audio_report.sfx_expected_count}",
+                    expected_value_range="100% planned SFX audible in final MP4",
+                    diagnostic_message=f"Planned SFX cues missing from final rendered MP4 media: {missing_cues}.",
+                    remediation_suggestion="Inspect SFX mix chains and ensure cue gains provide measurable transient energy.",
+                )
+
+            if not media_audio_report.voice_dominant:
+                return QACheckResult(
+                    check_id="check_06_audio_loudness_peak",
+                    name="Audio Master Loudness & True Peak",
+                    status=QACheckStatus.FAIL,
+                    severity=QASeverity.ERROR,
+                    measured_value="Voice not dominant",
+                    expected_value_range="Voice dominance >= +4dB over background",
+                    diagnostic_message="Voice narration is not dominant in final rendered media.",
+                    remediation_suggestion="Duck background tracks or increase voice gain.",
+                )
+
+            if not media_audio_report.audio_covers_video:
+                return QACheckResult(
+                    check_id="check_06_audio_loudness_peak",
+                    name="Audio Master Loudness & True Peak",
+                    status=QACheckStatus.FAIL,
+                    severity=QASeverity.ERROR,
+                    measured_value=f"Audio {media_audio_report.audio_duration:.2f}s vs Video {media_audio_report.video_duration:.2f}s",
+                    expected_value_range="Duration match within 0.5s",
+                    diagnostic_message="Audio stream does not cover entire video duration in final media.",
+                    remediation_suggestion="Align audio loop/padding to video duration.",
+                )
+
+        if not metrics or metrics.get("integrated_lufs") is None:
+            if media_audio_report and media_audio_report.integrated_lufs > -90.0:
+                lufs = media_audio_report.integrated_lufs
+                peak = media_audio_report.true_peak_dbtp
+            else:
+                return QACheckResult(
+                    check_id="check_06_audio_loudness_peak",
+                    name="Audio Master Loudness & True Peak",
+                    status=QACheckStatus.NOT_APPLICABLE,
+                    severity=QASeverity.PASS,
+                    measured_value="None (Downstream assembly pending)",
+                    expected_value_range="-12.5 to -13.5 LUFS, peak <= -0.1 dBTP",
+                    diagnostic_message="Final master audio not yet integrated; loudness audit deferred to final assembly.",
+                )
+        else:
+            lufs = float(metrics.get("integrated_lufs", -99.0))
+            peak = float(metrics.get("true_peak_dbtp", 0.0))
 
         # Check true peak clipping
         if peak > -0.1:
@@ -553,13 +651,14 @@ class QAVerificationGate:
         )
 
     # --------------------------------------------------------------------------
-    # CHECK 7: VISUAL INTEGRITY
+    # CHECK 7: VISUAL INTEGRITY & FINAL MEDIA VISUAL INTEGRITY
     # --------------------------------------------------------------------------
     def _check_07_visual_integrity(
         self,
         timeline: EditorialTimeline,
         assets: Optional[List[PreprocessedVisualAsset]],
         rendered_video_path: Optional[str],
+        media_visual_report: Optional[MediaVisualVerificationReport] = None,
     ) -> QACheckResult:
         # Check frame timeline continuity
         expected_f = 0
@@ -599,7 +698,65 @@ class QAVerificationGate:
                     measured_value=f"{clip.clip_id}: NO_VALID_VISUAL",
                     expected_value_range="All clips VALID",
                     diagnostic_message=f"Clip {clip.clip_id} references unresolvable or missing visual media.",
-                    remediation_suggestion="Replace missing asset with canonical preprocessed intermediate.",
+                    remediation_suggestion="Supply canonical movie or cleared artwork asset to satisfy beat contract.",
+                )
+            if clip.validation_status in ("SEVERE_CROP", "UNSAFE_FRAMING"):
+                return QACheckResult(
+                    check_id="check_07_visual_integrity",
+                    name="Visual Integrity & Continuity",
+                    status=QACheckStatus.FAIL,
+                    severity=QASeverity.ERROR,
+                    measured_value=f"{clip.clip_id}: {clip.validation_status}",
+                    expected_value_range="All clips safe 9:16 composition",
+                    diagnostic_message=f"Clip {clip.clip_id} rejected due to severe crop or unsafe framing.",
+                    remediation_suggestion="Select wider framing or re-evaluate 9:16 crop window.",
+                )
+
+        # Final Media Visual Verification (PART M, N)
+        if media_visual_report:
+            if media_visual_report.black_frames_detected > 0:
+                return QACheckResult(
+                    check_id="check_07_visual_integrity",
+                    name="Visual Integrity & Continuity",
+                    status=QACheckStatus.FAIL,
+                    severity=QASeverity.BLOCKER,
+                    measured_value=f"Black frames detected ({media_visual_report.black_frames_detected} segments)",
+                    expected_value_range="Zero black frames",
+                    diagnostic_message="Rendered video stream contains black or missing frames.",
+                    remediation_suggestion="Inspect render concatenation and source clip validity.",
+                )
+            if media_visual_report.frozen_frames_detected > 0:
+                return QACheckResult(
+                    check_id="check_07_visual_integrity",
+                    name="Visual Integrity & Continuity",
+                    status=QACheckStatus.FAIL,
+                    severity=QASeverity.BLOCKER,
+                    measured_value=f"Frozen frames detected ({media_visual_report.frozen_frames_detected} segments)",
+                    expected_value_range="Zero frozen video segments",
+                    diagnostic_message="Rendered video stream contains prolonged frozen/stuck frames (>2.0s).",
+                    remediation_suggestion="Inspect source footage for frozen video stream.",
+                )
+            if not media_visual_report.aspect_ratio_correct:
+                return QACheckResult(
+                    check_id="check_07_visual_integrity",
+                    name="Visual Integrity & Continuity",
+                    status=QACheckStatus.FAIL,
+                    severity=QASeverity.ERROR,
+                    measured_value=f"Resolution: {media_visual_report.dimension}",
+                    expected_value_range="1080x1920 (9:16)",
+                    diagnostic_message=f"Rendered video does not conform to required 1080x1920 9:16 resolution.",
+                    remediation_suggestion="Re-render targeting 1080x1920.",
+                )
+            if media_visual_report.severe_crop_detected:
+                return QACheckResult(
+                    check_id="check_07_visual_integrity",
+                    name="Visual Integrity & Continuity",
+                    status=QACheckStatus.FAIL,
+                    severity=QASeverity.ERROR,
+                    measured_value="Severe crop detected in final media",
+                    expected_value_range="Zero severe crop",
+                    diagnostic_message="Representative frames exhibit severe subject cutoff or facial distortion.",
+                    remediation_suggestion="Replace excessively tight shots with natural medium framing.",
                 )
 
         return QACheckResult(
@@ -698,6 +855,22 @@ class QAVerificationGate:
                 diagnostic_message=f"Unsupported factual claim: '{unverified_claims[0]}' lacks verified source provenance.",
                 remediation_suggestion="Cite exact novel chapter/chunk or film timestamp in EvidencePoint.",
             )
+
+        # Check visual-beat semantic linkage if storyboard beats contain semantic mismatch errors
+        if storyboard:
+            for beat in storyboard.beats:
+                notes = getattr(beat, "adaptation_notes", "") or ""
+                if "SEMANTIC_MISMATCH" in notes or "UNRELATED_VISUAL" in notes:
+                    return QACheckResult(
+                        check_id="check_09_evidence_linkage",
+                        name="Factual Evidence & Canon Provenance",
+                        status=QACheckStatus.FAIL,
+                        severity=QASeverity.ERROR,
+                        measured_value=f"Beat {beat.beat_id}: SEMANTIC_MISMATCH",
+                        expected_value_range="100% canon grounding and visual relevance",
+                        diagnostic_message=f"Visual-beat semantic mismatch: candidate footage fails character/scene requirements for beat '{beat.beat_id}'.",
+                        remediation_suggestion="Select canonical footage matching narration character and scene requirements.",
+                    )
 
         return QACheckResult(
             check_id="check_09_evidence_linkage",
