@@ -67,7 +67,7 @@ from engines.qa_verification_gate import QAVerificationGate
 from engines.tts_engine import TTSEngine
 from engines.caption_engine import CaptionEngine
 from engines.drive_engine import DriveVaultEngine
-from engines.movie_retrieval_engine import ShotScale
+from core.composition_models import ShotScale
 from engines.final_media_audio_verifier import FinalMediaAudioVerifier
 from engines.final_media_visual_verifier import FinalMediaVisualVerifier
 
