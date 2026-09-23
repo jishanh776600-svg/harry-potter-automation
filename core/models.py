@@ -851,6 +851,7 @@ class DiscoveryCandidate(Base):
     curiosity_factor = Column(Float, default=0.0, nullable=True)
     visual_feasibility_score = Column(Float, default=0.0, nullable=True)
     routing_decision = Column(String(32), default="DEEP_DISCOVERY", nullable=True)
+    storyboard_plan_json = Column(Text, nullable=True)
 
     # Candidate Status
     status = Column(String(32), default="ELIGIBLE", nullable=False, index=True)
@@ -908,6 +909,7 @@ class HarryPotterScript(Base):
     insider_epiphany = Column(Text, nullable=True)
     title_pattern = Column(String(64), nullable=True)
     suggested_title = Column(String(255), nullable=True)
+    storyboard_plan_json = Column(Text, nullable=True)
 
     # Production Metadata & Style
     part_marker = Column(String(32), nullable=True)  # e.g. "PART 01" (VISUAL ONLY, never spoken)
@@ -1103,6 +1105,7 @@ def migrate_discovery_schema(db_path: Optional[Any] = None) -> None:
         "curiosity_factor": "REAL DEFAULT 0.0",
         "visual_feasibility_score": "REAL DEFAULT 0.0",
         "routing_decision": "TEXT DEFAULT 'DEEP_DISCOVERY'",
+        "storyboard_plan_json": "TEXT",
     }
 
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='discovery_candidates'")
@@ -1123,6 +1126,7 @@ def migrate_discovery_schema(db_path: Optional[Any] = None) -> None:
         "insider_epiphany": "TEXT",
         "title_pattern": "TEXT",
         "suggested_title": "TEXT",
+        "storyboard_plan_json": "TEXT",
     }
 
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='hp_scripts'")
