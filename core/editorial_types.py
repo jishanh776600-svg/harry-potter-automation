@@ -201,9 +201,9 @@ class EditorialTimeline:
             "metadata": self.metadata,
         }
 
-    def to_remotion_props(self) -> Dict[str, Any]:
+    def to_remotion_props(self, sfx_plan: Optional[Any] = None) -> Dict[str, Any]:
         """Formats the timeline into the exact JSON props consumed by Remotion Root component."""
-        return {
+        props = {
             "compositionId": self.composition_id,
             "width": self.width,
             "height": self.height,
@@ -246,6 +246,10 @@ class EditorialTimeline:
             "typography": self.typography_config.to_dict(),
             "fingerprint": self.deterministic_fingerprint,
         }
+        if sfx_plan is not None:
+            props["sfxCues"] = sfx_plan.to_remotion_props() if hasattr(sfx_plan, "to_remotion_props") else []
+            props["sfxFingerprint"] = getattr(sfx_plan, "sfx_fingerprint", "")
+        return props
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "EditorialTimeline":

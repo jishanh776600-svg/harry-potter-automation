@@ -65,6 +65,26 @@ export interface TypographyConfig {
   emphasis_color: string;
 }
 
+export interface SFXCueProps {
+  cueId: string;
+  sourceSfxId: string;
+  beatId: string;
+  startTime: number;
+  startFrame: number;
+  duration: number;
+  durationFrames: number;
+  category: string;
+  intensity: number;
+  gainDb: number;
+  volumeLinear: number;
+  fadeInSec: number;
+  fadeOutSec: number;
+  semanticReason: string;
+  editorialRole: string;
+  confidence: number;
+  filePath: string;
+}
+
 export interface DeepDiscoveryProps {
   compositionId: string;
   width: number;
@@ -74,4 +94,6 @@ export interface DeepDiscoveryProps {
   clips: EditorialClipProps[];
   typography: TypographyConfig;
   fingerprint: string;
+  sfxCues?: SFXCueProps[];
+  sfxFingerprint?: string;
 }
