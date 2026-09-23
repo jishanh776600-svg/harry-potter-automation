@@ -1,0 +1,23 @@
+{
+  "name": "story-forge-remotion-editorial",
+  "version": "3.0.0",
+  "description": "STORY FORGE Remotion Editorial & Kinetic Typography Engine (Step 4)",
+  "private": true,
+  "scripts": {
+    "start": "remotion preview src/index.ts",
+    "build": "remotion render src/index.ts DeepDiscoveryShort out/video.mp4",
+    "test": "echo \"Step 4 Remotion configuration valid\""
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.200",
+    "@remotion/transitions": "^4.0.200",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.200"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "typescript": "^5.4.5"
+  }
+}

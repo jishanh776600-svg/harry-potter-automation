@@ -1,0 +1,70 @@
+/**
+ * STORY FORGE Kinetic Typography Styling (Step 4)
+ * ============================================================================
+ * Canonical Harry Potter serif typography:
+ * - White text
+ * - Heavy black outline (4.5px)
+ * - Lower-middle safe reading area
+ * - Subtle gold emphasis for canon keywords
+ */
+
+@font-face {
+  font-family: 'Harry P';
+  src: url('/assets/fonts/HarryP.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.hp-caption-container {
+  position: absolute;
+  left: 80px;
+  right: 80px;
+  top: 1400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.hp-caption-phrase {
+  font-family: 'Harry P', Georgia, 'Times New Roman', serif;
+  font-size: 84px;
+  line-height: 1.15;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  /* Heavy black outline for maximum readability over movie footage */
+  -webkit-text-stroke: 4.5px #000000;
+  paint-order: stroke fill;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.9);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+}
+
+.hp-caption-word {
+  display: inline-block;
+  transition: transform 0.1s ease-out;
+}
+
+.hp-word-emphasized {
+  color: #ffd700 !important; /* Canon gold accent */
+  transform: scale(1.05);
+  -webkit-text-stroke: 4.8px #000000;
+}
+
+.hp-safe-zone-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1080px;
+  height: 1920px;
+  box-sizing: border-box;
+  border: 4px dashed rgba(255, 255, 255, 0.2);
+  pointer-events: none;
+  z-index: 200;
+}
