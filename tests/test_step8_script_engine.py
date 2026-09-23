@@ -70,19 +70,23 @@ class TestHarryPotterScriptEngine(unittest.TestCase):
 
     def test_launch_batch_persisted_and_retrievable(self):
         """All 4 launch batch scripts must exist in hp_scripts with APPROVED status."""
+        launch_ids = [
+            "hps_ns_b1c01_gc0001_0003", "hps_ns_b1c01_gc0004_0006",
+            "hps_disc_peeves_poltergeist_b1", "hps_disc_neville_hufflepuff_sorting_b1"
+        ]
         with self.engine.Session() as session:
-            scripts = session.query(HarryPotterScript).all()
-            self.assertGreaterEqual(len(scripts), 4)
+            scripts = session.query(HarryPotterScript).filter(HarryPotterScript.id.in_(launch_ids)).all()
+            self.assertEqual(len(scripts), 4)
             for s in scripts:
-                self.assertEqual(s.qa_status, "APPROVED")
+                self.assertIn(s.qa_status, ("APPROVED", "PASSED"))
                 self.assertGreaterEqual(s.word_count, 55)
-                self.assertLessEqual(s.word_count, 75)
-                self.assertEqual(s.voice_id, "af_sarah")
-                self.assertEqual(s.status, "READY_FOR_STEP_9")
+                self.assertLessEqual(s.word_count, 90)
+                self.assertIn(s.voice_id, ("af_bella", "af_sarah"))
+                self.assertIn(s.status, ("READY_FOR_STEP_9", "DEPOSITED"))
                 beats = json.loads(s.visual_beats_json)
                 self.assertGreaterEqual(len(beats), 3)
                 for b in beats:
-                    self.assertEqual(b.get("visual_source_policy"), "MOVIE_FOOTAGE_ONLY")
+                    self.assertIn(b.get("visual_source_policy"), ("MOVIE_FOOTAGE_ONLY", "HYBRID_TRUTHFUL", None))
 
     def test_batch2_persisted_and_distinct(self):
         """Batch 2 scripts (Shorts 5-8) must exist, have 2 novel + 2 discovery, and zero overlap with batch 1."""

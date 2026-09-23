@@ -31,10 +31,16 @@ from sqlalchemy.orm import sessionmaker
 
 from config.settings import PROJECT_ROOT, DB_PATH, get_content_mix_allocation
 from core.models import (
-    Base, ChronologyState, NovStoryCandidate, DiscoveryCandidate
+    Base, ChronologyState, NovStoryCandidate, DiscoveryCandidate,
+    migrate_discovery_schema
+)
+from core.discovery_types import (
+    DiscoveryTier, DiscoveryStoryStructure, HookArchetype, EvidenceRoute,
+    PayoffType, TitlePattern, EvidencePoint
 )
 from engines.novel_knowledge_engine import NovelKnowledgeEngine
 from engines.movie_asset_engine import MovieAssetEngine
+from engines.discovery_narrative_engine import DiscoveryNarrativeEngine
 
 logger = logging.getLogger(__name__)
 
@@ -191,9 +197,10 @@ class ContentPlannerEngine:
     """
 
     def __init__(self):
-        # Initialize DB tables
+        # Initialize DB tables & migrate discovery schema
         engine = create_engine(f"sqlite:///{DB_PATH}")
         Base.metadata.create_all(engine)
+        migrate_discovery_schema(DB_PATH)
         self.Session = sessionmaker(bind=engine)
         self.novel_engine = NovelKnowledgeEngine()
         self.movie_engine = MovieAssetEngine()
@@ -783,6 +790,60 @@ class ContentPlannerEngine:
                 book_title = best_novel.get("book_title", f"Book {book_num}")
                 chapter_title = best_novel.get("chapter_title", f"Chapter {chap_num}")
 
+                # Build verified evidence points via tri-partite routing
+                evidence_points = [
+                    DiscoveryNarrativeEngine.route_evidence(
+                        claim=seed.get("novel_fact_summary", seed["title"]),
+                        source_type="NOVEL",
+                        source_id=best_novel["chunk_id"],
+                        source_excerpt=best_novel["text"][:600],
+                        notes="Primary novel canon grounding"
+                    )
+                ]
+                if movie_hit:
+                    evidence_points.append(
+                        DiscoveryNarrativeEngine.route_evidence(
+                            claim=seed.get("movie_omits", f"Movie shows: {movie_hit['text'][:100]}"),
+                            source_type="MOVIE",
+                            source_id=movie_hit["chunk_id"],
+                            source_excerpt=movie_hit["text"][:300],
+                            notes="Movie comparison grounding"
+                        )
+                    )
+                elif seed.get("movie_omits"):
+                    evidence_points.append(
+                        DiscoveryNarrativeEngine.route_evidence(
+                            claim=seed["movie_omits"],
+                            source_type="MOVIE",
+                            source_id=f"movie_{seed['preferred_book']}_omission",
+                            source_excerpt=seed["movie_omits"],
+                            notes="Movie omission reference"
+                        )
+                    )
+
+                # Calculate topic scoring & narrative plan
+                canon_depth_score = 90.0 if best_novel else 45.0
+                movie_contrast_score = 85.0 if (movie_hit or seed.get("movie_omits")) else 30.0
+                curiosity_score = 85.0
+                visual_feas_score = 85.0 if overall_vf == VF_DIRECT_MATCH else (70.0 if overall_vf == VF_STRONG_CONTEXTUAL else 50.0)
+
+                story_plan = DiscoveryNarrativeEngine.build_deep_discovery_plan(
+                    topic_id=candidate_id,
+                    discovery_type=seed["discovery_type"],
+                    thesis=seed.get("novel_fact_summary", seed["title"]),
+                    evidence_points=evidence_points,
+                    insider_epiphany=seed.get("why_interesting", "Reveals crucial character depth missed by movie viewers."),
+                    payoff_type=PayoffType.BOOK_MOVIE_REALIZATION,
+                    payoff_text=seed.get("why_interesting", ""),
+                    canon_depth=canon_depth_score,
+                    movie_contrast=movie_contrast_score,
+                    curiosity_factor=curiosity_score,
+                    visual_feasibility=visual_feas_score,
+                    topic_context=seed,
+                    title_pattern=TitlePattern.BOOK_VS_MOVIE,
+                    tier=DiscoveryTier.DEEP_DISCOVERY,
+                )
+
                 candidate = DiscoveryCandidate(
                     id=candidate_id,
                     discovery_type=seed["discovery_type"],
@@ -804,6 +865,28 @@ class ContentPlannerEngine:
                     short_duration_feasibility="FEASIBLE",
                     visual_beats_json=json.dumps(enriched_beats),
                     overall_visual_feasibility=overall_vf,
+                    # Deep Discovery Narrative Schemas (Step 1)
+                    discovery_tier=story_plan.discovery_tier.value,
+                    story_structure=story_plan.story_structure.value,
+                    hook_archetype=story_plan.hook_archetype.value,
+                    evidence_route=story_plan.evidence_route.value if hasattr(story_plan.evidence_route, 'value') else str(story_plan.evidence_route),
+                    thesis=story_plan.thesis,
+                    evidence_points_json=json.dumps([ep.to_dict() for ep in story_plan.evidence_points]),
+                    anchor_point_json=json.dumps(story_plan.anchor_point.to_dict()) if story_plan.anchor_point else None,
+                    insider_epiphany=story_plan.insider_epiphany,
+                    payoff_type=story_plan.payoff_type.value,
+                    payoff_text=story_plan.payoff_text,
+                    title_pattern=story_plan.title_pattern.value,
+                    suggested_title=story_plan.suggested_title,
+                    expected_duration=story_plan.expected_duration,
+                    target_word_count=story_plan.target_word_count,
+                    target_speech_rate=story_plan.target_speech_rate,
+                    topic_score=story_plan.topic_score,
+                    canon_depth=story_plan.canon_depth,
+                    movie_contrast=story_plan.movie_contrast,
+                    curiosity_factor=story_plan.curiosity_factor,
+                    visual_feasibility_score=story_plan.visual_feasibility,
+                    routing_decision=story_plan.routing_decision,
                     status=STATUS_ELIGIBLE,
                     content_fingerprint=fp,
                     is_launch_candidate=False,
@@ -817,6 +900,15 @@ class ContentPlannerEngine:
                     "id": candidate_id,
                     "slug": slug,
                     "discovery_type": seed["discovery_type"],
+                    "discovery_tier": story_plan.discovery_tier.value,
+                    "story_structure": story_plan.story_structure.value,
+                    "hook_archetype": story_plan.hook_archetype.value,
+                    "evidence_route": story_plan.evidence_route.value if hasattr(story_plan.evidence_route, 'value') else str(story_plan.evidence_route),
+                    "topic_score": story_plan.topic_score,
+                    "expected_duration": story_plan.expected_duration,
+                    "target_word_count": story_plan.target_word_count,
+                    "target_speech_rate": story_plan.target_speech_rate,
+                    "suggested_title": story_plan.suggested_title,
                     "book_number": book_num,
                     "book_title": book_title,
                     "chapter_number": chap_num,
@@ -839,7 +931,8 @@ class ContentPlannerEngine:
 
                 logger.info(
                     f"[DISCOVERY_PLANNER] Candidate created: {candidate_id} | "
-                    f"Type={seed['discovery_type']} | VF={overall_vf}"
+                    f"Tier={story_plan.discovery_tier.value} | "
+                    f"Score={story_plan.topic_score} | Structure={story_plan.story_structure.value}"
                 )
 
             session.commit()

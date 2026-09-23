@@ -6,7 +6,7 @@ from sqlalchemy import (
     Column, String, Integer, Float, Boolean, DateTime, Text, ForeignKey
 )
 from sqlalchemy.orm import declarative_base, relationship
-from typing import Optional
+from typing import Optional, Any, Union
 from config.constants import JobState, HistoricalCategory, LicenseType
 
 Base = declarative_base()
@@ -829,6 +829,29 @@ class DiscoveryCandidate(Base):
     visual_beats_json = Column(Text, nullable=True)
     overall_visual_feasibility = Column(String(32), default="PENDING", nullable=False)
 
+    # Deep Discovery Narrative Architecture (Step 1)
+    discovery_tier = Column(String(32), default="DEEP_DISCOVERY", nullable=True)
+    story_structure = Column(String(64), nullable=True)
+    hook_archetype = Column(String(64), nullable=True)
+    evidence_route = Column(String(32), nullable=True)
+    thesis = Column(Text, nullable=True)
+    evidence_points_json = Column(Text, nullable=True)
+    anchor_point_json = Column(Text, nullable=True)
+    insider_epiphany = Column(Text, nullable=True)
+    payoff_type = Column(String(64), nullable=True)
+    payoff_text = Column(Text, nullable=True)
+    title_pattern = Column(String(64), nullable=True)
+    suggested_title = Column(String(255), nullable=True)
+    expected_duration = Column(Float, default=72.0, nullable=True)
+    target_word_count = Column(Integer, default=255, nullable=True)
+    target_speech_rate = Column(Float, default=3.55, nullable=True)
+    topic_score = Column(Float, default=0.0, nullable=True)
+    canon_depth = Column(Float, default=0.0, nullable=True)
+    movie_contrast = Column(Float, default=0.0, nullable=True)
+    curiosity_factor = Column(Float, default=0.0, nullable=True)
+    visual_feasibility_score = Column(Float, default=0.0, nullable=True)
+    routing_decision = Column(String(32), default="DEEP_DISCOVERY", nullable=True)
+
     # Candidate Status
     status = Column(String(32), default="ELIGIBLE", nullable=False, index=True)
 
@@ -875,6 +898,16 @@ class HarryPotterScript(Base):
     corresponding_movie_number = Column(Integer, nullable=True)
     movie_chunk_id = Column(String(64), nullable=True)
     movie_evidence_excerpt = Column(Text, nullable=True)
+
+    # Deep Discovery Narrative Schemas (Step 1)
+    discovery_tier = Column(String(32), default="DEEP_DISCOVERY", nullable=True)
+    story_structure = Column(String(64), nullable=True)
+    hook_archetype = Column(String(64), nullable=True)
+    evidence_route = Column(String(32), nullable=True)
+    thesis = Column(Text, nullable=True)
+    insider_epiphany = Column(Text, nullable=True)
+    title_pattern = Column(String(64), nullable=True)
+    suggested_title = Column(String(255), nullable=True)
 
     # Production Metadata & Style
     part_marker = Column(String(32), nullable=True)  # e.g. "PART 01" (VISUAL ONLY, never spoken)
@@ -1030,4 +1063,75 @@ class HPRender(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
 
+def migrate_discovery_schema(db_path: Optional[Any] = None) -> None:
+    """
+    Safely and idempotently adds missing Deep Discovery narrative columns
+    to existing SQLite discovery_candidates and hp_scripts tables.
+    Preserves all existing data with zero destructive mutations.
+    """
+    import sqlite3
+    from pathlib import Path
+    from config.settings import DB_PATH
+    
+    target_path = Path(db_path) if db_path else DB_PATH
+    if not target_path.exists():
+        return
 
+    conn = sqlite3.connect(str(target_path))
+    cursor = conn.cursor()
+
+    # Columns to ensure in discovery_candidates
+    cand_columns = {
+        "discovery_tier": "TEXT DEFAULT 'DEEP_DISCOVERY'",
+        "story_structure": "TEXT",
+        "hook_archetype": "TEXT",
+        "evidence_route": "TEXT",
+        "thesis": "TEXT",
+        "evidence_points_json": "TEXT",
+        "anchor_point_json": "TEXT",
+        "insider_epiphany": "TEXT",
+        "payoff_type": "TEXT",
+        "payoff_text": "TEXT",
+        "title_pattern": "TEXT",
+        "suggested_title": "TEXT",
+        "expected_duration": "REAL DEFAULT 72.0",
+        "target_word_count": "INTEGER DEFAULT 255",
+        "target_speech_rate": "REAL DEFAULT 3.55",
+        "topic_score": "REAL DEFAULT 0.0",
+        "canon_depth": "REAL DEFAULT 0.0",
+        "movie_contrast": "REAL DEFAULT 0.0",
+        "curiosity_factor": "REAL DEFAULT 0.0",
+        "visual_feasibility_score": "REAL DEFAULT 0.0",
+        "routing_decision": "TEXT DEFAULT 'DEEP_DISCOVERY'",
+    }
+
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='discovery_candidates'")
+    if cursor.fetchone():
+        cursor.execute("PRAGMA table_info(discovery_candidates)")
+        existing = {row[1] for row in cursor.fetchall()}
+        for col, col_def in cand_columns.items():
+            if col not in existing:
+                cursor.execute(f"ALTER TABLE discovery_candidates ADD COLUMN {col} {col_def}")
+
+    # Columns to ensure in hp_scripts
+    script_columns = {
+        "discovery_tier": "TEXT DEFAULT 'DEEP_DISCOVERY'",
+        "story_structure": "TEXT",
+        "hook_archetype": "TEXT",
+        "evidence_route": "TEXT",
+        "thesis": "TEXT",
+        "insider_epiphany": "TEXT",
+        "title_pattern": "TEXT",
+        "suggested_title": "TEXT",
+    }
+
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='hp_scripts'")
+    if cursor.fetchone():
+        cursor.execute("PRAGMA table_info(hp_scripts)")
+        existing = {row[1] for row in cursor.fetchall()}
+        for col, col_def in script_columns.items():
+            if col not in existing:
+                cursor.execute(f"ALTER TABLE hp_scripts ADD COLUMN {col} {col_def}")
+
+    conn.commit()
+    conn.close()

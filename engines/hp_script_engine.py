@@ -43,10 +43,15 @@ from config.settings import (
     PUBLISHING_ENABLED, UPLOAD_ENABLED
 )
 from core.models import (
-    Base, NovStoryCandidate, DiscoveryCandidate, HarryPotterScript, NovelChunk
+    Base, NovStoryCandidate, DiscoveryCandidate, HarryPotterScript, NovelChunk,
+    migrate_discovery_schema
 )
-from core.discovery_types import DiscoverySubtype, VisualClassification, DiscoveryQAResult
+from core.discovery_types import (
+    DiscoverySubtype, DiscoveryTier, DiscoveryStoryStructure, HookArchetype,
+    EvidenceRoute, PayoffType, TitlePattern, VisualClassification, DiscoveryQAResult
+)
 from core.gemini_client import get_gemini_client
+from engines.discovery_narrative_engine import DiscoveryNarrativeEngine, THROAT_CLEARING_PATTERNS
 
 logger = logging.getLogger(__name__)
 
@@ -174,6 +179,7 @@ class HarryPotterScriptEngine:
         self.db_path = db_path or DB_PATH
         engine = create_engine(f"sqlite:///{DB_PATH}")
         Base.metadata.create_all(engine)
+        migrate_discovery_schema(self.db_path)
         self.Session = sessionmaker(bind=engine, expire_on_commit=False)
         logger.info("[HP_SCRIPT_ENGINE] Initialized. DB ready at %s", DB_PATH)
 
@@ -188,11 +194,38 @@ class HarryPotterScriptEngine:
         """
         Rigorous programmatic QA gate verifying all Step 8 invariants.
         Fails closed if any rule is violated.
+        Supports DEEP_DISCOVERY (220-300 words, 65-80.9s), MICRO_DISCOVERY (55-85 words, 20-35s),
+        and strictly preserves NOVEL_STORY isolation (55-75 words, 20-32s).
         """
         words = script_text.strip().split()
         word_count = len(words)
-        # Andrew Hype: +14% speaking rate = ~2.5 words per second
-        estimated_duration = round(word_count / 2.5, 1)
+
+        c_type_upper = str(candidate_type).upper()
+        is_deep_discovery = (c_type_upper == "DEEP_DISCOVERY") or (c_type_upper == "DISCOVERY" and word_count >= 150)
+        is_micro_discovery = (c_type_upper == "MICRO_DISCOVERY")
+
+        if is_deep_discovery:
+            min_words = 220
+            max_words = 300
+            min_duration = 65.0
+            max_duration = 80.9
+            target_speech_rate = 3.55  # ~3.4 - 3.7 wps
+            estimated_duration = round(word_count / target_speech_rate, 1)
+        elif is_micro_discovery:
+            min_words = 55
+            max_words = 85
+            min_duration = 20.0
+            max_duration = 35.0
+            target_speech_rate = 2.5
+            estimated_duration = round(word_count / target_speech_rate, 1)
+        else:
+            # NOVEL_STORY and legacy defaults: strictly 55 to 75 words at ~2.5 wps
+            min_words = MIN_WORD_COUNT
+            max_words = MAX_WORD_COUNT
+            min_duration = 20.0
+            max_duration = 32.0
+            target_speech_rate = 2.5
+            estimated_duration = round(word_count / 2.5, 1)
 
         feedback = []
         cliches_detected = []
@@ -213,13 +246,24 @@ class HarryPotterScriptEngine:
                     "Narrator must NEVER speak part, chapter, book, or episode numbers."
                 )
 
-        # 2. Cliché & Generic AI Filler Check ('did you know' is allowed for discovery only)
+        # 2. Cliché & Generic AI Filler Check ('did you know' is forbidden throat-clearing in Deep Discovery)
         for cliche in FORBIDDEN_CLICHES:
-            if cliche == "did you know" and candidate_type == "discovery":
-                continue
             if cliche in text_lower:
+                if is_deep_discovery and cliche == "did you know":
+                    cliches_detected.append(cliche)
+                    feedback.append(f"FORBIDDEN THROAT-CLEARING: Detected '{cliche}'. Deep Discovery requires Frame 0 immediate narrative engagement.")
+                    continue
+                if cliche == "did you know" and not is_deep_discovery:
+                    continue
                 cliches_detected.append(cliche)
                 feedback.append(f"FORBIDDEN CLICHÉ: Detected '{cliche}'. Rephrase naturally.")
+
+        # Throat-clearing check for Deep Discovery
+        if is_deep_discovery:
+            for pattern in THROAT_CLEARING_PATTERNS:
+                if re.search(pattern, text_lower):
+                    cliches_detected.append("throat_clearing")
+                    feedback.append(f"FORBIDDEN THROAT-CLEARING: Opening contains generic pattern '{pattern}'.")
 
         # 3. Forbidden Literary / Book-Summary Language Check
         for lit_term in FORBIDDEN_LITERARY_WORDS:
@@ -229,20 +273,20 @@ class HarryPotterScriptEngine:
                     f"FORBIDDEN LITERARY LANGUAGE: Detected '{lit_term}'. Use simple spoken words an 8-year-old understands."
                 )
 
-        # 4. Word Count Bounds Check (55-75 words)
-        if word_count < MIN_WORD_COUNT:
+        # 4. Word Count Bounds Check
+        if word_count < min_words:
             feedback.append(
-                f"WORD COUNT TOO SHORT: {word_count} words (minimum {MIN_WORD_COUNT} words required)."
+                f"WORD COUNT TOO SHORT: {word_count} words (minimum {min_words} words required)."
             )
-        elif word_count > MAX_WORD_COUNT:
+        elif word_count > max_words:
             feedback.append(
-                f"WORD COUNT TOO LONG: {word_count} words (maximum {MAX_WORD_COUNT} words allowed)."
+                f"WORD COUNT TOO LONG: {word_count} words (maximum {max_words} words allowed)."
             )
 
-        # 5. Duration Bounds Check (20.0 - 32.0s)
-        if estimated_duration < 20.0 or estimated_duration > 32.0:
+        # 5. Duration Bounds Check
+        if estimated_duration < min_duration or estimated_duration > max_duration:
             feedback.append(
-                f"ESTIMATED DURATION OUT OF BOUNDS: {estimated_duration}s (target: 22-30s)."
+                f"ESTIMATED DURATION OUT OF BOUNDS: {estimated_duration}s (target: {min_duration}-{max_duration}s)."
             )
 
         # 6. Visual Beat Coverage & Movie-Only Policy Check
@@ -286,7 +330,7 @@ class HarryPotterScriptEngine:
             score -= 25.0
         if literary_terms_detected:
             score -= 20.0
-        if word_count < MIN_WORD_COUNT or word_count > MAX_WORD_COUNT:
+        if word_count < min_words or word_count > max_words:
             score -= 30.0
         if forbidden_visuals_detected:
             score -= 50.0
@@ -300,7 +344,8 @@ class HarryPotterScriptEngine:
             and len(cliches_detected) == 0
             and len(forbidden_visuals_detected) == 0
             and len(literary_terms_detected) == 0
-            and MIN_WORD_COUNT <= word_count <= MAX_WORD_COUNT
+            and min_words <= word_count <= max_words
+            and min_duration <= estimated_duration <= max_duration
             and len(visual_beats) >= 3
         )
 
@@ -321,10 +366,11 @@ class HarryPotterScriptEngine:
         hook: str,
         subtype: str,
         visual_beats: List[Dict[str, Any]],
-        part_marker: Optional[str] = None
+        part_marker: Optional[str] = None,
+        discovery_tier: str = "DEEP_DISCOVERY"
     ) -> DiscoveryQAResult:
         """
-        11-Point Discovery Quality Gate (Checks A through K):
+        11-Point Discovery Quality Gate (Checks A through K + L):
         A. Can I identify the exact fact/difference in one sentence?
         B. Is that fact stated explicitly in the script?
         C. Does the first ~5 seconds communicate the actual subject?
@@ -336,11 +382,13 @@ class HarryPotterScriptEngine:
         I. Does the script avoid unnecessary chronological storytelling?
         J. Does it remain standalone?
         K. Does it avoid PART markers?
+        L. Zero throat-clearing openings in Frame 0.
         """
         reasons = []
         text_lower = script_text.lower()
         hook_lower = hook.lower()
         words = script_text.split()
+        word_count = len(words)
 
         # Check K: PART markers strictly forbidden in Discovery
         no_part_markers = True
@@ -352,13 +400,22 @@ class HarryPotterScriptEngine:
                 no_part_markers = False
                 reasons.append(f"Check K Failed: Discovery short contains spoken part/chapter numbering: '{pat}'")
 
+        # Check L: Zero throat-clearing in Frame 0
+        no_throat_clearing = True
+        if str(discovery_tier).upper() == "DEEP_DISCOVERY":
+            for pat in THROAT_CLEARING_PATTERNS:
+                if re.search(pat, hook_lower):
+                    no_throat_clearing = False
+                    reasons.append(f"Check L Failed: Deep Discovery hook contains forbidden throat-clearing: '{pat}'")
+
         # Check C: Subject in first ~5 seconds (first ~15 words / hook)
         hook_words = hook.split()
         subject_in_first_5s = len(hook_words) >= 4 and any(
             w in hook_lower for w in [
                 "cut", "cuts", "movie", "book", "secret", "never", "performance",
                 "actor", "detail", "scene", "missed", "hidden", "changed", "erised",
-                "remembrall", "neville", "sorting", "peeves", "inscription", "robes"
+                "remembrall", "neville", "sorting", "peeves", "inscription", "robes",
+                "truth", "reality", "books", "films", "story"
             ]
         )
         if not subject_in_first_5s:
@@ -414,10 +471,22 @@ class HarryPotterScriptEngine:
                 is_standalone = False
                 reasons.append(f"Check J Failed: Contains cross-short dependency '{dep}'")
 
+        # Check tier bounds
+        duration_within_tier_bounds = True
+        word_count_within_tier_bounds = True
+        if str(discovery_tier).upper() == "DEEP_DISCOVERY":
+            if word_count < 220 or word_count > 300:
+                word_count_within_tier_bounds = False
+                reasons.append(f"Check Word Count Failed: {word_count} words outside Deep Discovery target bounds (220-300)")
+        elif str(discovery_tier).upper() == "MICRO_DISCOVERY":
+            if word_count < 55 or word_count > 85:
+                word_count_within_tier_bounds = False
+                reasons.append(f"Check Word Count Failed: {word_count} words outside Micro Discovery bounds (55-85)")
+
         passed = (
             no_part_markers and subject_in_first_5s and avoids_chronological_story
             and book_movie_both_stated and omission_explicitly_stated and production_fact_stated
-            and is_standalone and len(reasons) == 0
+            and is_standalone and no_throat_clearing and len(reasons) == 0
         )
 
         return DiscoveryQAResult(
@@ -434,6 +503,9 @@ class HarryPotterScriptEngine:
             avoids_chronological_story=avoids_chronological_story,
             is_standalone=is_standalone,
             no_part_markers=no_part_markers,
+            no_throat_clearing=no_throat_clearing,
+            duration_within_tier_bounds=duration_within_tier_bounds,
+            word_count_within_tier_bounds=word_count_within_tier_bounds,
             failure_reasons=reasons
         )
 
@@ -1359,7 +1431,10 @@ OUTPUT STRICT JSON:
         full_text = f"{script_data['hook']} {script_data['development']} {script_data['payoff']}".strip()
         words = full_text.split()
         word_count = len(words)
-        est_duration = round(word_count / 2.5, 1)
+        if c_type in ("deep_discovery", "discovery") and word_count >= 150:
+            est_duration = round(word_count / 3.55, 1)
+        else:
+            est_duration = round(word_count / 2.5, 1)
 
         # Ensure visual beats have MOVIE_FOOTAGE_ONLY policy
         raw_beats = script_data.get("visual_beats", [])
@@ -1422,6 +1497,14 @@ OUTPUT STRICT JSON:
             rec.qa_status = "APPROVED" if qa_result.passed else "FLAGGED"
             rec.qa_feedback_json = json.dumps(qa_result.feedback)
             rec.model_name = used_model
+            rec.discovery_tier = getattr(candidate, "discovery_tier", "DEEP_DISCOVERY")
+            rec.story_structure = getattr(candidate, "story_structure", None)
+            rec.hook_archetype = getattr(candidate, "hook_archetype", None)
+            rec.evidence_route = getattr(candidate, "evidence_route", None)
+            rec.thesis = getattr(candidate, "thesis", None)
+            rec.insider_epiphany = getattr(candidate, "insider_epiphany", None)
+            rec.title_pattern = getattr(candidate, "title_pattern", None)
+            rec.suggested_title = getattr(candidate, "suggested_title", None)
             rec.status = "READY_FOR_STEP_9"
             rec.updated_at = datetime.utcnow()
         else:
@@ -1440,6 +1523,14 @@ OUTPUT STRICT JSON:
                 corresponding_movie_number=movie_num,
                 movie_chunk_id=movie_chunk,
                 movie_evidence_excerpt=movie_excerpt[:500] if movie_excerpt else None,
+                discovery_tier=getattr(candidate, "discovery_tier", "DEEP_DISCOVERY"),
+                story_structure=getattr(candidate, "story_structure", None),
+                hook_archetype=getattr(candidate, "hook_archetype", None),
+                evidence_route=getattr(candidate, "evidence_route", None),
+                thesis=getattr(candidate, "thesis", None),
+                insider_epiphany=getattr(candidate, "insider_epiphany", None),
+                title_pattern=getattr(candidate, "title_pattern", None),
+                suggested_title=getattr(candidate, "suggested_title", None),
                 part_marker=part_marker,
                 voice_id="af_sarah",
                 voice_pitch="+0Hz",
