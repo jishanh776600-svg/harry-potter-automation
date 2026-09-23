@@ -279,16 +279,29 @@ def mix_master_soundtrack(
     for c_idx, (cue, in_idx) in enumerate(valid_cues):
         delay_ms = int(round(cue.start_time * 1000))
         label = f"[sfx_{c_idx}]"
-        gain_db = getattr(cue, "gain_db", -14.0)
+        cat = getattr(cue, "category", "")
+        if cat == "CLICK":
+            gain_db = -8.0
+        elif cat == "SHORT_TRANSITION":
+            gain_db = -6.0
+        elif cat == "REVELATION":
+            gain_db = -10.0
+        elif cat == "WHOOSH_TRANSITION":
+            gain_db = -10.0
+        else:
+            gain_db = getattr(cue, "gain_db", -10.0)
+
         filter_chains.append(
-            f"[{in_idx}:a]volume={gain_db:.1f}dB,adelay={delay_ms}|{delay_ms},atrim=0:{total_duration:.2f}{label}"
+            f"[{in_idx}:a]volume={gain_db:.1f}dB,adelay={delay_ms}|{delay_ms},"
+            f"apad=whole_dur={total_duration:.2f},atrim=0:{total_duration:.2f}{label}"
         )
         sfx_mix_labels.append(label)
 
     # Mix all inputs with normalize=0
     mix_inputs_count = len(sfx_mix_labels)
+    joined_labels = "".join(sfx_mix_labels)
     mix_filter = (
-        f"{''.join(sfx_mix_labels)}amix=inputs={mix_inputs_count}:duration=first:dropout_transition=0.5:normalize=0,"
+        f"{joined_labels}amix=inputs={mix_inputs_count}:duration=first:dropout_transition=0:normalize=0,"
         f"loudnorm=I=-13.0:TP=-1.5:LRA=11[aout]"
     )
     filter_chains.append(mix_filter)
@@ -330,20 +343,31 @@ def mix_master_soundtrack(
 
 
 def upload_to_drive_01_ready(local_file: Path) -> str:
-    """Uploads exactly ONE rendered Short MP4 to Drive 01_READY folder."""
+    """Uploads or updates exactly ONE rendered Short MP4 to Drive 01_READY folder."""
     from googleapiclient.http import MediaFileUpload
     drive_vault = DriveVaultEngine(token_path=PROJECT_ROOT / "credentials" / "hp_token.json")
     drive = drive_vault.get_drive_service()
 
     file_name = local_file.name
     media = MediaFileUpload(str(local_file), mimetype="video/mp4", resumable=True)
-    meta = {
-        "name": file_name,
-        "parents": [DRIVE_READY_FOLDER_ID]
-    }
-    created = drive.files().create(body=meta, media_body=media, fields="id, name").execute()
-    logger.info(f"Uploaded {file_name} to Drive 01_READY with ID: {created['id']}")
-    return created["id"]
+
+    # Check for existing file with same name
+    q_str = f"'{DRIVE_READY_FOLDER_ID}' in parents and name='{file_name}' and trashed=false"
+    existing = drive.files().list(q=q_str, fields="files(id, name)").execute().get("files", [])
+
+    if existing:
+        file_id = existing[0]["id"]
+        updated = drive.files().update(fileId=file_id, media_body=media, fields="id, name").execute()
+        logger.info(f"Updated {file_name} in Drive 01_READY with ID: {updated['id']}")
+        return updated["id"]
+    else:
+        meta = {
+            "name": file_name,
+            "parents": [DRIVE_READY_FOLDER_ID]
+        }
+        created = drive.files().create(body=meta, media_body=media, fields="id, name").execute()
+        logger.info(f"Uploaded {file_name} to Drive 01_READY with ID: {created['id']}")
+        return created["id"]
 
 
 def run_production():

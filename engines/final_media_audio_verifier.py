@@ -337,8 +337,15 @@ class FinalMediaAudioVerifier:
             # 1. It has measurable energy (peak >= -40 dBFS) AND
             # 2. It exhibits a transient jump over baseline (delta >= sfx_detection_delta_db)
             #    OR has a significant dynamic crest factor (cue_max - cue_mean >= 3.5 dB)
+            #    under active dialogue/soundtrack (delta >= -3.5 dB).
+            # If an explicit high delta threshold was requested (sfx_detection_delta_db > 1.0),
+            # strictly require the explicit delta threshold.
             has_energy = (cue_max >= -40.0)
-            has_transient = (delta >= sfx_detection_delta_db) or ((cue_max - cue_mean) >= 3.5 and delta >= 0.2)
+            crest = cue_max - cue_mean
+            if sfx_detection_delta_db > 1.0:
+                has_transient = (delta >= sfx_detection_delta_db)
+            else:
+                has_transient = (delta >= sfx_detection_delta_db) or (crest >= 3.5 and delta >= -3.5)
             if has_energy and has_transient:
                 is_detected = True
                 detected_cues_count += 1
