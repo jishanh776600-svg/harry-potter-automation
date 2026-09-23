@@ -152,6 +152,10 @@ class ShotCompositionAssessment:
     crop_rejection_reasons: List[str] = field(default_factory=list)
     optimal_crop_center_x: float = 0.50     # 0.0 - 1.0 horizontal crop center
     has_severe_crop: bool = False
+    effective_crop_strategy: str = "FULL_BLEED_RECENTERED" # FULL_BLEED_RECENTERED, HYBRID_MODERATE_CROP, BLURRED_PADDING
+    visual_occupancy_ratio: float = 1.0     # 0.0 - 1.0 vertical screen occupancy (1.0 = full bleed, ~0.80 = hybrid, ~0.316 = blurred)
+    vertical_screen_utilization: float = 1.0 # Fraction of vertical 1920 height utilized by visual content
+    crop_window: Optional[Dict[str, float]] = None
 
     @property
     def score_9x16_safe(self) -> float:
@@ -177,4 +181,8 @@ class ShotCompositionAssessment:
             "crop_rejection_reasons": self.crop_rejection_reasons,
             "optimal_crop_center_x": round(self.optimal_crop_center_x, 3),
             "has_severe_crop": self.has_severe_crop,
+            "effective_crop_strategy": self.effective_crop_strategy,
+            "visual_occupancy_ratio": round(self.visual_occupancy_ratio, 3),
+            "vertical_screen_utilization": round(self.vertical_screen_utilization, 3),
+            "crop_window": self.crop_window,
         }

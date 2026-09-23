@@ -129,7 +129,7 @@ class VisualDiscoveryEngineV2:
         subject_bbox: Optional[NormalizedBBox] = None,
         characters_present: Optional[List[str]] = None,
         environment: str = "",
-        crop_center_x: float = 0.50,
+        crop_center_x: Optional[float] = None,
     ) -> ShotCompositionAssessment:
         """
         Simulates the 9:16 vertical crop from 16:9 source and assesses composition risk.
@@ -164,8 +164,19 @@ class VisualDiscoveryEngineV2:
 
         # Define 9:16 vertical crop window on 16:9 frame
         crop_w = CROP_9X16_WIDTH_RATIO  # ~0.3164
-        crop_x1 = max(0.0, crop_center_x - crop_w / 2.0)
-        crop_x2 = min(1.0, crop_center_x + crop_w / 2.0)
+
+        # Compute subject-aware optimal horizontal crop center
+        # If caller explicitly provided crop_center_x, respect it.
+        # Otherwise, dynamically center on subject bbox while clamping to frame edges.
+        if crop_center_x is not None:
+            effective_center_x = crop_center_x
+        elif bbox is not None:
+            effective_center_x = min(1.0 - crop_w / 2.0, max(crop_w / 2.0, bbox.center_x))
+        else:
+            effective_center_x = 0.50
+
+        crop_x1 = max(0.0, effective_center_x - crop_w / 2.0)
+        crop_x2 = min(1.0, effective_center_x + crop_w / 2.0)
         crop_bbox = NormalizedBBox(crop_x1, 0.0, crop_w, 1.0)
 
         # Calculate subject intersection with 9:16 crop window
@@ -174,22 +185,22 @@ class VisualDiscoveryEngineV2:
         retained_subject_ratio = min(1.0, overlap_area / subject_area)
 
         # Horizontal cutoff
-        horizontal_crop_risk = 1.0 - retained_subject_ratio
+        horizontal_crop_risk = max(0.0, min(1.0, 1.0 - retained_subject_ratio))
 
         # Head cutoff estimation (upper 20% of subject bbox)
         head_h = bbox.h * 0.20
         head_bbox = NormalizedBBox(bbox.x, bbox.y, bbox.w, head_h)
         head_overlap = head_bbox.intersection_area(crop_bbox)
-        head_cutoff = 1.0 - (head_overlap / max(0.0001, head_bbox.area))
+        head_cutoff = max(0.0, min(1.0, 1.0 - (head_overlap / max(0.0001, head_bbox.area))))
 
         # Body cutoff estimation (lower 80% of subject bbox)
         body_h = bbox.h * 0.80
         body_bbox = NormalizedBBox(bbox.x, bbox.y + head_h, bbox.w, body_h)
         body_overlap = body_bbox.intersection_area(crop_bbox)
-        body_cutoff = 1.0 - (body_overlap / max(0.0001, body_bbox.area))
+        body_cutoff = max(0.0, min(1.0, 1.0 - (body_overlap / max(0.0001, body_bbox.area))))
 
         # Center safe score: distance of subject center from crop center
-        center_dist = abs(bbox.center_x - crop_center_x)
+        center_dist = abs(bbox.center_x - effective_center_x)
         center_safe_score = max(0.0, 1.0 - (center_dist / 0.50))
 
         # Face visibility
@@ -264,6 +275,39 @@ class VisualDiscoveryEngineV2:
             has_severe_crop = True
             rejection_reasons.append("Extreme close-up causes unacceptable 9:16 facial distortion")
 
+        # Intelligent 3-Tier 9:16 Reframing Strategy Selection:
+        # Tier 1: FULL_BLEED_RECENTERED (100% vertical screen occupancy for medium, medium-wide, close-up)
+        # Tier 2: HYBRID_MODERATE_CROP (~80% vertical screen occupancy for two-shots, wide shots, or moderate spread)
+        # Tier 3: BLURRED_PADDING (~31.6% vertical occupancy, reserved for extreme wide vistas)
+        if shot_scale == ShotScale.EXTREME_WIDE:
+            effective_strategy = "BLURRED_PADDING"
+            occupancy = 0.316
+            utilization = 0.316
+        elif (
+            shot_scale in (ShotScale.TWO_SHOT, ShotScale.WIDE)
+            or (0.15 < head_cutoff <= 0.25)
+            or (0.35 < horizontal_crop_risk <= 0.50)
+        ) and multi_char_vis >= 0.40:
+            effective_strategy = "HYBRID_MODERATE_CROP"
+            occupancy = 0.80
+            utilization = 0.80
+        elif head_cutoff <= 0.15 and horizontal_crop_risk <= 0.35 and multi_char_vis >= 0.70:
+            effective_strategy = "FULL_BLEED_RECENTERED"
+            occupancy = 1.0
+            utilization = 1.0
+        else:
+            effective_strategy = "BLURRED_PADDING"
+            occupancy = 0.316
+            utilization = 0.316
+
+        crop_win = {
+            "x": round(crop_x1, 4),
+            "y": 0.0,
+            "w": round(crop_w, 4),
+            "h": 1.0,
+            "center_x": round(effective_center_x, 4),
+        }
+
         return ShotCompositionAssessment(
             shot_scale=shot_scale,
             subject_bbox=bbox,
@@ -280,8 +324,12 @@ class VisualDiscoveryEngineV2:
             safe_9x16_score=safe_score,
             is_9x16_crop_safe=is_safe,
             crop_rejection_reasons=rejection_reasons,
-            optimal_crop_center_x=crop_center_x,
+            optimal_crop_center_x=effective_center_x,
             has_severe_crop=has_severe_crop,
+            effective_crop_strategy=effective_strategy,
+            visual_occupancy_ratio=occupancy,
+            vertical_screen_utilization=utilization,
+            crop_window=crop_win,
         )
 
     # --------------------------------------------------------------------------

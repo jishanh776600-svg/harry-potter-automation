@@ -69,7 +69,8 @@ from core.preprocessor_types import (
     PreprocessingStatus,
     PreprocessedVisualAsset,
 )
-from engines.movie_retrieval_engine import ShotScale, MovieRetrievalEngine
+from core.composition_models import ShotScale
+from engines.movie_retrieval_engine import MovieRetrievalEngine
 from engines.fan_art_retrieval_engine import FanArtRetrievalEngine
 
 logger = logging.getLogger(__name__)
@@ -153,18 +154,20 @@ class FFmpegVisualPreprocessor:
         if media_type == "IMAGE":
             return AspectRatioStrategy.BLURRED_PADDING
 
-        scale = ShotScale(framing_intent) if isinstance(framing_intent, str) else framing_intent
+        if hasattr(framing_intent, "value"):
+            intent_str = str(framing_intent.value)
+        else:
+            intent_str = str(framing_intent)
+        scale = ShotScale.from_string(intent_str)
 
-        if scale == ShotScale.WIDE_SHOT:
+        if scale in (ShotScale.EXTREME_WIDE,):
             return AspectRatioStrategy.BLURRED_PADDING
-        elif scale in (ShotScale.CLOSE_UP, ShotScale.MEDIUM_CLOSE_UP):
-            return AspectRatioStrategy.FRAMING_AWARE_CROP
-        elif scale == ShotScale.TWO_SHOT:
-            return AspectRatioStrategy.FRAMING_AWARE_CROP
-        elif scale in (ShotScale.MEDIUM_SHOT, ShotScale.MEDIUM_WIDE):
-            return AspectRatioStrategy.FRAMING_AWARE_CROP
+        elif scale in (ShotScale.WIDE, ShotScale.TWO_SHOT, ShotScale.GROUP_SHOT):
+            return AspectRatioStrategy.HYBRID_MODERATE_CROP
+        elif scale in (ShotScale.MEDIUM, ShotScale.MEDIUM_WIDE, ShotScale.CLOSE_UP, ShotScale.MEDIUM_CLOSE):
+            return AspectRatioStrategy.FULL_BLEED_RECENTERED
         
-        return AspectRatioStrategy.CENTER_CROP
+        return AspectRatioStrategy.FULL_BLEED_RECENTERED
 
     # --------------------------------------------------------------------------
     # 3. VIDEO SEGMENT PREPROCESSING
@@ -263,6 +266,14 @@ class FFmpegVisualPreprocessor:
                 source_provenance=source_provenance,
             )
 
+        # Extract crop center x from provenance if available
+        crop_cx = 0.50
+        if source_provenance and "crop_center_x" in source_provenance:
+            try:
+                crop_cx = float(source_provenance["crop_center_x"])
+            except Exception:
+                crop_cx = 0.50
+
         # Build FFmpeg filtergraph based on strategy
         filtergraph = self._build_video_filtergraph(
             strategy=strat,
@@ -270,6 +281,7 @@ class FFmpegVisualPreprocessor:
             width=target_width,
             height=target_height,
             fps=fps,
+            crop_center_x=crop_cx,
         )
 
         cmd = [
@@ -686,13 +698,35 @@ class FFmpegVisualPreprocessor:
         width: int = 1080,
         height: int = 1920,
         fps: float = 30.0,
+        crop_center_x: float = 0.50,
     ) -> str:
         """
         Builds the FFmpeg video filtergraph ensuring non-distorted 9:16 normalization.
         """
-        if strategy == AspectRatioStrategy.BLURRED_PADDING:
+        if strategy == AspectRatioStrategy.FULL_BLEED_RECENTERED:
+            # Full bleed 100% vertical screen occupancy: scale height to 1920, crop 1080 width dynamically centered on subject
+            headroom_bias = 0.30 if framing_intent in (ShotScale.CLOSE_UP, ShotScale.MEDIUM_CLOSE_UP) else 0.40
+            return (
+                f"scale=-2:{height}:force_original_aspect_ratio=increase,"
+                f"crop={width}:{height}:min(max(0\\,iw*{crop_center_x:.3f}-{width/2:.1f})\\,iw-{width}):min(max(0\\,(ih-{height})*{headroom_bias:.2f})\\,ih-{height}),"
+                f"fps={fps},format=yuv420p"
+            )
+
+        elif strategy == AspectRatioStrategy.HYBRID_MODERATE_CROP:
+            # Moderate 80% vertical screen occupancy (1536px height) with subtle blurred padding top/bottom
+            hybrid_h = int(height * 0.80)
+            return (
+                f"split[fg_raw][bg_raw];"
+                f"[bg_raw]scale={width}:{height}:force_original_aspect_ratio=increase,"
+                f"crop={width}:{height}:(iw-{width})/2:(ih-{height})/2,"
+                f"boxblur=luma_radius=min(h\\,w)/20:luma_power=2,colorlevels=rimin=0.15:gimin=0.15:bimin=0.15[bg];"
+                f"[fg_raw]scale=-2:{hybrid_h}:force_original_aspect_ratio=increase,"
+                f"crop={width}:{hybrid_h}:min(max(0\\,iw*{crop_center_x:.3f}-{width/2:.1f})\\,iw-{width}):min(max(0\\,(ih-{hybrid_h})*0.40)\\,ih-{hybrid_h})[fg];"
+                f"[bg][fg]overlay=(W-w)/2:(H-h)/2,fps={fps},format=yuv420p"
+            )
+
+        elif strategy == AspectRatioStrategy.BLURRED_PADDING:
             # Blurred background fill + clean centered foreground
-            # Note: in -vf syntax, we use split
             return (
                 f"split[fg_raw][bg_raw];"
                 f"[bg_raw]scale={width}:{height}:force_original_aspect_ratio=increase,"
@@ -709,8 +743,6 @@ class FFmpegVisualPreprocessor:
             )
 
         elif strategy == AspectRatioStrategy.FRAMING_AWARE_CROP:
-            # Shift vertical crop anchor based on shot scale:
-            # Close-up: shift crop up to frame eyes/facial expression
             if framing_intent in (ShotScale.CLOSE_UP, ShotScale.MEDIUM_CLOSE_UP):
                 y_offset = "(ih-1920)*0.30"
             elif framing_intent == ShotScale.TWO_SHOT:

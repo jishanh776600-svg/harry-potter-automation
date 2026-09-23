@@ -18,6 +18,8 @@ from engines.movie_retrieval_engine import ShotScale
 
 class AspectRatioStrategy(str, Enum):
     """Strategy for normalizing footage/images into 9:16 (1080x1920)."""
+    FULL_BLEED_RECENTERED = "FULL_BLEED_RECENTERED" # 100% vertical screen occupancy with dynamic subject tracking
+    HYBRID_MODERATE_CROP = "HYBRID_MODERATE_CROP"   # ~80% vertical screen occupancy with subtle ambient padding
     CENTER_CROP = "CENTER_CROP"                 # Scale to fill 1080x1920 and center crop
     FRAMING_AWARE_CROP = "FRAMING_AWARE_CROP"   # Offset crop based on framing intent (close-up, two-shot, etc.)
     BLURRED_PADDING = "BLURRED_PADDING"         # Fit foreground with blurred background fill

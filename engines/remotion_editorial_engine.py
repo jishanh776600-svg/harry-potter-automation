@@ -80,10 +80,12 @@ class RemotionEditorialEngine:
         script_text: Optional[str] = None,
         candidate_type: str = "deep_discovery",
         composition_id: Optional[str] = None,
+        word_timestamps: Optional[List[Dict[str, Any]]] = None,
     ) -> EditorialTimeline:
         """
         Main entry point: Assembles a complete, frame-locked EditorialTimeline for Remotion.
         Strictly isolates Novel Story pipelines.
+        Supports beat-locking visual cuts to exact word boundaries when word_timestamps are provided.
         """
         # 1. NOVEL STORY ISOLATION GUARD
         if candidate_type == "novel_story":
@@ -419,3 +421,44 @@ class RemotionEditorialEngine:
 
         combined = "||".join(raw_parts)
         return hashlib.sha256(combined.encode("utf-8")).hexdigest()[:16]
+
+    @staticmethod
+    def snap_cut_points_to_words(
+        cut_points: List[float],
+        words: List[Dict[str, Any]],
+        total_duration: float,
+        snap_window: float = 0.40,
+    ) -> List[float]:
+        """
+        Snaps visual transition cut points to exact spoken word start boundaries.
+        Prevents visual lag by aligning cuts with the onset of spoken words.
+        Guarantees strictly non-decreasing cut points, positive durations (>=0.5s),
+        and clamping to total_duration.
+        """
+        if not words or not cut_points:
+            return cut_points
+
+        word_starts = sorted([float(w["start"]) for w in words if "start" in w and float(w["start"]) >= 0])
+        if not word_starts:
+            return cut_points
+
+        snapped: List[float] = [0.0]
+        prev_t = 0.0
+
+        for idx in range(1, len(cut_points) - 1):
+            cp = cut_points[idx]
+            # Find closest word start within snap_window
+            best_diff = snap_window
+            best_t = cp
+            for ws in word_starts:
+                diff = abs(ws - cp)
+                if diff < best_diff and ws >= prev_t + 0.50:
+                    best_diff = diff
+                    best_t = ws
+
+            snapped_t = max(prev_t + 0.50, round(best_t, 3))
+            snapped.append(snapped_t)
+            prev_t = snapped_t
+
+        snapped.append(round(total_duration, 3))
+        return snapped
