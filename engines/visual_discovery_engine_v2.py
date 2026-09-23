@@ -117,8 +117,29 @@ class VisualDiscoveryEngineV2:
     rigorous crop rejection, and anti-loop diversity.
     """
 
-    def __init__(self, min_acceptance_threshold: float = 50.0):
+    def __init__(
+        self,
+        min_acceptance_threshold: float = 50.0,
+        beast_engine: Optional[Any] = None,
+    ):
         self.min_acceptance_threshold = min_acceptance_threshold
+        self.beast_engine = beast_engine
+
+    def match_beast_requirement(
+        self,
+        requirement: Any,
+        candidate_pool: List[Any],
+        target_duration: float = 2.0,
+    ) -> Optional[Tuple[Any, Any]]:
+        """Delegates multi-stage retrieval and temporal verification to the BEAST engine."""
+        if not self.beast_engine:
+            from engines.beast_visual_matching_engine import BeastVisualMatchingEngine
+            self.beast_engine = BeastVisualMatchingEngine(min_confidence_threshold=self.min_acceptance_threshold)
+        return self.beast_engine.find_best_visual_match(
+            requirement=requirement,
+            candidate_pool=candidate_pool,
+            target_duration=target_duration,
+        )
 
     # --------------------------------------------------------------------------
     # 1. 9:16 CROP SIMULATION & COMPOSITION ASSESSMENT
