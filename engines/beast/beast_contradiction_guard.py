@@ -78,8 +78,8 @@ class BeastContradictionGuard:
         # 2. Negative Constraints Verification
         for neg in requirement.negative_constraints:
             neg_clean = neg.lower().replace("reject ", "").strip()
-            # If negative constraint keywords are detected in the candidate
-            words = [w for w in re.findall(r"\b[a-z0-9_-]+\b", neg_clean) if len(w) >= 3]
+            # If negative constraint keywords are detected in the candidate (including digits like '7', '1')
+            words = [w for w in re.findall(r"\b[a-z0-9_-]+\b", neg_clean) if len(w) >= 1 and (len(w) >= 3 or w.isdigit())]
             if words and all(w in full_shot_text for w in words):
                 reasons.append(f"Negative Constraint Triggered: Shot matches forbidden criteria '{neg}'")
 

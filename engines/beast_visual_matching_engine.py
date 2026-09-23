@@ -68,6 +68,7 @@ class BeastVisualMatchingEngine:
         vlm_verifier: Optional[BeastVLMVerifier] = None,
         scoring_engine: Optional[BeastScoringEngine] = None,
         min_confidence_threshold: float = 65.0,
+        repetition_window_size: int = 4,
     ):
         self.shot_detector = shot_detector or BeastShotDetector()
         self.semantic_retriever = semantic_retriever or BeastSemanticRetriever()
@@ -76,6 +77,9 @@ class BeastVisualMatchingEngine:
         self.vlm_verifier = vlm_verifier or BeastVLMVerifier()
         self.scoring_engine = scoring_engine or BeastScoringEngine()
         self.min_confidence_threshold = min_confidence_threshold
+        self.repetition_window_size = repetition_window_size
+        from collections import deque
+        self._recently_used_queue: deque = deque(maxlen=repetition_window_size)
         self._recently_used_shots: Set[str] = set()
 
     # --------------------------------------------------------------------------
@@ -329,10 +333,12 @@ class BeastVisualMatchingEngine:
             )
             return None
 
-        # Register shot in recently used set to guard repetition
-        self._recently_used_shots.add(best_shot.shot_id)
+        # Register shot in recently used sliding window to guard repetition
+        self._recently_used_queue.append(best_shot.shot_id)
+        self._recently_used_shots = set(self._recently_used_queue)
         return best_shot, best_breakdown
 
     def clear_session(self) -> None:
         """Resets session tracking states between production runs."""
+        self._recently_used_queue.clear()
         self._recently_used_shots.clear()

@@ -70,6 +70,9 @@ from engines.drive_engine import DriveVaultEngine
 from core.composition_models import ShotScale
 from engines.final_media_audio_verifier import FinalMediaAudioVerifier
 from engines.final_media_visual_verifier import FinalMediaVisualVerifier
+from engines.beast.beast_movie_archive import BeastMovieArchive
+from engines.beast_visual_matching_engine import BeastVisualMatchingEngine
+from core.beast_visual_types import NarrativeEra
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("ProduceValidationShort")
@@ -516,73 +519,24 @@ def run_production():
     )
     print(f"Story Plan created: {story_plan.suggested_title} (Score: {story_plan.topic_score})")
 
-    # 6. Corrected 42-Shot Storyboard Specs:
-    # 100% CANONICAL, 100% RELEVANT TO SPOKEN WORDS, ZERO CLOSE-UPS FOR NORMAL NARRATION
-    # Uses BLURRED_PADDING to guarantee zero head cutoff, zero severe crop, and full background context.
-    movie_shot_specs = [
-        # --- Section 1: Hook & Thesis (0.0s - 10.5s) ---
-        {"m": 1, "start": 2622.0, "dur": 1.8, "scale": ShotScale.MEDIUM_SHOT, "role": VisualRole.DIRECT_EVIDENCE, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 1, "start": 2568.5, "dur": 1.7, "scale": ShotScale.MEDIUM_SHOT, "role": VisualRole.DIRECT_EVIDENCE, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 1, "start": 2538.0, "dur": 1.8, "scale": ShotScale.WIDE_SHOT, "role": VisualRole.CONTEXTUAL_ENVIRONMENT, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 8, "start": 6168.0, "dur": 1.8, "scale": ShotScale.MEDIUM_WIDE, "role": VisualRole.DIRECT_EVIDENCE, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 8, "start": 6580.0, "dur": 1.7, "scale": ShotScale.MEDIUM_SHOT, "role": VisualRole.DIRECT_EVIDENCE, "anchor": False, "trans": TransitionIntent.HARD_CUT},
+    # 6. BEAST Real Movie Semantic Retrieval & Temporal Verification
+    print("\n--- Step 2: BEAST Real Movie Retrieval & Beat Construction ---")
+    archive = BeastMovieArchive()
+    candidate_pool = archive.load_or_index_shots(force_reindex=False)
+    beast = BeastVisualMatchingEngine(min_confidence_threshold=65.0, repetition_window_size=4)
+    print(f"Loaded {len(candidate_pool)} real movie shots into BEAST candidate pool.")
 
-        # --- Section 2: Movie Omission vs Book Canon (10.5s - 22.5s) ---
-        {"m": 1, "start": 2594.0, "dur": 1.8, "scale": ShotScale.MEDIUM_SHOT, "role": VisualRole.DIRECT_EVIDENCE, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 1, "start": 2603.5, "dur": 1.7, "scale": ShotScale.MEDIUM_SHOT, "role": VisualRole.DIRECT_EVIDENCE, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 1, "start": 2627.0, "dur": 1.8, "scale": ShotScale.MEDIUM_SHOT, "role": VisualRole.IRONIC_CONTRAST, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 1, "start": 2631.0, "dur": 1.7, "scale": ShotScale.MEDIUM_SHOT, "role": VisualRole.IRONIC_CONTRAST, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 1, "start": 2577.0, "dur": 1.8, "scale": ShotScale.MEDIUM_WIDE, "role": VisualRole.DIRECT_EVIDENCE, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 1, "start": 2569.5, "dur": 1.8, "scale": ShotScale.MEDIUM_SHOT, "role": VisualRole.CHARACTER_REACTION, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 1, "start": 2571.0, "dur": 1.6, "scale": ShotScale.MEDIUM_SHOT, "role": VisualRole.CHARACTER_REACTION, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-
-        # --- Section 3: Neville's Fear & Begging for Hufflepuff (22.5s - 33.0s) ---
-        {"m": 1, "start": 2418.0, "dur": 1.8, "scale": ShotScale.MEDIUM_SHOT, "role": VisualRole.DIRECT_EVIDENCE, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 1, "start": 2422.5, "dur": 1.8, "scale": ShotScale.MEDIUM_SHOT, "role": VisualRole.DIRECT_EVIDENCE, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 1, "start": 2569.0, "dur": 1.8, "scale": ShotScale.MEDIUM_SHOT, "role": VisualRole.CHARACTER_REACTION, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 1, "start": 2641.0, "dur": 1.8, "scale": ShotScale.MEDIUM_WIDE, "role": VisualRole.DIRECT_EVIDENCE, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 1, "start": 2646.0, "dur": 1.7, "scale": ShotScale.WIDE_SHOT, "role": VisualRole.CONTEXTUAL_ENVIRONMENT, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 1, "start": 2572.0, "dur": 1.7, "scale": ShotScale.MEDIUM_SHOT, "role": VisualRole.DIRECT_EVIDENCE, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-
-        # --- Section 4: Hat Refusal & Sensed Bravery (33.0s - 45.0s) ---
-        {"m": 1, "start": 2604.5, "dur": 1.8, "scale": ShotScale.MEDIUM_SHOT, "role": VisualRole.DIRECT_EVIDENCE, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 1, "start": 2542.0, "dur": 1.8, "scale": ShotScale.WIDE_SHOT, "role": VisualRole.DIRECT_EVIDENCE, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 1, "start": 2580.0, "dur": 1.7, "scale": ShotScale.MEDIUM_SHOT, "role": VisualRole.DIRECT_EVIDENCE, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 1, "start": 6815.0, "dur": 1.8, "scale": ShotScale.WIDE_SHOT, "role": VisualRole.CONTEXTUAL_ENVIRONMENT, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 1, "start": 6820.0, "dur": 1.8, "scale": ShotScale.MEDIUM_SHOT, "role": VisualRole.DIRECT_EVIDENCE, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 1, "start": 6824.5, "dur": 1.8, "scale": ShotScale.MEDIUM_WIDE, "role": VisualRole.DIRECT_EVIDENCE, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 1, "start": 6834.0, "dur": 1.8, "scale": ShotScale.MEDIUM_SHOT, "role": VisualRole.CHARACTER_REACTION, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-
-        # --- Section 5: Emergence of Bravery Year 1 to Year 7 (45.0s - 56.5s) ---
-        {"m": 1, "start": 6826.0, "dur": 1.8, "scale": ShotScale.TWO_SHOT, "role": VisualRole.DIRECT_EVIDENCE, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 1, "start": 8428.0, "dur": 1.8, "scale": ShotScale.MEDIUM_WIDE, "role": VisualRole.DIRECT_EVIDENCE, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 1, "start": 8437.0, "dur": 1.8, "scale": ShotScale.MEDIUM_WIDE, "role": VisualRole.DIRECT_EVIDENCE, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 1, "start": 8445.0, "dur": 1.8, "scale": ShotScale.MEDIUM_SHOT, "role": VisualRole.CHARACTER_REACTION, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 8, "start": 5955.0, "dur": 1.8, "scale": ShotScale.WIDE_SHOT, "role": VisualRole.CONTEXTUAL_ENVIRONMENT, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 8, "start": 5958.0, "dur": 1.7, "scale": ShotScale.TWO_SHOT, "role": VisualRole.CHARACTER_REACTION, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 8, "start": 6088.0, "dur": 1.9, "scale": ShotScale.MEDIUM_SHOT, "role": VisualRole.DIRECT_EVIDENCE, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-
-        # --- Section 6: Near Hatstall & Anchors (56.5s - 67.5s) ---
-        {"m": 8, "start": 6135.0, "dur": 1.9, "scale": ShotScale.MEDIUM_SHOT, "role": VisualRole.DIRECT_EVIDENCE, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        # ANCHOR 1: Pulling Sword from Hat (2.7s screen-time emphasis)
-        {"m": 8, "start": 6168.5, "dur": 2.7, "scale": ShotScale.MEDIUM_SHOT, "role": VisualRole.DIRECT_EVIDENCE, "anchor": True, "trans": TransitionIntent.HARD_CUT},
-        {"m": 8, "start": 6171.0, "dur": 1.9, "scale": ShotScale.MEDIUM_WIDE, "role": VisualRole.DIRECT_EVIDENCE, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 8, "start": 6524.0, "dur": 1.8, "scale": ShotScale.TWO_SHOT, "role": VisualRole.DIRECT_EVIDENCE, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        # ANCHOR 2: Slaying Nagini (2.8s screen-time emphasis)
-        {"m": 8, "start": 6530.0, "dur": 2.8, "scale": ShotScale.MEDIUM_SHOT, "role": VisualRole.DIRECT_EVIDENCE, "anchor": True, "trans": TransitionIntent.HARD_CUT},
-        {"m": 8, "start": 6533.0, "dur": 1.8, "scale": ShotScale.MEDIUM_SHOT, "role": VisualRole.DIRECT_EVIDENCE, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-
-        # --- Section 7: Payoff & Realization (67.5s - 74.0s) ---
-        {"m": 8, "start": 6580.0, "dur": 1.9, "scale": ShotScale.MEDIUM_SHOT, "role": VisualRole.DIRECT_EVIDENCE, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 1, "start": 2622.5, "dur": 1.8, "scale": ShotScale.MEDIUM_WIDE, "role": VisualRole.DIRECT_EVIDENCE, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 8, "start": 6629.5, "dur": 2.2, "scale": ShotScale.MEDIUM_SHOT, "role": VisualRole.DIRECT_EVIDENCE, "anchor": False, "trans": TransitionIntent.HARD_CUT},
-        {"m": 8, "start": 6632.0, "dur": 2.3, "scale": ShotScale.MEDIUM_SHOT, "role": VisualRole.DIRECT_EVIDENCE, "anchor": False, "trans": TransitionIntent.HARD_CUT},
+    initial_cut_durations = [
+        1.8, 1.7, 1.8, 1.8, 1.7,
+        1.8, 1.7, 1.8, 1.7, 1.8, 1.8, 1.6,
+        1.8, 1.8, 1.8, 1.8, 1.7, 1.7,
+        1.8, 1.8, 1.7, 1.8, 1.8, 1.8, 1.8,
+        1.8, 1.8, 1.8, 1.8, 1.8, 1.7, 1.9,
+        1.9, 2.7, 1.9, 1.8, 2.8, 1.8,
+        1.9, 1.8, 2.2, 2.3
     ]
-
-    # Snap visual cut points to spoken word boundaries to eliminate visual lag
-    cut_durations = [s["dur"] for s in movie_shot_specs]
     cum_points = [0.0]
-    for d in cut_durations:
+    for d in initial_cut_durations:
         cum_points.append(round(cum_points[-1] + d, 3))
     scale_factor = dur_sec / cum_points[-1]
     pro_rated_points = [round(p * scale_factor, 3) for p in cum_points]
@@ -593,8 +547,155 @@ def run_production():
         total_duration=dur_sec
     )
 
-    for idx, s in enumerate(movie_shot_specs):
-        s["dur"] = round(snapped_cut_points[idx + 1] - snapped_cut_points[idx], 3)
+    def get_beat_narrative_context(idx):
+        if idx < 5:
+            if idx in (0, 1):
+                return 'YEAR_1 Neville Longbottom untold secret', NarrativeEra.YEAR_1, VisualRole.DIRECT_EVIDENCE, False
+            elif idx in (2, 3):
+                return 'YEAR_1 argument with the Sorting Hat Great Hall', NarrativeEra.YEAR_1, VisualRole.DIRECT_EVIDENCE, False
+            else:
+                return 'YEAR_7 destroy Voldemort final horcrux ruins', NarrativeEra.YEAR_7, VisualRole.DIRECT_EVIDENCE, False
+        elif idx < 12:
+            if idx in (5, 6):
+                return 'YEAR_1 sorting quietly cut Hermione on stool', NarrativeEra.YEAR_1, VisualRole.DIRECT_EVIDENCE, False
+            elif idx in (7, 8):
+                return 'YEAR_1 Draco Malfoy sitting on stool', NarrativeEra.YEAR_1, VisualRole.IRONIC_CONTRAST, False
+            else:
+                return 'YEAR_1 Neville begging on stool in Great Hall', NarrativeEra.YEAR_1, VisualRole.CHARACTER_REACTION, False
+        elif idx < 18:
+            if idx in (12, 13, 14):
+                return 'YEAR_1 Neville terrified nervous on staircase', NarrativeEra.YEAR_1, VisualRole.CHARACTER_REACTION, False
+            else:
+                return 'YEAR_1 Susan Bones sorted into Hufflepuff table cheering', NarrativeEra.YEAR_1, VisualRole.DIRECT_EVIDENCE, False
+        elif idx < 25:
+            if idx in (18, 19):
+                return 'YEAR_1 Sorting Hat flatly refused speaking', NarrativeEra.YEAR_1, VisualRole.DIRECT_EVIDENCE, False
+            elif idx in (20, 21):
+                return 'YEAR_1 young Neville fear humility dormant courage', NarrativeEra.YEAR_1, VisualRole.CHARACTER_REACTION, False
+            else:
+                return 'YEAR_1 Dumbledore observing Great Hall', NarrativeEra.YEAR_1, VisualRole.CONTEXTUAL_ENVIRONMENT, False
+        elif idx < 32:
+            if idx in (25, 26, 27):
+                return 'YEAR_1 Neville raised fists against closest friends Common Room', NarrativeEra.YEAR_1, VisualRole.DIRECT_EVIDENCE, False
+            elif idx == 28:
+                return 'YEAR_1 Dumbledore 10 points to Neville Longbottom', NarrativeEra.YEAR_1, VisualRole.DIRECT_EVIDENCE, False
+            elif idx in (29, 30):
+                return 'YEAR_7 Harry fell Hogwarts courtyard despair ruins', NarrativeEra.YEAR_7, VisualRole.CONTEXTUAL_ENVIRONMENT, False
+            else:
+                return 'YEAR_7 Neville last warrior standing ruins', NarrativeEra.YEAR_7, VisualRole.DIRECT_EVIDENCE, False
+        elif idx < 38:
+            if idx in (32, 33):
+                return 'YEAR_7 Neville holding battered Sorting Hat', NarrativeEra.YEAR_7, VisualRole.DIRECT_EVIDENCE, False
+            elif idx in (34, 35):
+                return 'YEAR_7 Neville pulls Godric silver sword from Hat', NarrativeEra.YEAR_7, VisualRole.DIRECT_EVIDENCE, True
+            else:
+                return 'YEAR_7 Neville strikes Nagini down with silver sword', NarrativeEra.YEAR_7, VisualRole.DIRECT_EVIDENCE, True
+        else:
+            if idx in (38, 39):
+                return 'YEAR_7 Neville resting with silver sword Great Hall', NarrativeEra.YEAR_7, VisualRole.DIRECT_EVIDENCE, False
+            else:
+                return 'YEAR_1 Sorting Hat on stool Great Hall destiny', NarrativeEra.YEAR_1, VisualRole.DIRECT_EVIDENCE, False
+
+    movie_shot_specs = []
+    beast_audit_records = []
+
+    for idx in range(len(initial_cut_durations)):
+        st = snapped_cut_points[idx]
+        et = snapped_cut_points[idx+1]
+        b_dur = round(et - st, 3)
+        beat_words = [w['word'] for w in words if float(w['start']) >= st - 0.2 and float(w['start']) < et]
+        snippet = ' '.join(beat_words)
+        beat_id = f'beat_{idx+1:02d}'
+
+        ctx_text, era, role, is_anchor = get_beat_narrative_context(idx)
+        phase = 'PAYOFF' if idx >= 38 else ('ANCHOR' if is_anchor else ('HOOK' if idx <= 4 else 'EVIDENCE'))
+
+        combined_query = f'{snippet} {ctx_text}'
+        req = beast.parse_narration_beat(
+            beat_id=beat_id,
+            narration_text=combined_query,
+            narrative_phase=phase,
+            visual_role=role,
+            target_duration=b_dur
+        )
+        req.expected_era = era
+        if era == NarrativeEra.YEAR_1:
+            req.negative_constraints = ['reject battle of hogwarts', 'reject year 7', 'reject sword combat', 'reject ruined courtyard']
+        elif era == NarrativeEra.YEAR_7:
+            req.negative_constraints = ['reject year 1 sorting', 'reject childhood stool', 'reject staircase']
+
+        res = beast.find_best_visual_match(req, candidate_pool, target_duration=b_dur, enable_vlm_gate=False)
+
+        if res is not None:
+            best_shot, bd = res
+            spec = {
+                'm': best_shot.movie_number,
+                'start': bd.extracted_interval[0],
+                'dur': b_dur,
+                'scale': best_shot.shot_scale,
+                'role': role,
+                'anchor': is_anchor,
+                'trans': TransitionIntent.HARD_CUT,
+                'shot_id': best_shot.shot_id,
+                'confidence': bd.final_score
+            }
+            movie_shot_specs.append(spec)
+            beast_audit_records.append({
+                'beat_id': beat_id,
+                'narration_text': snippet,
+                'visual_requirement': req.primary_subject + (f' <-> {req.secondary_subject}' if req.secondary_subject else ''),
+                'selected_source': f'Movie {best_shot.movie_number} ({best_shot.shot_id})',
+                'source_timestamp': f'{bd.extracted_interval[0]:.2f}s - {bd.extracted_interval[1]:.2f}s',
+                'selected_clip_duration': b_dur,
+                'visual_role': role.value,
+                'semantic_score': bd.semantic_similarity,
+                'entity_score': bd.character_score,
+                'action_score': bd.action_score,
+                'object_score': bd.object_score,
+                'environment_score': bd.location_score,
+                'temporal_score': bd.temporal_coherence,
+                'VLM_score': bd.vlm_score,
+                'contradiction_status': 'PASS (0 penalty)',
+                'final_confidence': bd.final_score,
+                'match_status': 'VALID_MATCH'
+            })
+        else:
+            # Fallback to contextual environment for unfilmed event
+            fallback_candidates = [s for s in candidate_pool if s.narrative_era == era and s.shot_scale in (ShotScale.WIDE_SHOT, ShotScale.MEDIUM_WIDE, ShotScale.MEDIUM_SHOT)]
+            fb_shot = fallback_candidates[0] if fallback_candidates else candidate_pool[0]
+            spec = {
+                'm': fb_shot.movie_number,
+                'start': fb_shot.start_seconds,
+                'dur': b_dur,
+                'scale': fb_shot.shot_scale,
+                'role': VisualRole.CONTEXTUAL_ENVIRONMENT,
+                'anchor': False,
+                'trans': TransitionIntent.HARD_CUT,
+                'shot_id': fb_shot.shot_id,
+                'confidence': 60.0
+            }
+            movie_shot_specs.append(spec)
+            beast_audit_records.append({
+                'beat_id': beat_id,
+                'narration_text': snippet,
+                'visual_requirement': req.primary_subject or 'Contextual Scene',
+                'selected_source': f'Movie {fb_shot.movie_number} (FALLBACK: {fb_shot.shot_id})',
+                'source_timestamp': f'{fb_shot.start_seconds:.2f}s',
+                'selected_clip_duration': b_dur,
+                'visual_role': VisualRole.CONTEXTUAL_ENVIRONMENT.value,
+                'semantic_score': 0.0,
+                'entity_score': 0.0,
+                'action_score': 0.0,
+                'object_score': 0.0,
+                'environment_score': 0.0,
+                'temporal_score': 100.0,
+                'VLM_score': 0.0,
+                'contradiction_status': 'NO_VALID_VISUAL',
+                'final_confidence': 0.0,
+                'match_status': 'NO_VALID_VISUAL'
+            })
+
+    print(f"BEAST completed: {sum(1 for a in beast_audit_records if a['match_status'] == 'VALID_MATCH')}/{len(beast_audit_records)} valid direct matches.")
 
     print(f"\n--- Step 2: Storyboard Beat Contracts ({len(movie_shot_specs)} cuts, beat-locked to speech) ---")
     beats: List[StoryboardBeatContract] = []
@@ -831,6 +932,60 @@ def run_production():
     print(f"\nVerified 01_READY Folder contents: {len(ready_files)} file(s)")
     for rf in ready_files:
         print(f"  • {rf['name']} (ID: {rf['id']}, Size: {int(rf.get('size', 0))/(1024*1024):.2f} MB)")
+
+    # 13.5 BEAST Visual Matching Beat-Level Forensic Audit
+    print("\n" + "=" * 80)
+    print("BEAST VISUAL MATCHING ENGINE: REAL MEDIA RETRIEVAL AUDIT")
+    print("=" * 80)
+    print(f"{'Beat ID':8s} | {'Narration Snippet':30s} | {'Selected Source':32s} | {'Role':22s} | {'Confidence':10s} | {'Status':12s}")
+    print("-" * 125)
+    for a in beast_audit_records:
+        snip = (a['narration_text'][:27] + "...") if len(a['narration_text']) > 30 else a['narration_text']
+        src = (a['selected_source'][:29] + "...") if len(a['selected_source']) > 32 else a['selected_source']
+        print(f"{a['beat_id']:8s} | {snip:30s} | {src:32s} | {a['visual_role']:22s} | {a['final_confidence']:10.1f} | {a['match_status']:12s}")
+
+    total_beats = len(beast_audit_records)
+    valid_matches = sum(1 for a in beast_audit_records if a['match_status'] == 'VALID_MATCH')
+    no_valid_visual_count = total_beats - valid_matches
+    confidences = [a['final_confidence'] for a in beast_audit_records if a['match_status'] == 'VALID_MATCH']
+    avg_conf = (sum(confidences) / len(confidences)) if confidences else 0.0
+    min_conf = min(confidences) if confidences else 0.0
+
+    # Count repeated sources and timestamps
+    source_counts: Dict[str, int] = {}
+    ts_counts: Dict[str, int] = {}
+    for a in beast_audit_records:
+        s = a['selected_source']
+        t = a['source_timestamp']
+        source_counts[s] = source_counts.get(s, 0) + 1
+        ts_counts[t] = ts_counts.get(t, 0) + 1
+    repeated_sources = sum(1 for count in source_counts.values() if count > 1)
+    repeated_timestamps = sum(1 for count in ts_counts.values() if count > 1)
+
+    print("\n--- BEAST Retrieval Statistics ---")
+    print(f"Total Beats                     : {total_beats}")
+    print(f"Valid Visual Matches            : {valid_matches} ({valid_matches/total_beats*100:.1f}%)")
+    print(f"NO_VALID_VISUAL Beats           : {no_valid_visual_count} ({no_valid_visual_count/total_beats*100:.1f}%)")
+    print(f"Average Confidence (Valid Beats): {avg_conf:.1f}%")
+    print(f"Minimum Confidence (Valid Beats): {min_conf:.1f}%")
+    print(f"Repeated Sources Count          : {repeated_sources}")
+    print(f"Repeated Timestamps Count       : {repeated_timestamps}")
+
+    # Save complete JSON audit artifact
+    audit_json_path = DATA_DIR / "renders" / f"{candidate_id}_beast_audit.json"
+    with open(audit_json_path, "w", encoding="utf-8") as f:
+        json.dump({
+            "candidate_id": candidate_id,
+            "total_beats": total_beats,
+            "valid_matches": valid_matches,
+            "no_valid_visual_count": no_valid_visual_count,
+            "average_confidence": round(avg_conf, 2),
+            "minimum_confidence": round(min_conf, 2),
+            "repeated_sources": repeated_sources,
+            "repeated_timestamps": repeated_timestamps,
+            "beats": beast_audit_records
+        }, f, indent=2)
+    print(f"BEAST Forensic Audit saved to: {audit_json_path}")
 
     # 14. Output Complete Forensic Post-Production Report
     print("\n" + "=" * 80)
