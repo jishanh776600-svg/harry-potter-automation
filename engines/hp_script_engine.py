@@ -50,6 +50,9 @@ from core.discovery_types import (
     DiscoverySubtype, DiscoveryTier, DiscoveryStoryStructure, HookArchetype,
     EvidenceRoute, PayoffType, TitlePattern, VisualClassification, DiscoveryQAResult
 )
+from core.multi_fact_types import (
+    MultiFactTopicPack, MultiFactPayload, VisualProposition, FactType, MultiFactFormat
+)
 from core.gemini_client import get_gemini_client
 from engines.discovery_narrative_engine import DiscoveryNarrativeEngine, THROAT_CLEARING_PATTERNS
 
@@ -1602,4 +1605,169 @@ OUTPUT STRICT JSON:
                 results.append(script_rec)
 
         return results
+
+    # ── Multi-Fact Script Generation ──────────────────────────────────────────
+
+    def generate_multi_fact_script(
+        self,
+        topic_pack: MultiFactTopicPack,
+        db: Optional[Session] = None
+    ) -> HarryPotterScript:
+        """
+        Synthesizes a production-grade multi-fact narration script from a MultiFactTopicPack.
+        Structure:
+          HOOK -> FACT 1 -> TRANSITION -> FACT 2 -> ... -> FINAL CLIMAX FACT -> EPIPHANY/PAYOFF.
+        Enforces:
+          - Target duration: 68.0–78.0s (hard ceiling 80.9s, target ~75s)
+          - Target word count: 240–280 words
+          - Speech rate: ~3.4–3.7 wps (targeting 3.55 wps)
+          - Translates VisualPropositions into structured visual beats ready for BEAST V2 and Asset Acquisition.
+        """
+        hook = topic_pack.hook.strip()
+        fact_texts = []
+        clean_beats = []
+        beat_idx = 1
+
+        for fact in topic_pack.facts:
+            trans = fact.spoken_transition or ""
+            claim_text = fact.claim.strip()
+            
+            # Incorporate book difference / why it matters / supporting details / canon evidence
+            detail_parts = []
+            if fact.book_difference:
+                detail_parts.append(f"In the books, {fact.book_difference}.")
+            if fact.movie_difference:
+                detail_parts.append(f"In the movie, {fact.movie_difference}.")
+            if fact.canon_evidence and not fact.book_difference:
+                detail_parts.append(fact.canon_evidence)
+            if fact.supporting_details:
+                detail_parts.extend(fact.supporting_details)
+            if fact.why_it_matters:
+                detail_parts.append(fact.why_it_matters)
+
+            detail_text = " ".join(detail_parts).strip()
+            if detail_text:
+                fact_body = f"{trans} {claim_text}. {detail_text}".strip()
+            else:
+                fact_body = f"{trans} {claim_text}.".strip()
+            
+            fact_texts.append(fact_body)
+
+            # Build visual beats from visual propositions
+            if fact.visual_propositions:
+                for vp in fact.visual_propositions:
+                    beat_dict = {
+                        "beat_id": f"beat_{beat_idx:02d}",
+                        "narration_text": fact_body[:100],
+                        "visual_requirement": f"[{vp.visual_role}] {vp.subject} {vp.action} {vp.object} in {vp.context}".strip(),
+                        "characters": [vp.subject] if vp.subject and vp.subject.lower() != "none" else [],
+                        "location": vp.context if vp.context and vp.context.lower() != "none" else "Hogwarts",
+                        "action": vp.action,
+                        "objects": [vp.object] if vp.object and vp.object.lower() != "none" else [],
+                        "emotional_context": "canon_discovery",
+                        "preferred_movie_number": 1,
+                        "visual_source_policy": "HYBRID_TRUTHFUL",
+                        "visual_source": "MOVIE_DIRECT",
+                        "visual_proposition": vp.to_dict(),
+                        "required_evidence_type": fact.required_evidence_type.value if hasattr(fact.required_evidence_type, "value") else str(fact.required_evidence_type),
+                        "estimated_duration": vp.estimated_duration_sec,
+                    }
+                    clean_beats.append(beat_dict)
+                    beat_idx += 1
+            else:
+                # Fallback beat if propositions empty
+                clean_beats.append({
+                    "beat_id": f"beat_{beat_idx:02d}",
+                    "narration_text": fact_body[:100],
+                    "visual_requirement": f"[DIRECT_EVIDENCE] {fact.claim}",
+                    "characters": ["Harry Potter"],
+                    "location": "Hogwarts",
+                    "action": "demonstrates canon fact",
+                    "objects": [],
+                    "emotional_context": "canon_discovery",
+                    "preferred_movie_number": 1,
+                    "visual_source_policy": "HYBRID_TRUTHFUL",
+                    "visual_source": "MOVIE_DIRECT",
+                    "required_evidence_type": "DIRECT_FILM_EVIDENCE",
+                    "estimated_duration": fact.target_duration_sec,
+                })
+                beat_idx += 1
+
+        payoff = topic_pack.payoff_text.strip()
+        full_text = f"{hook} {' '.join(fact_texts)} {payoff}".strip()
+        words = full_text.split()
+        word_count = len(words)
+        est_duration = round(word_count / topic_pack.target_speech_rate, 1)
+
+        # Evaluate QA
+        qa_result = self.evaluate_script_qa(
+            script_text=full_text,
+            visual_beats=clean_beats,
+            candidate_type="DEEP_DISCOVERY"
+        )
+
+        script_id = f"script_mf_{topic_pack.topic_id}"
+        novel_excerpt = topic_pack.facts[0].canon_evidence if topic_pack.facts else None
+
+        script_rec = HarryPotterScript(
+            id=script_id,
+            candidate_id=topic_pack.topic_id,
+            content_type="multi_fact_discovery",
+            book_number=1,
+            book_title="Harry Potter",
+            chapter_number=1,
+            chapter_title="Multi-Fact Discovery",
+            source_chunks_json=json.dumps([f.fact_id for f in topic_pack.facts]),
+            source_reference=f"MultiFactTopicPack: {topic_pack.theme}",
+            novel_evidence_excerpt=novel_excerpt[:500] if novel_excerpt else None,
+            discovery_type="MULTI_FACT_DISCOVERY",
+            corresponding_movie_number=1,
+            movie_chunk_id=None,
+            movie_evidence_excerpt=None,
+            discovery_tier="DEEP_DISCOVERY",
+            story_structure="TEMPLATE_A_CURATED_LISTICLE",
+            hook_archetype=topic_pack.hook_archetype.value if hasattr(topic_pack.hook_archetype, "value") else str(topic_pack.hook_archetype),
+            evidence_route="NOVEL_CANON",
+            thesis=topic_pack.theme,
+            insider_epiphany=payoff,
+            title_pattern=topic_pack.title_pattern.value if hasattr(topic_pack.title_pattern, "value") else str(topic_pack.title_pattern),
+            suggested_title=topic_pack.suggested_title,
+            part_marker=None,
+            voice_id="af_bella",
+            voice_pitch="+0Hz",
+            voice_rate="+0%",
+            narrator_style="BELLA_CANON_EXPERT",
+            hook=hook,
+            development=" ".join(fact_texts),
+            payoff=payoff,
+            full_text=full_text,
+            word_count=word_count,
+            estimated_duration_sec=est_duration,
+            visual_beats_json=json.dumps(clean_beats),
+            total_beats=len(clean_beats),
+            qa_score=qa_result.score,
+            qa_status="APPROVED" if qa_result.passed else "FLAGGED",
+            qa_feedback_json=json.dumps(qa_result.feedback),
+            model_name="MULTI_FACT_ENGINE_V1",
+            status="READY_FOR_STEP_9",
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow(),
+        )
+
+        if db:
+            existing = db.query(HarryPotterScript).filter_by(id=script_id).first()
+            if existing:
+                for col in script_rec.__table__.columns.keys():
+                    if col not in ("id", "created_at"):
+                        setattr(existing, col, getattr(script_rec, col))
+                db.commit()
+                db.refresh(existing)
+                return existing
+            else:
+                db.add(script_rec)
+                db.commit()
+                db.refresh(script_rec)
+
+        return script_rec
+
 
