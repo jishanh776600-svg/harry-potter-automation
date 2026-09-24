@@ -1,0 +1,1033 @@
+{
+  "session_id": "voice_audition_lineup_60",
+  "created_at": "2026-09-24T08:29:08.385800Z",
+  "script": "Behind the hidden walls of Hogwarts, centuries of forgotten magic remain buried in plain sight. From Godric Gryffindor's enchanted goblin-wrought sword to the dark secrets of Ollivanders wand lore, the most astonishing wizarding truths were never shown on screen. And what the archives finally reveal will completely change how you see the chosen one.",
+  "total_voices": 60,
+  "male_count": 30,
+  "female_count": 30,
+  "combined_audio_filename": "voice_audition_lineup_60_lineup_60.mp3",
+  "total_duration_seconds": 1381.38,
+  "deterministic_fingerprint": "2f9726efddb8703e",
+  "voices": [
+    {
+      "number": 1,
+      "label": "MALE 01",
+      "category": "male",
+      "voice_id": "am_adam",
+      "provider": "Kokoro-82M ONNX",
+      "model": "kokoro-v1.0",
+      "locale": "en-US",
+      "accent": "American",
+      "start": 0.0,
+      "end": 21.12,
+      "duration": 21.12,
+      "config": {
+        "style": "Calm, narrative",
+        "engine": "kokoro"
+      }
+    },
+    {
+      "number": 2,
+      "label": "MALE 02",
+      "category": "male",
+      "voice_id": "am_echo",
+      "provider": "Kokoro-82M ONNX",
+      "model": "kokoro-v1.0",
+      "locale": "en-US",
+      "accent": "American",
+      "start": 21.92,
+      "end": 41.01,
+      "duration": 19.09,
+      "config": {
+        "style": "Resonant, deep",
+        "engine": "kokoro"
+      }
+    },
+    {
+      "number": 3,
+      "label": "MALE 03",
+      "category": "male",
+      "voice_id": "am_eric",
+      "provider": "Kokoro-82M ONNX",
+      "model": "kokoro-v1.0",
+      "locale": "en-US",
+      "accent": "American",
+      "start": 41.81,
+      "end": 59.63,
+      "duration": 17.81,
+      "config": {
+        "style": "Dynamic, clear",
+        "engine": "kokoro"
+      }
+    },
+    {
+      "number": 4,
+      "label": "MALE 04",
+      "category": "male",
+      "voice_id": "am_fenrir",
+      "provider": "Kokoro-82M ONNX",
+      "model": "kokoro-v1.0",
+      "locale": "en-US",
+      "accent": "American",
+      "start": 60.43,
+      "end": 79.26,
+      "duration": 18.84,
+      "config": {
+        "style": "Gravelly, dramatic",
+        "engine": "kokoro"
+      }
+    },
+    {
+      "number": 5,
+      "label": "MALE 05",
+      "category": "male",
+      "voice_id": "am_liam",
+      "provider": "Kokoro-82M ONNX",
+      "model": "kokoro-v1.0",
+      "locale": "en-US",
+      "accent": "American",
+      "start": 80.06,
+      "end": 98.62,
+      "duration": 18.56,
+      "config": {
+        "style": "Youthful, energetic",
+        "engine": "kokoro"
+      }
+    },
+    {
+      "number": 6,
+      "label": "MALE 06",
+      "category": "male",
+      "voice_id": "am_michael",
+      "provider": "Kokoro-82M ONNX",
+      "model": "kokoro-v1.0",
+      "locale": "en-US",
+      "accent": "American",
+      "start": 99.42,
+      "end": 123.15,
+      "duration": 23.72,
+      "config": {
+        "style": "Authoritative, announcer",
+        "engine": "kokoro"
+      }
+    },
+    {
+      "number": 7,
+      "label": "MALE 07",
+      "category": "male",
+      "voice_id": "am_onyx",
+      "provider": "Kokoro-82M ONNX",
+      "model": "kokoro-v1.0",
+      "locale": "en-US",
+      "accent": "American",
+      "start": 123.95,
+      "end": 143.36,
+      "duration": 19.41,
+      "config": {
+        "style": "Rich, baritone",
+        "engine": "kokoro"
+      }
+    },
+    {
+      "number": 8,
+      "label": "MALE 08",
+      "category": "male",
+      "voice_id": "am_puck",
+      "provider": "Kokoro-82M ONNX",
+      "model": "kokoro-v1.0",
+      "locale": "en-US",
+      "accent": "American",
+      "start": 144.16,
+      "end": 162.68,
+      "duration": 18.52,
+      "config": {
+        "style": "Playful, animated",
+        "engine": "kokoro"
+      }
+    },
+    {
+      "number": 9,
+      "label": "MALE 09",
+      "category": "male",
+      "voice_id": "am_santa",
+      "provider": "Kokoro-82M ONNX",
+      "model": "kokoro-v1.0",
+      "locale": "en-US",
+      "accent": "American",
+      "start": 163.48,
+      "end": 185.13,
+      "duration": 21.65,
+      "config": {
+        "style": "Warm, booming",
+        "engine": "kokoro"
+      }
+    },
+    {
+      "number": 10,
+      "label": "MALE 10",
+      "category": "male",
+      "voice_id": "bm_daniel",
+      "provider": "Kokoro-82M ONNX",
+      "model": "kokoro-v1.0",
+      "locale": "en-GB",
+      "accent": "British",
+      "start": 185.93,
+      "end": 204.34,
+      "duration": 18.41,
+      "config": {
+        "style": "Formal, documentary",
+        "engine": "kokoro"
+      }
+    },
+    {
+      "number": 11,
+      "label": "MALE 11",
+      "category": "male",
+      "voice_id": "bm_fable",
+      "provider": "Kokoro-82M ONNX",
+      "model": "kokoro-v1.0",
+      "locale": "en-GB",
+      "accent": "British",
+      "start": 205.14,
+      "end": 223.74,
+      "duration": 18.6,
+      "config": {
+        "style": "Theatrical storyteller",
+        "engine": "kokoro"
+      }
+    },
+    {
+      "number": 12,
+      "label": "MALE 12",
+      "category": "male",
+      "voice_id": "bm_george",
+      "provider": "Kokoro-82M ONNX",
+      "model": "kokoro-v1.0",
+      "locale": "en-GB",
+      "accent": "British",
+      "start": 224.54,
+      "end": 246.71,
+      "duration": 22.17,
+      "config": {
+        "style": "Classic British, refined",
+        "engine": "kokoro"
+      }
+    },
+    {
+      "number": 13,
+      "label": "MALE 13",
+      "category": "male",
+      "voice_id": "bm_lewis",
+      "provider": "Kokoro-82M ONNX",
+      "model": "kokoro-v1.0",
+      "locale": "en-GB",
+      "accent": "British",
+      "start": 247.51,
+      "end": 269.87,
+      "duration": 22.36,
+      "config": {
+        "style": "Crisp, factual",
+        "engine": "kokoro"
+      }
+    },
+    {
+      "number": 14,
+      "label": "MALE 14",
+      "category": "male",
+      "voice_id": "en-AU-WilliamMultilingualNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-AU",
+      "accent": "Australian",
+      "start": 270.67,
+      "end": 291.23,
+      "duration": 20.57,
+      "config": {
+        "friendly_name": "Microsoft WilliamMultilingual Online (Natural) - English (Australia)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 15,
+      "label": "MALE 15",
+      "category": "male",
+      "voice_id": "en-CA-LiamNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-CA",
+      "accent": "Canadian",
+      "start": 292.03,
+      "end": 313.68,
+      "duration": 21.65,
+      "config": {
+        "friendly_name": "Microsoft Liam Online (Natural) - English (Canada)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 16,
+      "label": "MALE 16",
+      "category": "male",
+      "voice_id": "en-HK-SamNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-HK",
+      "accent": "International English",
+      "start": 314.48,
+      "end": 339.32,
+      "duration": 24.84,
+      "config": {
+        "friendly_name": "Microsoft Sam Online (Natural) - English (Hongkong)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 17,
+      "label": "MALE 17",
+      "category": "male",
+      "voice_id": "en-IN-PrabhatNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-IN",
+      "accent": "Indian",
+      "start": 340.12,
+      "end": 368.25,
+      "duration": 28.13,
+      "config": {
+        "friendly_name": "Microsoft Prabhat Online (Natural) - English (India)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 18,
+      "label": "MALE 18",
+      "category": "male",
+      "voice_id": "en-IE-ConnorNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-IE",
+      "accent": "Irish",
+      "start": 369.05,
+      "end": 392.4,
+      "duration": 23.35,
+      "config": {
+        "friendly_name": "Microsoft Connor Online (Natural) - English (Ireland)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 19,
+      "label": "MALE 19",
+      "category": "male",
+      "voice_id": "en-KE-ChilembaNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-KE",
+      "accent": "International English",
+      "start": 393.2,
+      "end": 414.75,
+      "duration": 21.55,
+      "config": {
+        "friendly_name": "Microsoft Chilemba Online (Natural) - English (Kenya)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 20,
+      "label": "MALE 20",
+      "category": "male",
+      "voice_id": "en-NZ-MitchellNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-NZ",
+      "accent": "New Zealand",
+      "start": 415.55,
+      "end": 439.43,
+      "duration": 23.88,
+      "config": {
+        "friendly_name": "Microsoft Mitchell Online (Natural) - English (New Zealand)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 21,
+      "label": "MALE 21",
+      "category": "male",
+      "voice_id": "en-NG-AbeoNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-NG",
+      "accent": "International English",
+      "start": 440.23,
+      "end": 461.74,
+      "duration": 21.5,
+      "config": {
+        "friendly_name": "Microsoft Abeo Online (Natural) - English (Nigeria)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 22,
+      "label": "MALE 22",
+      "category": "male",
+      "voice_id": "en-PH-JamesNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-PH",
+      "accent": "International English",
+      "start": 462.54,
+      "end": 485.63,
+      "duration": 23.09,
+      "config": {
+        "friendly_name": "Microsoft James Online (Natural) - English (Philippines)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 23,
+      "label": "MALE 23",
+      "category": "male",
+      "voice_id": "en-US-AndrewNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-US",
+      "accent": "American",
+      "start": 486.43,
+      "end": 509.37,
+      "duration": 22.94,
+      "config": {
+        "friendly_name": "Microsoft Andrew Online (Natural) - English (United States)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 24,
+      "label": "MALE 24",
+      "category": "male",
+      "voice_id": "en-US-BrianNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-US",
+      "accent": "American",
+      "start": 510.17,
+      "end": 533.47,
+      "duration": 23.3,
+      "config": {
+        "friendly_name": "Microsoft Brian Online (Natural) - English (United States)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 25,
+      "label": "MALE 25",
+      "category": "male",
+      "voice_id": "en-SG-WayneNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-SG",
+      "accent": "International English",
+      "start": 534.27,
+      "end": 559.19,
+      "duration": 24.91,
+      "config": {
+        "friendly_name": "Microsoft Wayne Online (Natural) - English (Singapore)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 26,
+      "label": "MALE 26",
+      "category": "male",
+      "voice_id": "en-ZA-LukeNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-ZA",
+      "accent": "South African",
+      "start": 559.99,
+      "end": 580.46,
+      "duration": 20.47,
+      "config": {
+        "friendly_name": "Microsoft Luke Online (Natural) - English (South Africa)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 27,
+      "label": "MALE 27",
+      "category": "male",
+      "voice_id": "en-TZ-ElimuNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-TZ",
+      "accent": "International English",
+      "start": 581.26,
+      "end": 603.58,
+      "duration": 22.32,
+      "config": {
+        "friendly_name": "Microsoft Elimu Online (Natural) - English (Tanzania)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 28,
+      "label": "MALE 28",
+      "category": "male",
+      "voice_id": "en-GB-RyanNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-GB",
+      "accent": "British",
+      "start": 604.38,
+      "end": 626.96,
+      "duration": 22.58,
+      "config": {
+        "friendly_name": "Microsoft Ryan Online (Natural) - English (United Kingdom)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 29,
+      "label": "MALE 29",
+      "category": "male",
+      "voice_id": "en-GB-ThomasNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-GB",
+      "accent": "British",
+      "start": 627.76,
+      "end": 650.49,
+      "duration": 22.73,
+      "config": {
+        "friendly_name": "Microsoft Thomas Online (Natural) - English (United Kingdom)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 30,
+      "label": "MALE 30",
+      "category": "male",
+      "voice_id": "en-US-AndrewMultilingualNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-US",
+      "accent": "American",
+      "start": 651.29,
+      "end": 675.63,
+      "duration": 24.34,
+      "config": {
+        "friendly_name": "Microsoft AndrewMultilingual Online (Natural) - English (United States)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 31,
+      "label": "FEMALE 01",
+      "category": "female",
+      "voice_id": "af_bella",
+      "provider": "Kokoro-82M ONNX",
+      "model": "kokoro-v1.0",
+      "locale": "en-US",
+      "accent": "American",
+      "start": 676.43,
+      "end": 698.95,
+      "duration": 22.53,
+      "config": {
+        "style": "Cinematic storyteller",
+        "engine": "kokoro"
+      }
+    },
+    {
+      "number": 32,
+      "label": "FEMALE 02",
+      "category": "female",
+      "voice_id": "af_sarah",
+      "provider": "Kokoro-82M ONNX",
+      "model": "kokoro-v1.0",
+      "locale": "en-US",
+      "accent": "American",
+      "start": 699.75,
+      "end": 721.15,
+      "duration": 21.4,
+      "config": {
+        "style": "Conversational, clear",
+        "engine": "kokoro"
+      }
+    },
+    {
+      "number": 33,
+      "label": "FEMALE 03",
+      "category": "female",
+      "voice_id": "af_alloy",
+      "provider": "Kokoro-82M ONNX",
+      "model": "kokoro-v1.0",
+      "locale": "en-US",
+      "accent": "American",
+      "start": 721.95,
+      "end": 740.85,
+      "duration": 18.9,
+      "config": {
+        "style": "Modern, balanced",
+        "engine": "kokoro"
+      }
+    },
+    {
+      "number": 34,
+      "label": "FEMALE 04",
+      "category": "female",
+      "voice_id": "af_aoede",
+      "provider": "Kokoro-82M ONNX",
+      "model": "kokoro-v1.0",
+      "locale": "en-US",
+      "accent": "American",
+      "start": 741.65,
+      "end": 762.11,
+      "duration": 20.46,
+      "config": {
+        "style": "Melodic, lyrical",
+        "engine": "kokoro"
+      }
+    },
+    {
+      "number": 35,
+      "label": "FEMALE 05",
+      "category": "female",
+      "voice_id": "af_heart",
+      "provider": "Kokoro-82M ONNX",
+      "model": "kokoro-v1.0",
+      "locale": "en-US",
+      "accent": "American",
+      "start": 762.91,
+      "end": 785.27,
+      "duration": 22.36,
+      "config": {
+        "style": "Warm, intimate",
+        "engine": "kokoro"
+      }
+    },
+    {
+      "number": 36,
+      "label": "FEMALE 06",
+      "category": "female",
+      "voice_id": "af_jessica",
+      "provider": "Kokoro-82M ONNX",
+      "model": "kokoro-v1.0",
+      "locale": "en-US",
+      "accent": "American",
+      "start": 786.07,
+      "end": 804.14,
+      "duration": 18.07,
+      "config": {
+        "style": "Engaging, bright",
+        "engine": "kokoro"
+      }
+    },
+    {
+      "number": 37,
+      "label": "FEMALE 07",
+      "category": "female",
+      "voice_id": "af_kore",
+      "provider": "Kokoro-82M ONNX",
+      "model": "kokoro-v1.0",
+      "locale": "en-US",
+      "accent": "American",
+      "start": 804.94,
+      "end": 824.12,
+      "duration": 19.18,
+      "config": {
+        "style": "Crisp, articulate",
+        "engine": "kokoro"
+      }
+    },
+    {
+      "number": 38,
+      "label": "FEMALE 08",
+      "category": "female",
+      "voice_id": "af_nicole",
+      "provider": "Kokoro-82M ONNX",
+      "model": "kokoro-v1.0",
+      "locale": "en-US",
+      "accent": "American",
+      "start": 824.92,
+      "end": 858.26,
+      "duration": 33.34,
+      "config": {
+        "style": "Professional, smooth",
+        "engine": "kokoro"
+      }
+    },
+    {
+      "number": 39,
+      "label": "FEMALE 09",
+      "category": "female",
+      "voice_id": "af_nova",
+      "provider": "Kokoro-82M ONNX",
+      "model": "kokoro-v1.0",
+      "locale": "en-US",
+      "accent": "American",
+      "start": 859.06,
+      "end": 878.07,
+      "duration": 19.01,
+      "config": {
+        "style": "Energetic, upbeat",
+        "engine": "kokoro"
+      }
+    },
+    {
+      "number": 40,
+      "label": "FEMALE 10",
+      "category": "female",
+      "voice_id": "af_river",
+      "provider": "Kokoro-82M ONNX",
+      "model": "kokoro-v1.0",
+      "locale": "en-US",
+      "accent": "American",
+      "start": 878.87,
+      "end": 896.62,
+      "duration": 17.75,
+      "config": {
+        "style": "Relaxed, natural",
+        "engine": "kokoro"
+      }
+    },
+    {
+      "number": 41,
+      "label": "FEMALE 11",
+      "category": "female",
+      "voice_id": "af_sky",
+      "provider": "Kokoro-82M ONNX",
+      "model": "kokoro-v1.0",
+      "locale": "en-US",
+      "accent": "American",
+      "start": 897.42,
+      "end": 917.88,
+      "duration": 20.46,
+      "config": {
+        "style": "Airy, gentle",
+        "engine": "kokoro"
+      }
+    },
+    {
+      "number": 42,
+      "label": "FEMALE 12",
+      "category": "female",
+      "voice_id": "bf_alice",
+      "provider": "Kokoro-82M ONNX",
+      "model": "kokoro-v1.0",
+      "locale": "en-GB",
+      "accent": "British",
+      "start": 918.68,
+      "end": 938.5,
+      "duration": 19.82,
+      "config": {
+        "style": "Aristocratic, composed",
+        "engine": "kokoro"
+      }
+    },
+    {
+      "number": 43,
+      "label": "FEMALE 13",
+      "category": "female",
+      "voice_id": "bf_emma",
+      "provider": "Kokoro-82M ONNX",
+      "model": "kokoro-v1.0",
+      "locale": "en-GB",
+      "accent": "British",
+      "start": 939.3,
+      "end": 959.26,
+      "duration": 19.97,
+      "config": {
+        "style": "Expressive British narrator",
+        "engine": "kokoro"
+      }
+    },
+    {
+      "number": 44,
+      "label": "FEMALE 14",
+      "category": "female",
+      "voice_id": "bf_isabella",
+      "provider": "Kokoro-82M ONNX",
+      "model": "kokoro-v1.0",
+      "locale": "en-GB",
+      "accent": "British",
+      "start": 960.06,
+      "end": 979.99,
+      "duration": 19.93,
+      "config": {
+        "style": "Sophisticated, warm",
+        "engine": "kokoro"
+      }
+    },
+    {
+      "number": 45,
+      "label": "FEMALE 15",
+      "category": "female",
+      "voice_id": "bf_lily",
+      "provider": "Kokoro-82M ONNX",
+      "model": "kokoro-v1.0",
+      "locale": "en-GB",
+      "accent": "British",
+      "start": 980.79,
+      "end": 1000.42,
+      "duration": 19.63,
+      "config": {
+        "style": "Youthful British",
+        "engine": "kokoro"
+      }
+    },
+    {
+      "number": 46,
+      "label": "FEMALE 16",
+      "category": "female",
+      "voice_id": "en-AU-NatashaNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-AU",
+      "accent": "Australian",
+      "start": 1001.22,
+      "end": 1025.74,
+      "duration": 24.53,
+      "config": {
+        "friendly_name": "Microsoft Natasha Online (Natural) - English (Australia)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 47,
+      "label": "FEMALE 17",
+      "category": "female",
+      "voice_id": "en-CA-ClaraNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-CA",
+      "accent": "Canadian",
+      "start": 1026.54,
+      "end": 1050.06,
+      "duration": 23.52,
+      "config": {
+        "friendly_name": "Microsoft Clara Online (Natural) - English (Canada)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 48,
+      "label": "FEMALE 18",
+      "category": "female",
+      "voice_id": "en-HK-YanNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-HK",
+      "accent": "International English",
+      "start": 1050.86,
+      "end": 1074.98,
+      "duration": 24.12,
+      "config": {
+        "friendly_name": "Microsoft Yan Online (Natural) - English (Hong Kong SAR)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 49,
+      "label": "FEMALE 19",
+      "category": "female",
+      "voice_id": "en-IN-NeerjaExpressiveNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-IN",
+      "accent": "Indian",
+      "start": 1075.78,
+      "end": 1102.23,
+      "duration": 26.45,
+      "config": {
+        "friendly_name": "Microsoft Neerja Online (Natural) - English (India) (Preview)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 50,
+      "label": "FEMALE 20",
+      "category": "female",
+      "voice_id": "en-IN-NeerjaNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-IN",
+      "accent": "Indian",
+      "start": 1103.03,
+      "end": 1129.86,
+      "duration": 26.83,
+      "config": {
+        "friendly_name": "Microsoft Neerja Online (Natural) - English (India)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 51,
+      "label": "FEMALE 21",
+      "category": "female",
+      "voice_id": "en-IE-EmilyNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-IE",
+      "accent": "Irish",
+      "start": 1130.66,
+      "end": 1156.3,
+      "duration": 25.63,
+      "config": {
+        "friendly_name": "Microsoft Emily Online (Natural) - English (Ireland)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 52,
+      "label": "FEMALE 22",
+      "category": "female",
+      "voice_id": "en-KE-AsiliaNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-KE",
+      "accent": "International English",
+      "start": 1157.1,
+      "end": 1180.81,
+      "duration": 23.71,
+      "config": {
+        "friendly_name": "Microsoft Asilia Online (Natural) - English (Kenya)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 53,
+      "label": "FEMALE 23",
+      "category": "female",
+      "voice_id": "en-NZ-MollyNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-NZ",
+      "accent": "New Zealand",
+      "start": 1181.61,
+      "end": 1207.62,
+      "duration": 26.02,
+      "config": {
+        "friendly_name": "Microsoft Molly Online (Natural) - English (New Zealand)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 54,
+      "label": "FEMALE 24",
+      "category": "female",
+      "voice_id": "en-NG-EzinneNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-NG",
+      "accent": "International English",
+      "start": 1208.42,
+      "end": 1231.58,
+      "duration": 23.16,
+      "config": {
+        "friendly_name": "Microsoft Ezinne Online (Natural) - English (Nigeria)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 55,
+      "label": "FEMALE 25",
+      "category": "female",
+      "voice_id": "en-PH-RosaNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-PH",
+      "accent": "International English",
+      "start": 1232.38,
+      "end": 1257.37,
+      "duration": 24.98,
+      "config": {
+        "friendly_name": "Microsoft Rosa Online (Natural) - English (Philippines)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 56,
+      "label": "FEMALE 26",
+      "category": "female",
+      "voice_id": "en-US-AvaNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-US",
+      "accent": "American",
+      "start": 1258.17,
+      "end": 1281.57,
+      "duration": 23.4,
+      "config": {
+        "friendly_name": "Microsoft Ava Online (Natural) - English (United States)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 57,
+      "label": "FEMALE 27",
+      "category": "female",
+      "voice_id": "en-US-EmmaNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-US",
+      "accent": "American",
+      "start": 1282.37,
+      "end": 1304.59,
+      "duration": 22.22,
+      "config": {
+        "friendly_name": "Microsoft Emma Online (Natural) - English (United States)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 58,
+      "label": "FEMALE 28",
+      "category": "female",
+      "voice_id": "en-SG-LunaNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-SG",
+      "accent": "International English",
+      "start": 1305.39,
+      "end": 1330.47,
+      "duration": 25.08,
+      "config": {
+        "friendly_name": "Microsoft Luna Online (Natural) - English (Singapore)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 59,
+      "label": "FEMALE 29",
+      "category": "female",
+      "voice_id": "en-ZA-LeahNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-ZA",
+      "accent": "South African",
+      "start": 1331.27,
+      "end": 1355.99,
+      "duration": 24.72,
+      "config": {
+        "friendly_name": "Microsoft Leah Online (Natural) - English (South Africa)",
+        "engine": "edge_tts"
+      }
+    },
+    {
+      "number": 60,
+      "label": "FEMALE 30",
+      "category": "female",
+      "voice_id": "en-TZ-ImaniNeural",
+      "provider": "Edge-TTS Neural",
+      "model": "ms-edge-neural",
+      "locale": "en-TZ",
+      "accent": "International English",
+      "start": 1356.79,
+      "end": 1380.58,
+      "duration": 23.78,
+      "config": {
+        "friendly_name": "Microsoft Imani Online (Natural) - English (Tanzania)",
+        "engine": "edge_tts"
+      }
+    }
+  ]
+}
