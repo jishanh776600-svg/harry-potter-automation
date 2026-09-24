@@ -8,7 +8,7 @@ Executes the complete STORY FORGE v3.0-FINAL pipeline with V2 Visual Discovery,
   Step 3: FFmpeg Visual Preprocessor (1080x1920, 30fps, muted -an, BLURRED_PADDING)
   Step 4: Remotion Editorial Engine (Frame-locked timeline, Harry P typography)
   Step 5: Intelligent Beat-Aware SFX Pipeline (Only 4 approved SFX files)
-  Audio : Master Audio Chain (Bella voice, Esther Abrami BGM, SFX, normalize=0, -13 LUFS)
+  Audio : Master Audio Chain (Bella voice, Canonical Dynamic Discovery BGM, SFX, normalize=0, -13 LUFS)
   Video : Final FFmpeg Composition (1080x1920 @ 30fps, ASS burn-in, AAC audio)
   Verify: Final Media Audio Verifier + Final Media Visual Verifier
   Step 6: Automated 10-Point QA Verification Gate

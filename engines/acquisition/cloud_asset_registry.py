@@ -82,18 +82,22 @@ class CloudAssetRegistry:
         """Checks if an asset with this source URL is already registered."""
         return url in self._url_to_sha
 
-    def get_by_sha(self, sha256: str) -> Optional[AssetRecord]:
+    def get_by_sha(self, sha256: str, require_production_video: bool = False) -> Optional[AssetRecord]:
         """Retrieves an AssetRecord by its SHA-256 hash."""
         data = self._index.get(sha256)
         if data:
-            return AssetRecord.from_dict(data)
+            rec = AssetRecord.from_dict(data)
+            if require_production_video and not rec.is_production_video_eligible():
+                logger.info(f"[CloudAssetRegistry] Rejecting historical non-video asset {rec.asset_id} for production query.")
+                return None
+            return rec
         return None
 
-    def get_by_url(self, url: str) -> Optional[AssetRecord]:
+    def get_by_url(self, url: str, require_production_video: bool = False) -> Optional[AssetRecord]:
         """Retrieves an AssetRecord by its source URL."""
         sha = self._url_to_sha.get(url)
         if sha:
-            return self.get_by_sha(sha)
+            return self.get_by_sha(sha, require_production_video=require_production_video)
         return None
 
     def register_asset(

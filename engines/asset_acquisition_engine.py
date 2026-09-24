@@ -156,9 +156,18 @@ class AssetAcquisitionEngine:
             temp_path = Path(temp_dir)
 
             for cand in candidates:
-                # STORY FORGE Policy: VISUALS = VIDEO ONLY. Never acquire images or non-video visual assets.
+                # STORY FORGE Hard Policy: VISUALS = VIDEO ONLY. Never acquire images or non-video visual assets.
                 if cand.media_category != MediaCategory.VIDEO:
-                    logger.debug(f"[AssetAcquisition] Skipping candidate '{cand.title}': media category '{cand.media_category}' is not VIDEO.")
+                    logger.debug(f"[AssetAcquisition] Rejecting candidate '{cand.title}': media category '{cand.media_category}' is not VIDEO.")
+                    continue
+
+                # Check URL extension for forbidden static image formats
+                import urllib.parse
+                from core.acquisition_types import FORBIDDEN_IMAGE_EXTENSIONS, FORBIDDEN_IMAGE_MIME_TYPES, FORBIDDEN_IMAGE_TERMS, ProductionAssetType
+                parsed_url = urllib.parse.urlparse(cand.download_url)
+                cand_suffix = Path(parsed_url.path).suffix.lower()
+                if cand_suffix in FORBIDDEN_IMAGE_EXTENSIONS:
+                    logger.warning(f"[AssetAcquisition] Rejecting candidate '{cand.title}': Forbidden image extension '{cand_suffix}'. VIDEO ONLY.")
                     continue
 
                 # SSRF & Disallowed Stock Media Provider Validation
@@ -168,8 +177,8 @@ class AssetAcquisitionEngine:
                     errors.append(f"Security validation rejected {cand.download_url}: {reason}")
                     continue
 
-                # Fast URL check in registry
-                cached_by_url = self.registry.get_by_url(cand.download_url)
+                # Fast URL check in registry — strictly require production video eligibility
+                cached_by_url = self.registry.get_by_url(cand.download_url, require_production_video=True)
                 if cached_by_url:
                     logger.info(f"[AssetAcquisition] Cache hit by URL for {cand.title}")
                     verified_records.append(cached_by_url)
@@ -188,8 +197,8 @@ class AssetAcquisitionEngine:
                     # Compute SHA-256 for deterministic deduplication
                     sha256 = MediaAnalyzer.calculate_sha256(downloaded_file)
 
-                    # Check if already registered by hash
-                    cached_by_sha = self.registry.get_by_sha(sha256)
+                    # Check if already registered by hash — strictly require production video eligibility
+                    cached_by_sha = self.registry.get_by_sha(sha256, require_production_video=True)
                     if cached_by_sha:
                         logger.info(f"[AssetAcquisition] Cache hit by SHA-256 for {cand.title} ({sha256[:12]})")
                         verified_records.append(cached_by_sha)
@@ -200,10 +209,19 @@ class AssetAcquisitionEngine:
                     # Deep analysis & decodability verification
                     tech_meta, vis_meta = MediaAnalyzer.analyze_asset(
                         file_path=downloaded_file,
-                        expected_category=cand.media_category,
+                        expected_category=MediaCategory.VIDEO,
                     )
 
-                    # Assemble complete AssetRecord
+                    # Strict post-download rejection of image mime types or 0-duration assets
+                    if tech_meta.mime_type in FORBIDDEN_IMAGE_MIME_TYPES:
+                        logger.warning(f"[AssetAcquisition] Rejecting candidate '{cand.title}': Detected image mime '{tech_meta.mime_type}'.")
+                        continue
+
+                    if tech_meta.duration_sec <= 0.0:
+                        logger.warning(f"[AssetAcquisition] Rejecting candidate '{cand.title}': Zero duration non-video asset.")
+                        continue
+
+                    # Assemble complete AssetRecord with VIDEO_ONLY_PRODUCTION_ASSET typing
                     asset_id = f"asset_{uuid.uuid4().hex[:12]}"
                     provenance = cand.provenance or AssetProvenance(
                         source_url=cand.download_url,
@@ -216,13 +234,14 @@ class AssetAcquisitionEngine:
                         asset_id=asset_id,
                         sha256=sha256,
                         filename=downloaded_file.name,
-                        media_category=cand.media_category,
+                        media_category=MediaCategory.VIDEO,
                         source_category=cand.source_category,
                         technical_meta=tech_meta,
                         visual_meta=vis_meta,
                         provenance=provenance,
                         created_at_iso=datetime.now(timezone.utc).isoformat(),
                         tags=[query, cand.title],
+                        production_asset_type=ProductionAssetType.VIDEO_ONLY_PRODUCTION_ASSET.value,
                     )
 
                     # Persist into registry & cloud storage
@@ -232,7 +251,7 @@ class AssetAcquisitionEngine:
                         upload_to_cloud=True,
                     )
                     verified_records.append(registered)
-                    logger.info(f"[AssetAcquisition] Successfully registered asset '{registered.asset_id}' ({registered.filename})")
+                    logger.info(f"[AssetAcquisition] Successfully registered video asset '{registered.asset_id}' ({registered.filename})")
 
                     if len(verified_records) >= limit:
                         break

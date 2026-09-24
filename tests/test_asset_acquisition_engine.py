@@ -38,14 +38,20 @@ from engines.asset_acquisition_engine import AssetAcquisitionEngine
 # ==============================================================================
 
 def test_safe_url_validator_allowed():
-    safe_urls = [
-        "https://commons.wikimedia.org/wiki/File:Example.jpg",
+    safe_video_urls = [
         "https://archive.org/download/item/file.mp4",
-        "http://example.com/image.png",
+        "https://upload.wikimedia.org/wikipedia/commons/video.webm",
+        "http://example.com/footage.mp4",
     ]
-    for url in safe_urls:
+    for url in safe_video_urls:
         is_safe, reason = SafeURLValidator.is_safe_url(url)
         assert is_safe, f"Expected safe for {url}: {reason}"
+
+    # Verify that static image URLs are blocked under VIDEO ONLY policy
+    for img_url in ["https://example.com/art.jpg", "https://example.com/pic.png"]:
+        is_safe, reason = SafeURLValidator.is_safe_url(img_url)
+        assert is_safe is False
+        assert "Static image format" in reason
 
 
 def test_safe_url_validator_blocked():

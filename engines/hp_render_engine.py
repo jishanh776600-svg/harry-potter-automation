@@ -79,12 +79,15 @@ def compute_render_fingerprint(
     bgm_track: str = DEFAULT_BGM_TRACK,
     bgm_volume_db: float = DEFAULT_BGM_VOLUME_DB,
     framing_policy_version: str = FRAMING_POLICY_VERSION,
-    visual_policy: str = VISUAL_POLICY_VERSION
+    visual_policy: str = VISUAL_POLICY_VERSION,
+    bgm_sha256: str = "",
+    bgm_config_fingerprint: str = ""
 ) -> str:
     """
     Computes a deterministic SHA-256 fingerprint for a production render configuration.
-    Any changes to script text, visual sources, BGM, voice, or framing rules
-    produce a different fingerprint, guaranteeing that stale renders are never reused.
+    Any changes to script text, visual sources, BGM (identity, SHA-256, speed, volume),
+    voice, or framing rules produce a different fingerprint, guaranteeing that stale
+    renders are never reused.
     """
     parts = [
         str(script_id),
@@ -96,7 +99,9 @@ def compute_render_fingerprint(
         str(bgm_track),
         f"{bgm_volume_db:.1f}",
         str(framing_policy_version),
-        str(visual_policy)
+        str(visual_policy),
+        str(bgm_sha256 or ""),
+        str(bgm_config_fingerprint or "")
     ]
     normalized = "|".join(parts)
     return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
@@ -662,8 +667,15 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             # Novel Story may have visual PART marker; Discovery has NO PART MARKER whatsoever
             if content_type == "discovery":
                 part_marker = None
+                from core.discovery_bgm import DiscoveryBGMGate
+                discovery_bgm = DiscoveryBGMGate.verify_and_resolve_bgm()
+                bgm_track = discovery_bgm.bgm_filename
+                bgm_sha = discovery_bgm.actual_sha256 or ""
+                bgm_fp = discovery_bgm.compute_config_fingerprint()
             else:
                 part_marker = script.part_marker or "PART 01"
+                bgm_sha = ""
+                bgm_fp = ""
             full_text = script.full_text
 
         # 1. Generate Narration TTS Audio (Bella for all categories)
@@ -823,7 +835,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             bgm_track=bgm_track,
             bgm_volume_db=-28.0,
             framing_policy_version=FRAMING_POLICY_VERSION,
-            visual_policy=visual_policy_name
+            visual_policy=visual_policy_name,
+            bgm_sha256=bgm_sha,
+            bgm_config_fingerprint=bgm_fp
         )
 
         with self.Session() as session:

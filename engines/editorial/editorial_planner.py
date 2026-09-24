@@ -164,12 +164,8 @@ class EditorialPlanner:
             ]
 
             for prop_sub_idx, prop in enumerate(props):
-                # Retrieve matching BEAST V2 result
+                # Retrieve matching BEAST V2 result strictly tied to this proposition
                 match = match_by_prop.get(prop.proposition_id)
-                if not match and beast_matches:
-                    # Fallback to available match in order
-                    match_idx = (len(units) - 1) % len(beast_matches)
-                    match = beast_matches[match_idx]
 
                 if not match or match.decision == BeastV2Decision.NO_VALID_VISUAL:
                     validation_warnings.append(
@@ -267,14 +263,17 @@ class EditorialPlanner:
                     is_object_prop=is_prop_detail,
                 )
 
+                is_no_valid = (not match) or (match.decision == BeastV2Decision.NO_VALID_VISUAL)
+                final_evidence = "NO_VALID_VISUAL" if is_no_valid else match.evidence_type.value
+
                 unit = EditorialUnit(
                     unit_id=f"unit_{unit_idx:02d}_{fact.fact_id}",
                     fact_id=fact.fact_id,
                     proposition_id=prop.proposition_id,
-                    asset_id=match.asset_id if match else "none",
-                    source_start=match.source_start if match else 0.0,
-                    source_end=(match.source_start + unit_dur) if match else unit_dur,
-                    evidence_type=match.evidence_type.value if match else "DIRECT_EVIDENCE",
+                    asset_id=match.asset_id if not is_no_valid else "NO_VALID_VISUAL",
+                    source_start=match.source_start if not is_no_valid else 0.0,
+                    source_end=(match.source_start + unit_dur) if not is_no_valid else unit_dur,
+                    evidence_type=final_evidence,
                     visual_role=prop.visual_role,
                     narration_start=round(current_time, 3),
                     narration_end=round(current_time + unit_dur, 3),

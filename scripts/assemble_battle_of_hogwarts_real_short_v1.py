@@ -11,7 +11,7 @@ Pipeline:
   -> BEAST V2 GROUNDING MANIFEST (battle_of_hogwarts_beast_v2_grounding_manifest.json)
   -> Editorial Intelligence V2 (21 Shots, Dynamic Pacing, True 9:16)
   -> Remotion props export (data/renders/remotion_props/)
-  -> FFmpeg audio mastering (Male 18 + Esther Abrami No.6 BGM + 4-Tier SFX)
+  -> FFmpeg audio mastering (Male 18 + Dynamic Canonical Discovery BGM + 4-Tier SFX)
   -> FFmpeg video assemble & ASS subtitle burn-in
   -> Isolated validation output: data/renders/validation/battle_of_hogwarts_assembly_v1.mp4
   -> Deep Media Verification & Technical QA
@@ -510,11 +510,22 @@ def run_assembly():
     print(f"[CAPTIONS] Generated ASS Subtitles: {ass_path.name} ({ass_path.stat().st_size} bytes)")
 
     # =========================================================================
-    # 5. AUDIO MASTERING (Narration + Canonical BGM + 4-Tier SFX)
+    # 5. AUDIO MASTERING (Narration + Canonical Dynamic Discovery BGM + 4-Tier SFX)
     # =========================================================================
-    canonical_bgm = MUSIC_DIR / "Esther Abrami - No.6 In My Dreams (1).wav"
+    # Strict Timeline Policy Validation: Every asset must be genuinely VIDEO ONLY
+    for shot in SHOT_LIST:
+        if shot.get("type") != "video":
+            raise ValueError(f"STORY FORGE Hard Policy Violation: Shot '{shot['id']}' has type '{shot.get('type')}'. VIDEO ONLY enforced.")
+        file_suffix = Path(shot.get("file", "")).suffix.lower()
+        if file_suffix in [".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg", ".bmp"]:
+            raise ValueError(f"STORY FORGE Hard Policy Violation: Shot '{shot['id']}' references static image file '{shot['file']}'. VIDEO ONLY enforced.")
+
+    # Dynamic BGM Configuration Gate: Rejects stale Esther No.6 and requires verified canonical Discovery BGM
+    from core.discovery_bgm import DiscoveryBGMGate, BGMConfigurationError
+    discovery_bgm = DiscoveryBGMGate.verify_and_resolve_bgm()
+    canonical_bgm = MUSIC_DIR / discovery_bgm.bgm_filename
     if not canonical_bgm.exists():
-        raise FileNotFoundError(f"Canonical BGM missing: {canonical_bgm}")
+        raise FileNotFoundError(f"Canonical Discovery BGM missing: {canonical_bgm}")
 
     master_audio_wav = validation_dir / "master_audio_battle_of_hogwarts_v1.wav"
 

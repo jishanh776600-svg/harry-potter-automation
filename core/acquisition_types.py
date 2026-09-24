@@ -7,14 +7,38 @@ retrieval, streaming ingestion, deep validation, and cloud registry storage.
 
 from dataclasses import dataclass, field
 from enum import Enum
+import hashlib
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Tuple
 
 
 class MediaCategory(str, Enum):
     VIDEO = "video"
     IMAGE = "image"
     AUDIO = "audio"
+
+
+class ProductionAssetType(str, Enum):
+    VIDEO_ONLY_PRODUCTION_ASSET = "VIDEO_ONLY_PRODUCTION_ASSET"
+    HISTORICAL_ARCHIVE_NON_PRODUCTION = "HISTORICAL_ARCHIVE_NON_PRODUCTION"
+
+
+class VisualEvidenceHierarchy(str, Enum):
+    RELEVANT_VIDEO = "RELEVANT_VIDEO"
+    ALTERNATE_RELEVANT_VIDEO_SOURCE = "ALTERNATE_RELEVANT_VIDEO_SOURCE"
+    NO_VALID_VISUAL = "NO_VALID_VISUAL"
+
+
+FORBIDDEN_IMAGE_EXTENSIONS = {
+    ".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg", ".bmp", ".tiff", ".avif", ".ico"
+}
+FORBIDDEN_IMAGE_MIME_TYPES = {
+    "image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml", "image/bmp", "image/avif"
+}
+FORBIDDEN_IMAGE_TERMS = {
+    "artwork", "fan art", "fan-art", "official artwork", "poster", "illustration",
+    "still", "screenshot", "drawing", "painting", "photograph", "diagram", "map"
+}
 
 
 class SourceCategory(str, Enum):
@@ -205,6 +229,20 @@ class AssetRecord:
     local_cached_path: Optional[str] = None
     created_at_iso: str = ""
     tags: List[str] = field(default_factory=list)
+    production_asset_type: str = ProductionAssetType.VIDEO_ONLY_PRODUCTION_ASSET.value
+
+    def is_production_video_eligible(self) -> bool:
+        """Enforces STORY FORGE Hard Policy: VIDEO ONLY in production."""
+        if self.production_asset_type != ProductionAssetType.VIDEO_ONLY_PRODUCTION_ASSET.value:
+            return False
+        if self.media_category != MediaCategory.VIDEO:
+            return False
+        suffix = Path(self.filename).suffix.lower()
+        if suffix in FORBIDDEN_IMAGE_EXTENSIONS:
+            return False
+        if self.technical_meta and self.technical_meta.mime_type in FORBIDDEN_IMAGE_MIME_TYPES:
+            return False
+        return True
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -221,6 +259,8 @@ class AssetRecord:
             "local_cached_path": self.local_cached_path,
             "created_at_iso": self.created_at_iso,
             "tags": self.tags,
+            "production_asset_type": self.production_asset_type,
+            "is_production_eligible": self.is_production_video_eligible(),
         }
 
     @classmethod
@@ -239,6 +279,7 @@ class AssetRecord:
             local_cached_path=data.get("local_cached_path"),
             created_at_iso=data.get("created_at_iso", ""),
             tags=data.get("tags", []),
+            production_asset_type=data.get("production_asset_type", ProductionAssetType.VIDEO_ONLY_PRODUCTION_ASSET.value),
         )
 
 
@@ -246,7 +287,7 @@ class AssetRecord:
 class AssetAcquisitionRequest:
     query: str
     beat_id: Optional[str] = None
-    target_media_category: MediaCategory = MediaCategory.IMAGE
+    target_media_category: MediaCategory = MediaCategory.VIDEO
     primary_entity: Optional[str] = None
     secondary_entity: Optional[str] = None
     action_descriptor: Optional[str] = None
@@ -255,6 +296,36 @@ class AssetAcquisitionRequest:
     max_candidates: int = 5
     timeout_sec: float = 30.0
     preferred_providers: List[str] = field(default_factory=list)
+    # Required Proposition-Driven Metadata
+    short_id: Optional[str] = None
+    fact_id: Optional[str] = None
+    proposition_id: Optional[str] = None
+    subject: Optional[str] = None
+    action: Optional[str] = None
+    object: Optional[str] = None
+    context: Optional[str] = None
+    required_evidence_class: Optional[str] = None
+    source_type: Optional[str] = None
+    source_url: Optional[str] = None
+    temporal_interval: Optional[Tuple[float, float]] = None
+    acquisition_reason: Optional[str] = None
+    production_asset_type: str = ProductionAssetType.VIDEO_ONLY_PRODUCTION_ASSET.value
+
+    def is_proposition_grounded(self) -> bool:
+        """Validates that this request originates from a concrete Visual Proposition."""
+        return bool(self.proposition_id and self.fact_id and self.short_id)
+
+    def compute_cache_key(self, visual_policy_version: str = "VIDEO_ONLY_V1") -> str:
+        interval_str = f"{self.temporal_interval[0]:.2f}-{self.temporal_interval[1]:.2f}" if self.temporal_interval else "FULL"
+        raw = (
+            f"{self.proposition_id or 'NOPROP'}|"
+            f"{self.source_url or 'NOURL'}|"
+            f"{self.short_id or 'NOSHORT'}|"
+            f"{interval_str}|"
+            f"{self.production_asset_type}|"
+            f"{visual_policy_version}"
+        )
+        return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
 @dataclass

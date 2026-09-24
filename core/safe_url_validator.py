@@ -40,6 +40,20 @@ class SafeURLValidator:
         "storyblocks.com",
         "videvo.net",
         "freepik.com",
+        "pond5.com",
+        "elements.envato.com",
+        "envato.com",
+        "depositphotos.com",
+        "dreamstime.com",
+        "123rf.com",
+        "bigstockphoto.com",
+        "alamy.com",
+        "canva.com",
+        "vecteezy.com",
+    }
+
+    FORBIDDEN_IMAGE_EXTENSIONS: Set[str] = {
+        ".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg", ".bmp", ".tiff", ".avif", ".ico"
     }
 
     PRIVATE_NETWORKS: List[ipaddress.IPv4Network | ipaddress.IPv6Network] = [
@@ -89,6 +103,12 @@ class SafeURLValidator:
         for stock_domain in cls.DISALLOWED_STOCK_DOMAINS:
             if hostname == stock_domain or hostname.endswith("." + stock_domain):
                 return False, f"STORY FORGE Policy: Stock media provider '{stock_domain}' is strictly prohibited."
+
+        # STORY FORGE Hard Policy: VIDEO ONLY — reject static image URLs
+        url_path = (parsed.path or "").lower()
+        for img_ext in cls.FORBIDDEN_IMAGE_EXTENSIONS:
+            if url_path.endswith(img_ext) or f"{img_ext}?" in url_str.lower():
+                return False, f"STORY FORGE Policy: Static image format '{img_ext}' is strictly prohibited. VIDEO ONLY."
 
         # Check direct IP literals in hostname
         try:

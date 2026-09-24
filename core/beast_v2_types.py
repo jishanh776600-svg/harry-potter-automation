@@ -30,6 +30,7 @@ class EvidenceType(str, Enum):
     ORIENTATION_BRIDGE = "ORIENTATION_BRIDGE"
     CONTEXTUAL_EVIDENCE = "CONTEXTUAL_EVIDENCE"
     IRONIC_CONTRAST = "IRONIC_CONTRAST"
+    NO_VALID_VISUAL = "NO_VALID_VISUAL"
 
 
 class SourceEvidenceType(str, Enum):
@@ -82,6 +83,29 @@ class BeastV2Decision(str, Enum):
     ACCEPT_CONTEXT = "ACCEPT_CONTEXT"
     ACCEPT_CONTRAST = "ACCEPT_CONTRAST"
     NO_VALID_VISUAL = "NO_VALID_VISUAL"
+
+
+def validate_evidence_lineage(
+    beast_decision: BeastV2Decision,
+    claimed_evidence: EvidenceType,
+    media_category: str = "video",
+) -> EvidenceType:
+    """
+    Guarantees immutable evidence lineage:
+    ACQUISITION -> BEAST V2 -> EDITORIAL.
+    If BEAST V2 says NO_VALID_VISUAL, Editorial cannot upgrade to DIRECT.
+    If media_category is not video, cannot be DIRECT_EVIDENCE.
+    Only BEAST V2 can establish the evidence class.
+    """
+    if beast_decision == BeastV2Decision.NO_VALID_VISUAL:
+        return EvidenceType.NO_VALID_VISUAL
+
+    if media_category != "video" and claimed_evidence == EvidenceType.DIRECT_EVIDENCE:
+        raise ValueError(
+            "LINEAGE VIOLATION: Non-video assets (artwork, stills, images) can NEVER be classified as DIRECT_EVIDENCE."
+        )
+
+    return claimed_evidence
 
 
 class TemporalPhase(str, Enum):
