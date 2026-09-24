@@ -1,0 +1,530 @@
+{
+  "lineup_name": "30 More Distinct Male Voices",
+  "count": 30,
+  "voices": [
+    {
+      "number": 1,
+      "filename": "MALE_01_Christopher_DeepAuthoritative.mp3",
+      "voice_id": "MALE_01_Christopher_DeepAuthoritative",
+      "style": "Deep, authoritative US narrative",
+      "engine": "edge_tts",
+      "config": {
+        "type": "edge_tts",
+        "voice": "en-US-ChristopherNeural",
+        "style": "Deep, authoritative US narrative",
+        "rate": "+0%",
+        "pitch": "+0Hz"
+      }
+    },
+    {
+      "number": 2,
+      "filename": "MALE_02_Eric_ConversationalUS.mp3",
+      "voice_id": "MALE_02_Eric_ConversationalUS",
+      "style": "Conversational, engaging US voice",
+      "engine": "edge_tts",
+      "config": {
+        "type": "edge_tts",
+        "voice": "en-US-EricNeural",
+        "style": "Conversational, engaging US voice",
+        "rate": "+0%",
+        "pitch": "+0Hz"
+      }
+    },
+    {
+      "number": 3,
+      "filename": "MALE_03_Guy_BroadcastEnergetic.mp3",
+      "voice_id": "MALE_03_Guy_BroadcastEnergetic",
+      "style": "Punchy US broadcast presenter",
+      "engine": "edge_tts",
+      "config": {
+        "type": "edge_tts",
+        "voice": "en-US-GuyNeural",
+        "style": "Punchy US broadcast presenter",
+        "rate": "+0%",
+        "pitch": "+0Hz"
+      }
+    },
+    {
+      "number": 4,
+      "filename": "MALE_04_Roger_MatureStoryteller.mp3",
+      "voice_id": "MALE_04_Roger_MatureStoryteller",
+      "style": "Seasoned, mature US storyteller",
+      "engine": "edge_tts",
+      "config": {
+        "type": "edge_tts",
+        "voice": "en-US-RogerNeural",
+        "style": "Seasoned, mature US storyteller",
+        "rate": "+0%",
+        "pitch": "+0Hz"
+      }
+    },
+    {
+      "number": 5,
+      "filename": "MALE_05_Steffan_DynamicSharp.mp3",
+      "voice_id": "MALE_05_Steffan_DynamicSharp",
+      "style": "Crisp, dynamic articulation",
+      "engine": "edge_tts",
+      "config": {
+        "type": "edge_tts",
+        "voice": "en-US-SteffanNeural",
+        "style": "Crisp, dynamic articulation",
+        "rate": "+0%",
+        "pitch": "+0Hz"
+      }
+    },
+    {
+      "number": 6,
+      "filename": "MALE_06_Brian_MultilingualNatural.mp3",
+      "voice_id": "MALE_06_Brian_MultilingualNatural",
+      "style": "Modern cinematic US narrator",
+      "engine": "edge_tts",
+      "config": {
+        "type": "edge_tts",
+        "voice": "en-US-BrianMultilingualNeural",
+        "style": "Modern cinematic US narrator",
+        "rate": "+0%",
+        "pitch": "+0Hz"
+      }
+    },
+    {
+      "number": 7,
+      "filename": "MALE_07_Aled_WelshWarmth.mp3",
+      "voice_id": "MALE_07_Aled_WelshWarmth",
+      "style": "Welsh Celtic wizarding warmth",
+      "engine": "edge_tts",
+      "config": {
+        "type": "edge_tts",
+        "voice": "cy-GB-AledNeural",
+        "style": "Welsh Celtic wizarding warmth",
+        "rate": "+0%",
+        "pitch": "+0Hz"
+      }
+    },
+    {
+      "number": 8,
+      "filename": "MALE_08_Remy_EuropeanElegance.mp3",
+      "voice_id": "MALE_08_Remy_EuropeanElegance",
+      "style": "Beauxbatons / Refined European flair",
+      "engine": "edge_tts",
+      "config": {
+        "type": "edge_tts",
+        "voice": "fr-FR-RemyMultilingualNeural",
+        "style": "Beauxbatons / Refined European flair",
+        "rate": "+0%",
+        "pitch": "+0Hz"
+      }
+    },
+    {
+      "number": 9,
+      "filename": "MALE_09_Florian_DurmstrangAcademic.mp3",
+      "voice_id": "MALE_09_Florian_DurmstrangAcademic",
+      "style": "Commanding European academic",
+      "engine": "edge_tts",
+      "config": {
+        "type": "edge_tts",
+        "voice": "de-DE-FlorianMultilingualNeural",
+        "style": "Commanding European academic",
+        "rate": "+0%",
+        "pitch": "+0Hz"
+      }
+    },
+    {
+      "number": 10,
+      "filename": "MALE_10_Giuseppe_CharismaticNarrator.mp3",
+      "voice_id": "MALE_10_Giuseppe_CharismaticNarrator",
+      "style": "Charismatic, expressive cadence",
+      "engine": "edge_tts",
+      "config": {
+        "type": "edge_tts",
+        "voice": "it-IT-GiuseppeMultilingualNeural",
+        "style": "Charismatic, expressive cadence",
+        "rate": "+0%",
+        "pitch": "+0Hz"
+      }
+    },
+    {
+      "number": 11,
+      "filename": "MALE_11_Andrew_ViralHype.mp3",
+      "voice_id": "MALE_11_Andrew_ViralHype",
+      "style": "Ultra high-tempo Shorts delivery",
+      "engine": "edge_tts",
+      "config": {
+        "type": "edge_tts",
+        "voice": "en-US-AndrewNeural",
+        "style": "Ultra high-tempo Shorts delivery",
+        "rate": "+14%",
+        "pitch": "+18Hz"
+      }
+    },
+    {
+      "number": 12,
+      "filename": "MALE_12_Brian_DarkCinemaTrailer.mp3",
+      "voice_id": "MALE_12_Brian_DarkCinemaTrailer",
+      "style": "Ominous cinematic trailer gravitas",
+      "engine": "edge_tts",
+      "config": {
+        "type": "edge_tts",
+        "voice": "en-US-BrianNeural",
+        "style": "Ominous cinematic trailer gravitas",
+        "rate": "-4%",
+        "pitch": "-15Hz"
+      }
+    },
+    {
+      "number": 13,
+      "filename": "MALE_13_Ryan_DocumentaryFast.mp3",
+      "voice_id": "MALE_13_Ryan_DocumentaryFast",
+      "style": "Fast BBC documentary pacing",
+      "engine": "edge_tts",
+      "config": {
+        "type": "edge_tts",
+        "voice": "en-GB-RyanNeural",
+        "style": "Fast BBC documentary pacing",
+        "rate": "+8%",
+        "pitch": "+5Hz"
+      }
+    },
+    {
+      "number": 14,
+      "filename": "MALE_14_Thomas_AncientLore.mp3",
+      "voice_id": "MALE_14_Thomas_AncientLore",
+      "style": "Dark mystery / Horcrux lore",
+      "engine": "edge_tts",
+      "config": {
+        "type": "edge_tts",
+        "voice": "en-GB-ThomasNeural",
+        "style": "Dark mystery / Horcrux lore",
+        "rate": "-5%",
+        "pitch": "-10Hz"
+      }
+    },
+    {
+      "number": 15,
+      "filename": "MALE_15_William_ActionPunch.mp3",
+      "voice_id": "MALE_15_William_ActionPunch",
+      "style": "High-adrenaline action punch",
+      "engine": "edge_tts",
+      "config": {
+        "type": "edge_tts",
+        "voice": "en-AU-WilliamMultilingualNeural",
+        "style": "High-adrenaline action punch",
+        "rate": "+10%",
+        "pitch": "+8Hz"
+      }
+    },
+    {
+      "number": 16,
+      "filename": "MALE_16_Liam_YouthfulCreator.mp3",
+      "voice_id": "MALE_16_Liam_YouthfulCreator",
+      "style": "Youthful creator tone",
+      "engine": "edge_tts",
+      "config": {
+        "type": "edge_tts",
+        "voice": "en-CA-LiamNeural",
+        "style": "Youthful creator tone",
+        "rate": "+10%",
+        "pitch": "+12Hz"
+      }
+    },
+    {
+      "number": 17,
+      "filename": "MALE_17_Connor_CelticLore.mp3",
+      "voice_id": "MALE_17_Connor_CelticLore",
+      "style": "Irish storytelling depth",
+      "engine": "edge_tts",
+      "config": {
+        "type": "edge_tts",
+        "voice": "en-IE-ConnorNeural",
+        "style": "Irish storytelling depth",
+        "rate": "+5%",
+        "pitch": "-4Hz"
+      }
+    },
+    {
+      "number": 18,
+      "filename": "MALE_18_FenrirOnyx_DarkBaritone.mp3",
+      "voice_id": "MALE_18_FenrirOnyx_DarkBaritone",
+      "style": "Deep gothic baritone narrator",
+      "engine": "kokoro_blend",
+      "config": {
+        "type": "kokoro_blend",
+        "blend": [
+          [
+            "am_fenrir",
+            0.6
+          ],
+          [
+            "am_onyx",
+            0.4
+          ]
+        ],
+        "speed": 1.05,
+        "style": "Deep gothic baritone narrator"
+      }
+    },
+    {
+      "number": 19,
+      "filename": "MALE_19_MichaelLiam_DynamicHost.mp3",
+      "voice_id": "MALE_19_MichaelLiam_DynamicHost",
+      "style": "Authoritative yet youthful show host",
+      "engine": "kokoro_blend",
+      "config": {
+        "type": "kokoro_blend",
+        "blend": [
+          [
+            "am_michael",
+            0.65
+          ],
+          [
+            "am_liam",
+            0.35
+          ]
+        ],
+        "speed": 1.05,
+        "style": "Authoritative yet youthful show host"
+      }
+    },
+    {
+      "number": 20,
+      "filename": "MALE_20_GeorgeDaniel_AristocratUK.mp3",
+      "voice_id": "MALE_20_GeorgeDaniel_AristocratUK",
+      "style": "Refined Hogwarts headmaster tone",
+      "engine": "kokoro_blend",
+      "config": {
+        "type": "kokoro_blend",
+        "blend": [
+          [
+            "bm_george",
+            0.6
+          ],
+          [
+            "bm_daniel",
+            0.4
+          ]
+        ],
+        "speed": 1.02,
+        "style": "Refined Hogwarts headmaster tone"
+      }
+    },
+    {
+      "number": 21,
+      "filename": "MALE_21_PuckAdam_CuriousAnimated.mp3",
+      "voice_id": "MALE_21_PuckAdam_CuriousAnimated",
+      "style": "Curious trivia investigator",
+      "engine": "kokoro_blend",
+      "config": {
+        "type": "kokoro_blend",
+        "blend": [
+          [
+            "am_puck",
+            0.55
+          ],
+          [
+            "am_adam",
+            0.45
+          ]
+        ],
+        "speed": 1.05,
+        "style": "Curious trivia investigator"
+      }
+    },
+    {
+      "number": 22,
+      "filename": "MALE_22_FableEcho_EpicFantasy.mp3",
+      "voice_id": "MALE_22_FableEcho_EpicFantasy",
+      "style": "Mythic fantasy legend storyteller",
+      "engine": "kokoro_blend",
+      "config": {
+        "type": "kokoro_blend",
+        "blend": [
+          [
+            "bm_fable",
+            0.7
+          ],
+          [
+            "am_echo",
+            0.3
+          ]
+        ],
+        "speed": 1.02,
+        "style": "Mythic fantasy legend storyteller"
+      }
+    },
+    {
+      "number": 23,
+      "filename": "MALE_23_AdamEric_CrispDocumentary.mp3",
+      "voice_id": "MALE_23_AdamEric_CrispDocumentary",
+      "style": "Razor-sharp factual documentary",
+      "engine": "kokoro_blend",
+      "config": {
+        "type": "kokoro_blend",
+        "blend": [
+          [
+            "am_adam",
+            0.5
+          ],
+          [
+            "am_eric",
+            0.5
+          ]
+        ],
+        "speed": 1.05,
+        "style": "Razor-sharp factual documentary"
+      }
+    },
+    {
+      "number": 24,
+      "filename": "MALE_24_OnyxLewis_InvestigativeLore.mp3",
+      "voice_id": "MALE_24_OnyxLewis_InvestigativeLore",
+      "style": "Investigative podcast timbre",
+      "engine": "kokoro_blend",
+      "config": {
+        "type": "kokoro_blend",
+        "blend": [
+          [
+            "am_onyx",
+            0.7
+          ],
+          [
+            "bm_lewis",
+            0.3
+          ]
+        ],
+        "speed": 1.04,
+        "style": "Investigative podcast timbre"
+      }
+    },
+    {
+      "number": 25,
+      "filename": "MALE_25_FenrirGeorge_DarkGothic.mp3",
+      "voice_id": "MALE_25_FenrirGeorge_DarkGothic",
+      "style": "Dramatic Death Eater / Dark Arts tone",
+      "engine": "kokoro_blend",
+      "config": {
+        "type": "kokoro_blend",
+        "blend": [
+          [
+            "am_fenrir",
+            0.5
+          ],
+          [
+            "bm_george",
+            0.5
+          ]
+        ],
+        "speed": 1.02,
+        "style": "Dramatic Death Eater / Dark Arts tone"
+      }
+    },
+    {
+      "number": 26,
+      "filename": "MALE_26_LiamPuck_HyperShorts.mp3",
+      "voice_id": "MALE_26_LiamPuck_HyperShorts",
+      "style": "Rapid YouTube Shorts cadence",
+      "engine": "kokoro_blend",
+      "config": {
+        "type": "kokoro_blend",
+        "blend": [
+          [
+            "am_liam",
+            0.6
+          ],
+          [
+            "am_puck",
+            0.4
+          ]
+        ],
+        "speed": 1.12,
+        "style": "Rapid YouTube Shorts cadence"
+      }
+    },
+    {
+      "number": 27,
+      "filename": "MALE_27_MichaelEcho_ResonantTrailer.mp3",
+      "voice_id": "MALE_27_MichaelEcho_ResonantTrailer",
+      "style": "Deep resonant movie trailer",
+      "engine": "kokoro_blend",
+      "config": {
+        "type": "kokoro_blend",
+        "blend": [
+          [
+            "am_michael",
+            0.5
+          ],
+          [
+            "am_echo",
+            0.5
+          ]
+        ],
+        "speed": 1.03,
+        "style": "Deep resonant movie trailer"
+      }
+    },
+    {
+      "number": 28,
+      "filename": "MALE_28_LewisAdam_CanonScholar.mp3",
+      "voice_id": "MALE_28_LewisAdam_CanonScholar",
+      "style": "Analytical Pottermore scholar",
+      "engine": "kokoro_blend",
+      "config": {
+        "type": "kokoro_blend",
+        "blend": [
+          [
+            "bm_lewis",
+            0.6
+          ],
+          [
+            "am_adam",
+            0.4
+          ]
+        ],
+        "speed": 1.04,
+        "style": "Analytical Pottermore scholar"
+      }
+    },
+    {
+      "number": 29,
+      "filename": "MALE_29_SantaOnyx_WiseElder.mp3",
+      "voice_id": "MALE_29_SantaOnyx_WiseElder",
+      "style": "Warm Dumbledore-like elder gravitas",
+      "engine": "kokoro_blend",
+      "config": {
+        "type": "kokoro_blend",
+        "blend": [
+          [
+            "am_santa",
+            0.5
+          ],
+          [
+            "am_onyx",
+            0.5
+          ]
+        ],
+        "speed": 1.02,
+        "style": "Warm Dumbledore-like elder gravitas"
+      }
+    },
+    {
+      "number": 30,
+      "filename": "MALE_30_DanielFenrir_AncientHistorian.mp3",
+      "voice_id": "MALE_30_DanielFenrir_AncientHistorian",
+      "style": "Grim wizarding war historian",
+      "engine": "kokoro_blend",
+      "config": {
+        "type": "kokoro_blend",
+        "blend": [
+          [
+            "bm_daniel",
+            0.6
+          ],
+          [
+            "am_fenrir",
+            0.4
+          ]
+        ],
+        "speed": 1.02,
+        "style": "Grim wizarding war historian"
+      }
+    }
+  ]
+}
