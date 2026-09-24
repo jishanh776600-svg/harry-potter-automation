@@ -132,7 +132,7 @@ class VisualEvidenceValidator:
             rejection_reasons.append(temp_rejection)
             vetoes.append(f"Temporal Phase Veto: {temp_expl}")
             temporal_alignment = 0.0
-        elif observed.temporal_state != self.config.required_temporal_state and observed.temporal_state != TemporalState.ONSET:
+        elif observed.temporal_state not in (self.config.required_temporal_state, TemporalState.ONSET, TemporalState.PEAK):
             rejection_reasons.append(EvidenceRejectionReason.TEMPORAL_STATE_UNCERTAIN)
             vetoes.append(f"Temporal state {observed.temporal_state.value} does not meet required {self.config.required_temporal_state.value}")
             temporal_alignment = 0.3
@@ -146,7 +146,7 @@ class VisualEvidenceValidator:
             rejection_reasons.append(EvidenceRejectionReason.SUBJECT_MISMATCH)
             vetoes.append(subj_reason)
 
-        # --- C. Action Check (PRIMARY VETO - Section 5) ---
+        # --- C. Action Check & Temporal Action Transition Gate (PRIMARY VETO) ---
         action_alignment, action_ok, action_reason = self._check_action(
             expected_action=prop_dict.get("action"),
             observed=observed,
@@ -155,6 +155,22 @@ class VisualEvidenceValidator:
         if not action_ok:
             rejection_reasons.append(EvidenceRejectionReason.ACTION_MISMATCH)
             vetoes.append(action_reason)
+
+        # Dynamic Action Transition Gate:
+        # High subject and object confidence CANNOT compensate for action transition failure!
+        if observed.temporal_rejection_reason and observed.temporal_rejection_reason not in rejection_reasons:
+            rejection_reasons.append(observed.temporal_rejection_reason)
+            if observed.temporal_explanation:
+                vetoes.append(f"Temporal Action Veto: {observed.temporal_explanation}")
+
+        if observed.action_nature == "DYNAMIC":
+            if not observed.action_transition_verified or observed.temporal_action_confidence < self.config.min_temporal_action_threshold:
+                if EvidenceRejectionReason.ACTION_MISMATCH not in rejection_reasons and EvidenceRejectionReason.ACTION_TRANSITION_MISSING not in rejection_reasons:
+                    rejection_reasons.append(EvidenceRejectionReason.ACTION_TRANSITION_MISSING)
+                vetoes.append(
+                    f"Temporal Action Transition Veto: Dynamic action '{prop_dict.get('action')}' lacks verified transition "
+                    f"(confidence: {observed.temporal_action_confidence:.2f} < {self.config.min_temporal_action_threshold:.2f})"
+                )
 
         # --- D. Object Check (Section 6) ---
         object_alignment, obj_ok, obj_reason = self._check_object(
@@ -177,11 +193,12 @@ class VisualEvidenceValidator:
         # Compute composite score
         passed_gates = len(vetoes) == 0
         composite = (
-            (subject_alignment * 0.25)
-            + (action_alignment * 0.35)
-            + (object_alignment * 0.20)
-            + (context_alignment * 0.10)
-            + (temporal_alignment * 0.10)
+            (subject_alignment * 0.20)
+            + (action_alignment * 0.25)
+            + (observed.temporal_action_confidence * 0.25)
+            + (object_alignment * 0.15)
+            + (context_alignment * 0.08)
+            + (temporal_alignment * 0.07)
         )
         if not passed_gates:
             composite = min(composite, 0.40)
@@ -192,48 +209,100 @@ class VisualEvidenceValidator:
             object_alignment=object_alignment,
             context_alignment=context_alignment,
             temporal_alignment=temporal_alignment,
+            temporal_action_confidence=round(observed.temporal_action_confidence, 3),
             composite_score=round(composite, 3),
             passed_gates=passed_gates,
             vetoes=vetoes,
         )
 
         # 5. Evidence Classification: DIRECT vs CONTEXT vs NO_VALID_VISUAL (Sections 8, 9, 10)
-        # Check for DIRECT qualification:
         req_rel = str(prop_dict.get("evidence_type") or prop_dict.get("visual_role") or "DIRECT").upper()
 
         if passed_gates and composite >= self.config.min_composite_threshold:
             evidence_class = EvidenceClass.DIRECT
             is_valid = True
             primary_reason = None
-            explanation = f"DIRECT evidence confirmed: Action '{observed.action}', Subject '{observed.subject}', Object '{observed.object}' in context '{observed.context}'."
+            explanation = f"DIRECT evidence confirmed: Action '{observed.action}', Subject '{observed.subject}', Object '{observed.object}' in context '{observed.context}' with verified temporal action dynamics (confidence: {observed.temporal_action_confidence:.2f})."
         else:
-            # Check if this qualifies as CONTEXT (Section 8, 9)
-            # Context requirement: Character or place is relevant, but action does NOT demonstrate the claim
+            # Determine canonical primary rejection reason
+            # Phase violations (BEFORE/AFTER) and Action mismatches take top precedence
+            if EvidenceRejectionReason.BEFORE_PHASE_ONLY in rejection_reasons:
+                primary_reason = EvidenceRejectionReason.BEFORE_PHASE_ONLY
+            elif EvidenceRejectionReason.AFTER_PHASE_ONLY in rejection_reasons:
+                primary_reason = EvidenceRejectionReason.AFTER_PHASE_ONLY
+            elif EvidenceRejectionReason.ACTION_MISMATCH in rejection_reasons:
+                primary_reason = EvidenceRejectionReason.ACTION_MISMATCH
+            elif EvidenceRejectionReason.ACTION_TRANSITION_MISSING in rejection_reasons:
+                primary_reason = EvidenceRejectionReason.ACTION_TRANSITION_MISSING
+            elif EvidenceRejectionReason.SUBJECT_MISMATCH in rejection_reasons:
+                primary_reason = EvidenceRejectionReason.SUBJECT_MISMATCH
+            elif EvidenceRejectionReason.OBJECT_MISSING in rejection_reasons:
+                primary_reason = EvidenceRejectionReason.OBJECT_MISSING
+            elif EvidenceRejectionReason.CONTEXT_MISMATCH in rejection_reasons:
+                primary_reason = EvidenceRejectionReason.CONTEXT_MISMATCH
+            elif rejection_reasons:
+                primary_reason = rejection_reasons[0]
+            else:
+                primary_reason = EvidenceRejectionReason.DIRECT_EVIDENCE_INSUFFICIENT
+
+            # Check if this qualifies as CONTEXT
             is_contextually_relevant = (
                 subject_alignment >= self.config.min_subject_threshold
                 and context_alignment >= self.config.min_context_threshold
                 and EvidenceRejectionReason.SUBJECT_MISMATCH not in rejection_reasons
                 and EvidenceRejectionReason.CONTEXT_MISMATCH not in rejection_reasons
             )
-            # Action mismatch is the specific reason it's context rather than direct proof
-            action_failed = EvidenceRejectionReason.ACTION_MISMATCH in rejection_reasons
+            action_failed = (
+                EvidenceRejectionReason.ACTION_MISMATCH in rejection_reasons
+                or EvidenceRejectionReason.ACTION_TRANSITION_MISSING in rejection_reasons
+            )
             phase_failed = (
                 EvidenceRejectionReason.BEFORE_PHASE_ONLY in rejection_reasons
                 or EvidenceRejectionReason.AFTER_PHASE_ONLY in rejection_reasons
             )
 
             if is_contextually_relevant and (action_failed or phase_failed):
-                # Valid as CONTEXT, but strictly rejected as DIRECT!
                 evidence_class = EvidenceClass.CONTEXT
-                is_valid = False  # Not valid as direct proof
-                primary_reason = rejection_reasons[0] if rejection_reasons else EvidenceRejectionReason.ACTION_MISMATCH
-                explanation = f"CONTEXTUAL ONLY (Action Mismatch): Footage depicts character/scene ({observed.subject} at {observed.context}), but does NOT demonstrate required action '{prop_dict.get('action')}'. Cannot serve as direct proof."
+                is_valid = False
+                if observed.temporal_explanation:
+                    explanation = f"CONTEXTUAL ONLY (Action Mismatch - {observed.temporal_explanation})"
+                else:
+                    explanation = f"CONTEXTUAL ONLY (Action Mismatch): Footage depicts character/scene ({observed.subject} at {observed.context}), but does NOT demonstrate required action transition '{prop_dict.get('action')}'. Cannot serve as direct proof."
             else:
-                # Complete rejection / Fail-closed (Section 10)
                 evidence_class = EvidenceClass.NO_VALID_VISUAL
                 is_valid = False
-                primary_reason = rejection_reasons[0] if rejection_reasons else EvidenceRejectionReason.DIRECT_EVIDENCE_INSUFFICIENT
                 explanation = f"NO_VALID_VISUAL: {'; '.join(vetoes) if vetoes else 'Footage lacks reliable evidence for proposition.'}"
+
+        evidence_trace = {
+            "candidate_id": cand_id,
+            "proposition_id": prop_id,
+            "action_nature": observed.action_nature,
+            "temporal_action_confidence": round(observed.temporal_action_confidence, 3),
+            "action_transition_verified": observed.action_transition_verified,
+            "temporal_state": observed.temporal_state.value,
+            "action_window": {
+                "action_start": act_s,
+                "action_peak": act_p,
+                "action_end": act_e,
+            },
+            "state_transitions": observed.state_transitions,
+            "sampled_frame_count": len(observed.frame_observations),
+            "sampled_frames": observed.frame_observations,
+            "gate_status": {
+                "subject_passed": subj_ok,
+                "action_passed": action_ok,
+                "temporal_action_passed": (
+                    observed.action_transition_verified and observed.temporal_action_confidence >= self.config.min_temporal_action_threshold
+                ) if observed.action_nature == "DYNAMIC" else True,
+                "object_passed": obj_ok,
+                "context_passed": ctx_ok,
+                "temporal_state_passed": (temp_rejection is None),
+            },
+            "vetoes": vetoes,
+            "passed_gates": passed_gates,
+            "primary_rejection_reason": primary_reason.value if primary_reason else None,
+            "explanation": explanation,
+        }
 
         return EvidenceValidationResult(
             candidate_id=cand_id,
@@ -251,11 +320,13 @@ class VisualEvidenceValidator:
             validated_interval=micro_interval,
             validated_duration=validated_dur,
             temporal_state=observed.temporal_state,
+            temporal_action_confidence=round(observed.temporal_action_confidence, 3),
             framing=self.config.default_framing,
             audit_metadata={
                 "vetoes": vetoes,
                 "passed_gates": passed_gates,
-            }
+            },
+            evidence_trace=evidence_trace,
         )
 
     # --------------------------------------------------------------------------
@@ -311,32 +382,51 @@ class VisualEvidenceValidator:
         req_cat = BeastV2ActionVerifier.classify_action(exp_act)
         cand_cat = BeastV2ActionVerifier.classify_action(f"{obs_act} {' '.join(observed.detected_actions)} {candidate_desc}")
 
-        # Check explicit incompatibility matrix (e.g. DESTROY vs HOLD, CRY vs LAUGH, PLEAD vs FIGHT/ATTACK)
+        # Check explicit incompatibility matrix
         for inc_req, inc_cand, reason in ACTION_INCOMPATIBILITIES:
             if req_cat == inc_req and cand_cat == inc_cand:
                 return 0.0, False, f"Action Contradiction Veto: {reason}"
+
+        # Drawing vs Holding is an explicit contradiction
+        if any(w in exp_act for w in ("draw", "drawing", "pull", "pulling")) and any(w in obs_act for w in ("holding", "holds", "standing")) and not any(w in obs_act for w in ("draw", "drawing", "pull", "pulling")):
+            return 0.15, False, f"Action Mismatch: Expected dynamic '{expected_action}', but observed static '{obs_act}'"
 
         # Exact category match
         if req_cat == cand_cat and req_cat != ActionCategory.OTHER:
             return 1.0, True, ""
 
-        # Check action clusters (e.g. pleading in {"plead", "beg", "implore"})
+        def _get_root(w: str) -> str:
+            w = w.lower()
+            for suffix in ("ing", "es", "s", "ed"):
+                if w.endswith(suffix) and len(w) > len(suffix) + 2:
+                    return w[:-len(suffix)]
+            return w
+
+        # Direct token / root overlap check (excluding non-action nouns)
+        non_action_words = {"a", "an", "the", "in", "on", "at", "to", "for", "with", "from", "sword", "door", "hat", "wand", "mirror", "room"}
+        exp_tokens = set(re.findall(r"\w+", exp_act.replace("_", " "))) - non_action_words
+        obs_tokens = set(re.findall(r"\w+", (obs_act + " " + " ".join(observed.detected_actions)).replace("_", " "))) - non_action_words
+
+        exp_roots = {_get_root(w) for w in exp_tokens}
+        obs_roots = {_get_root(w) for w in obs_tokens}
+
+        # Check action clusters
         for cluster_name, keywords in ACTION_CLUSTERS.items():
-            exp_in_cluster = any(kw in exp_act for kw in keywords)
-            obs_in_cluster = any(kw in obs_act for kw in keywords) or any(any(kw in da for kw in keywords) for da in observed.detected_actions)
+            cluster_roots = {_get_root(kw) for kw in keywords}
+            exp_in_cluster = bool(exp_roots.intersection(cluster_roots)) or any(kw in exp_act for kw in keywords)
+            obs_in_cluster = (
+                bool(obs_roots.intersection(cluster_roots))
+                or any(kw in obs_act for kw in keywords)
+                or any(any(kw in da for kw in keywords) for da in observed.detected_actions)
+            )
             if exp_in_cluster and obs_in_cluster:
                 return 1.0, True, ""
             if exp_in_cluster and not obs_in_cluster and observed.detected_actions:
-                # Specific mismatch within cluster (e.g. expected pleading, but observed sitting)
                 return 0.20, False, f"Action Mismatch: Narration requires '{expected_action}' ({cluster_name}), but observed action is '{obs_act or observed.detected_actions}'"
 
-        # Direct token overlap check
-        exp_tokens = set(re.findall(r"\w+", exp_act)) - {"a", "an", "the", "in", "on", "at", "to", "for", "with", "from"}
-        obs_tokens = set(re.findall(r"\w+", obs_act + " " + " ".join(observed.detected_actions))) - {"a", "an", "the", "in", "on", "at", "to", "for", "with", "from"}
-
-        if exp_tokens and obs_tokens:
-            overlap = exp_tokens.intersection(obs_tokens)
-            if len(overlap) / len(exp_tokens) >= 0.5:
+        if exp_roots and obs_roots:
+            overlap = exp_roots.intersection(obs_roots)
+            if len(overlap) / len(exp_roots) >= 0.5:
                 return 0.85, True, ""
 
         return 0.15, False, f"Action Mismatch: Expected action '{expected_action}' was not depicted (observed: '{obs_act or 'static/none'}')"
@@ -358,6 +448,15 @@ class VisualEvidenceValidator:
         # Check detected objects
         for obj in observed.detected_objects:
             if exp_obj in obj.lower() or obj.lower() in exp_obj:
+                return 1.0, True, ""
+
+        # Check if expected object is a person / character patient
+        for subj in observed.detected_subjects:
+            if exp_obj in subj.lower() or subj.lower() in exp_obj:
+                return 1.0, True, ""
+            norm_exp = BeastEntityVerifiers._normalize_name(exp_obj)
+            norm_subj = BeastEntityVerifiers._normalize_name(subj)
+            if norm_exp and norm_subj and norm_exp == norm_subj:
                 return 1.0, True, ""
 
         # Check canonical object aliases
@@ -395,7 +494,16 @@ class VisualEvidenceValidator:
 
     def _normalize_proposition(self, prop: Any) -> Dict[str, Any]:
         if isinstance(prop, dict):
-            return dict(prop)
+            p = dict(prop)
+            return {
+                "proposition_id": p.get("proposition_id", "prop_01"),
+                "subject": p.get("subject") or p.get("primary_subject"),
+                "action": p.get("action") or p.get("required_action"),
+                "object": p.get("object") or (p.get("required_objects")[0] if p.get("required_objects") else None),
+                "context": p.get("context") or p.get("required_location") or p.get("environment"),
+                "required_temporal_state": p.get("required_temporal_state", "DURING"),
+                "evidence_type": p.get("evidence_type") or p.get("visual_role", "DIRECT"),
+            }
         return {
             "proposition_id": getattr(prop, "proposition_id", "prop_01"),
             "subject": getattr(prop, "subject", getattr(prop, "primary_subject", None)),
