@@ -324,6 +324,24 @@ class EditorialPlanner:
                 is_no_valid = (not match) or (match.decision == BeastV2Decision.NO_VALID_VISUAL)
                 final_evidence = "NO_VALID_VISUAL" if is_no_valid else match.evidence_type.value
 
+                # Proposition Evidence Validator classification check (Sections 8, 9)
+                ev_class = getattr(match, "evidence_class", None) if match else None
+                if not ev_class and match and match.verification_metadata:
+                    ev_class = match.verification_metadata.get("evidence_class")
+
+                if ev_class == "NO_VALID_VISUAL":
+                    is_no_valid = True
+                    final_evidence = "NO_VALID_VISUAL"
+                elif ev_class == "CONTEXT":
+                    # Context is never silently treated as DIRECT evidence
+                    prop_req = getattr(prop, "evidence_type", None) or getattr(prop, "required_relationship", None)
+                    prop_req_str = str(prop_req.value if hasattr(prop_req, "value") else prop_req).upper()
+                    if prop_req_str in ("DIRECT", "DIRECT_EVIDENCE"):
+                        validation_warnings.append(
+                            f"CONTEXT_NOT_DIRECT: Fact {fact.fact_id} proposition {prop.proposition_id} requires DIRECT evidence; candidate is only CONTEXT."
+                        )
+                    final_evidence = "CONTEXTUAL_EVIDENCE"
+
                 # Part C: Align visual onset directly to spoken onset when timestamps are present
                 prop_spoken_start = getattr(prop, "spoken_start", None) or getattr(prop, "spoken_onset", None)
                 if prop_spoken_start is not None and prop_spoken_start >= 0.0:

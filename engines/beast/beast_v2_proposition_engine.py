@@ -48,6 +48,8 @@ from engines.beast.beast_entity_verifiers import BeastEntityVerifiers, CHARACTER
 from engines.beast.beast_contradiction_guard import BeastContradictionGuard
 from engines.beast.beast_v2_action_verifier import BeastV2ActionVerifier
 from engines.beast.beast_v2_temporal_grounding import BeastV2TemporalGrounder
+from engines.visual_evidence.visual_evidence_validator import VisualEvidenceValidator
+from engines.visual_evidence.evidence_models import EvidenceClass, EvidenceValidationResult
 
 logger = logging.getLogger("BeastV2PropositionEngine")
 
@@ -77,6 +79,22 @@ class BeastV2PropositionEngine:
         self.asset_acquisition_engine = asset_acquisition_engine
         self._recently_used_queue: deque = deque(maxlen=repetition_window_size)
         self._recently_used_assets: Set[str] = set()
+        self.evidence_validator = VisualEvidenceValidator()
+
+    def validate_candidate_evidence(
+        self,
+        proposition: VisualProposition,
+        candidate: BeastCandidateShot,
+        interval: Optional[Tuple[float, float]] = None,
+    ) -> EvidenceValidationResult:
+        """
+        Executes strict proposition-level video evidence validation.
+        """
+        return self.evidence_validator.validate_candidate(
+            proposition=proposition,
+            candidate=candidate,
+            target_interval=interval,
+        )
 
     # ==========================================================================
     # 1. PROPOSITION PREPARATION & ENHANCEMENT
@@ -361,6 +379,10 @@ class BeastV2PropositionEngine:
                 evidence_type = EvidenceType.DIRECT_EVIDENCE
                 reason = "Direct evidence: Subject, Action, Object, and Context verified."
 
+        evidence_class = "DIRECT" if decision in (BeastV2Decision.ACCEPT_DIRECT, BeastV2Decision.ACCEPT_OBJECT) else (
+            "CONTEXT" if decision in (BeastV2Decision.ACCEPT_ORIENTATION, BeastV2Decision.ACCEPT_CONTEXT, BeastV2Decision.ACCEPT_CONTRAST) else "NO_VALID_VISUAL"
+        )
+
         return BeastV2MatchResult(
             candidate_id=shot.shot_id,
             asset_id=shot.shot_id,
@@ -374,6 +396,7 @@ class BeastV2PropositionEngine:
             source_evidence_type=source_evidence_type,
             visual_role=VisualRole(proposition.visual_role) if hasattr(VisualRole, proposition.visual_role) else VisualRole.DIRECT_EVIDENCE,
             decision=decision,
+            evidence_class=evidence_class,
             alignment_scores=alignment_breakdown,
             contradictions=contradictions,
             confidence=round(final_score, 2),
@@ -381,6 +404,7 @@ class BeastV2PropositionEngine:
                 "is_object_centric": is_obj_centric,
                 "interval_duration": interval.duration,
                 "action_category": action_cat.value if action_cat else None,
+                "evidence_class": evidence_class,
             },
             reason=reason,
         )

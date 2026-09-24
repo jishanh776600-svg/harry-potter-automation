@@ -236,6 +236,7 @@ class BeastV2MatchResult:
     source_evidence_type: SourceEvidenceType = SourceEvidenceType.FILM
     visual_role: VisualRole = VisualRole.DIRECT_EVIDENCE
     decision: BeastV2Decision = BeastV2Decision.NO_VALID_VISUAL
+    evidence_class: Optional[str] = None                       # "DIRECT", "CONTEXT", "NO_VALID_VISUAL"
     alignment_scores: Optional[PropositionAlignmentBreakdown] = None
     contradictions: List[str] = field(default_factory=list)
     confidence: float = 0.0
@@ -256,6 +257,7 @@ class BeastV2MatchResult:
             "source_evidence_type": self.source_evidence_type.value,
             "visual_role": self.visual_role.value if isinstance(self.visual_role, VisualRole) else str(self.visual_role),
             "decision": self.decision.value,
+            "evidence_class": self.evidence_class,
             "alignment_scores": self.alignment_scores.to_dict() if self.alignment_scores else None,
             "contradictions": self.contradictions,
             "confidence": round(self.confidence, 2),

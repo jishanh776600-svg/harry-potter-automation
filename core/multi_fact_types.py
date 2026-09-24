@@ -98,6 +98,8 @@ class VisualProposition:
     narrative_era: Optional[str] = None                # YEAR_1 ... YEAR_7, MARAUDERS, POST_WAR
     preferred_framing: Optional[str] = None            # CLOSE_UP, MEDIUM_SHOT, WIDE_SHOT, DETAIL
     estimated_duration_sec: float = 2.0                # Typically 1.5s - 3.0s
+    required_temporal_state: str = "DURING"            # BEFORE, ONSET, DURING, AFTER
+    evidence_type: str = "DIRECT"                      # DIRECT, CONTEXT, NO_VALID_VISUAL
 
     def __post_init__(self):
         # Normalize relationship from visual_role if given
