@@ -73,6 +73,8 @@ class RefillTelemetry:
     events_rejected: int = 0
     novel_story_produced: int = 0
     discovery_produced: int = 0
+    discovery_big_produced: int = 0
+    discovery_short_produced: int = 0
     failure_reasons: List[str] = field(default_factory=list)
     circuit_breaker_tripped: bool = False
     is_dry_run: bool = False
@@ -329,10 +331,19 @@ class HPAutonomousRefillEngine:
 
         # Step 3: Cloud Vault Buffer Deposit (01_READY)
         try:
+            fmt_tag = getattr(script, "format", None)
+            if not fmt_tag:
+                if content_type == "novel_story":
+                    fmt_tag = "NOVEL_STORY"
+                elif "big" in content_type.lower():
+                    fmt_tag = "DISCOVERY_BIG"
+                else:
+                    fmt_tag = "DISCOVERY_SHORT"
+
             desc = (
                 f"Harry Potter Novel Story: {script.chapter_title} [{script.part_marker or 'PART 01'}]"
                 if content_type == "novel_story"
-                else f"Harry Potter Discovery: {script.chapter_title or script_id}"
+                else f"Harry Potter Discovery ({fmt_tag}): {script.chapter_title or script_id}"
             )
             uploaded = self.drive_engine.upload_video_to_vault(
                 local_path=video_path,
@@ -342,12 +353,13 @@ class HPAutonomousRefillEngine:
                     "automation_id": "harry_potter",
                     "script_id": script_id,
                     "content_type": content_type,
-                    "voice": "af_bella",
+                    "format": fmt_tag,
+                    "voice": getattr(self, "voice_id", "af_bella"),
                     "channel_id": "UCsghEXDa3EzxI4d93cjT-bQ"
                 }
             )
             file_id = uploaded.get("id") if isinstance(uploaded, dict) else str(uploaded)
-            logger.info(f"[Refill:Vault] Successfully deposited {script_id} into 01_READY (Drive ID: {file_id})")
+            logger.info(f"[Refill:Vault] Successfully deposited {script_id} into 01_READY (Drive ID: {file_id}, Format: {fmt_tag})")
 
             # Step 4: Persist DB status
             script.status = "DEPOSITED"
@@ -377,12 +389,16 @@ class HPAutonomousRefillEngine:
     def _produce_next_discovery(
         self,
         session,
-        excluded_script_ids: Optional[Set[str]] = None
+        excluded_script_ids: Optional[Set[str]] = None,
+        discovery_format: str = "DISCOVERY_SHORT"
     ) -> Tuple[bool, Optional[str], Optional[str]]:
         """Produces next unproduced Discovery Short end-to-end."""
-        script = self._get_or_create_candidate_script(session, "discovery", excluded_script_ids or set())
+        ct = "discovery_big" if "BIG" in discovery_format.upper() else "discovery_short"
+        script = self._get_or_create_candidate_script(session, ct, excluded_script_ids or set())
         if not script:
-            return False, None, "No eligible or discoverable discovery candidates available"
+            script = self._get_or_create_candidate_script(session, "discovery", excluded_script_ids or set())
+        if not script:
+            return False, None, f"No eligible or discoverable {discovery_format} candidates available"
         return self._produce_single_script(session, script)
 
     def run_refill_cycle(
@@ -439,7 +455,7 @@ class HPAutonomousRefillEngine:
         )
 
         # 3. Dual Locking: ProcessLock + CloudLockManager
-        process_lock = ProcessLock(name="hp_production", command_name="cloud-refill")
+        process_lock = ProcessLock(name="production", command_name="maintain-buffer")
         if not process_lock.acquire():
             logger.warning("[Refill] Local process lock active. Exiting run safely.")
             telemetry.status = "BLOCKED"
@@ -488,7 +504,12 @@ class HPAutonomousRefillEngine:
             allocation = self.strategy_engine.get_content_allocation(effective_deficit)
             novel_needed = allocation.get("novel_story", 0)
             discovery_needed = allocation.get("discovery", 0)
-            logger.info(f"[Refill] Planned Allocation: {novel_needed} Novel Story + {discovery_needed} Discovery Shorts")
+            disc_big_needed = allocation.get("discovery_big", 0)
+            disc_short_needed = allocation.get("discovery_short", 0)
+            logger.info(
+                f"[Refill] Planned Allocation: {novel_needed} Novel Story + {disc_big_needed} Discovery Big "
+                f"+ {disc_short_needed} Discovery Short (Total Deficit: {effective_deficit})"
+            )
 
             consecutive_failures = 0
             produced_count = 0
@@ -503,6 +524,8 @@ class HPAutonomousRefillEngine:
                 telemetry.videos_qa_passed = effective_deficit
                 telemetry.novel_story_produced = novel_needed
                 telemetry.discovery_produced = discovery_needed
+                telemetry.discovery_big_produced = disc_big_needed
+                telemetry.discovery_short_produced = disc_short_needed
                 telemetry.final_ready_stock = telemetry.initial_ready_stock + effective_deficit
                 telemetry.status = "SUCCEEDED"
                 telemetry.duration_seconds = round(time.time() - start_time, 2)
@@ -537,9 +560,10 @@ class HPAutonomousRefillEngine:
                             telemetry.circuit_breaker_tripped = True
                             break
 
-            # Step B: Produce Discovery Shorts
+            # Step B: Produce Discovery Shorts (Cadence-Aware: Discovery Big & Discovery Short)
             if not telemetry.circuit_breaker_tripped:
-                for idx in range(discovery_needed):
+                # B1: Discovery Big
+                for idx in range(disc_big_needed):
                     if consecutive_failures >= 2:
                         logger.error("[Refill] Circuit breaker tripped: 2 consecutive failures. Aborting batch early.")
                         telemetry.circuit_breaker_tripped = True
@@ -547,10 +571,11 @@ class HPAutonomousRefillEngine:
 
                     slot_produced = False
                     while not slot_produced and consecutive_failures < 2:
-                        success, sid, reason = self._produce_next_discovery(session, excluded_script_ids)
+                        success, sid, reason = self._produce_next_discovery(session, excluded_script_ids, discovery_format="DISCOVERY_BIG")
                         if success:
                             produced_count += 1
                             telemetry.discovery_produced += 1
+                            telemetry.discovery_big_produced += 1
                             telemetry.videos_qa_passed += 1
                             telemetry.videos_deposited += 1
                             consecutive_failures = 0
@@ -560,7 +585,36 @@ class HPAutonomousRefillEngine:
                             telemetry.videos_qa_failed += 1
                             if sid:
                                 excluded_script_ids.add(sid)
-                            telemetry.failure_reasons.append(f"Discovery candidate '{sid or idx+1}' failed: {reason}")
+                            telemetry.failure_reasons.append(f"Discovery Big candidate '{sid or idx+1}' failed: {reason}")
+                            logger.warning(f"[Refill] Candidate '{sid}' failed. Trying next candidate from pool...")
+                            if consecutive_failures >= 2:
+                                telemetry.circuit_breaker_tripped = True
+                                break
+
+                # B2: Discovery Short
+                for idx in range(disc_short_needed):
+                    if consecutive_failures >= 2:
+                        logger.error("[Refill] Circuit breaker tripped: 2 consecutive failures. Aborting batch early.")
+                        telemetry.circuit_breaker_tripped = True
+                        break
+
+                    slot_produced = False
+                    while not slot_produced and consecutive_failures < 2:
+                        success, sid, reason = self._produce_next_discovery(session, excluded_script_ids, discovery_format="DISCOVERY_SHORT")
+                        if success:
+                            produced_count += 1
+                            telemetry.discovery_produced += 1
+                            telemetry.discovery_short_produced += 1
+                            telemetry.videos_qa_passed += 1
+                            telemetry.videos_deposited += 1
+                            consecutive_failures = 0
+                            slot_produced = True
+                        else:
+                            consecutive_failures += 1
+                            telemetry.videos_qa_failed += 1
+                            if sid:
+                                excluded_script_ids.add(sid)
+                            telemetry.failure_reasons.append(f"Discovery Short candidate '{sid or idx+1}' failed: {reason}")
                             logger.warning(f"[Refill] Candidate '{sid}' failed. Trying next candidate from pool...")
                             if consecutive_failures >= 2:
                                 telemetry.circuit_breaker_tripped = True

@@ -191,9 +191,15 @@ class HPLearningStrategy:
                 discovery_count = 1
                 novel_count = total_deficit - 1
 
+        # In a canonical 4-slot daily batch: 2 Novel Stories, 1 Discovery Big, 1 Discovery Short
+        disc_big = discovery_count // 2 + (discovery_count % 2)
+        disc_short = discovery_count - disc_big
+
         return {
             "novel_story": novel_count,
-            "discovery": discovery_count
+            "discovery": discovery_count,
+            "discovery_big": disc_big,
+            "discovery_short": disc_short,
         }
 
     def adapt_from_performance(self, db_session) -> Dict[str, Any]:
