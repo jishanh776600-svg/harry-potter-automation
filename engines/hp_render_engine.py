@@ -60,9 +60,11 @@ LOCKED_VOICE_PITCH = "+0Hz"
 LOCKED_VOICE_RATE = "+0%"
 
 # BGM Catalog — Strictly Harry Potter dedicated Drive vault asset (Single Canonical BGM)
-DEFAULT_BGM_TRACK = "Esther Abrami - No.6 In My Dreams (1).wav"
-DEFAULT_BGM_DRIVE_ID = "1GwpmcEzrZg_grsDpEfgqf0hxXNfQ6brI"
-DEFAULT_BGM_VOLUME_DB = -8.0  # Matched to Wizards' Laboratory reference Short volume (-3.36 dB speech ratio)
+DEFAULT_BGM_TRACK = "Barty Crouch Junior! - Harry Potter and the Goblet of Fire Complete Score (Film Mix).wav"
+DEFAULT_BGM_DRIVE_ID = "1KExAdFU1tI7Ht_j0AxTqzIqgV3HtHkIe"
+DEFAULT_BGM_SPEED = 1.2        # Permanent 1.2x playback speed
+DEFAULT_BGM_VOLUME_DB = -18.0  # Very low background level beneath deep baritone narration
+DEFAULT_BGM_AMIX_WEIGHT = 0.20 # Subtle background music bed
 FRAMING_POLICY_VERSION = "v2_natural_medium"
 VISUAL_POLICY_VERSION = "HYBRID_TRUTHFUL_V1"
 
@@ -364,13 +366,15 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         total_duration: float,
         output_master_wav: Path,
         bgm_filename: str = DEFAULT_BGM_TRACK,
-        bgm_volume_db: float = DEFAULT_BGM_VOLUME_DB
+        bgm_volume_db: float = DEFAULT_BGM_VOLUME_DB,
+        bgm_speed: float = DEFAULT_BGM_SPEED,
+        bgm_amix_weight: float = DEFAULT_BGM_AMIX_WEIGHT
     ) -> Tuple[Path, float]:
         """
         Mixes Narration + BGM bed, applies fade-in/out, ducking,
         and normalizes final master to broadcast target.
-        Enforces clear narration dominance with distinct, energetic rhythmic background music
-        matching the Wizards' Laboratory reference Short.
+        Enforces clear narration dominance with subtle, low-volume background music
+        at 1.2x speed matching user's permanent specification.
         Returns: (output_master_wav, measured_lufs)
         """
         bgm_path = MUSIC_DIR / bgm_filename
@@ -388,7 +392,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                         from googleapiclient.http import MediaIoBaseDownload
                         creds = Credentials.from_authorized_user_file(str(hp_token_path))
                         drive_client = build("drive", "v3", credentials=creds)
-                        mp3_target = MUSIC_DIR / "Esther Abrami - No.6 In My Dreams (1).mp3"
+                        mp3_target = MUSIC_DIR / "Barty Crouch Junior! - Harry Potter and the Goblet of Fire Complete Score (Film Mix).mp3"
                         logger.info(f"Downloading canonical HP BGM from Drive ID {DEFAULT_BGM_DRIVE_ID}...")
                         req = drive_client.files().get_media(fileId=DEFAULT_BGM_DRIVE_ID)
                         with open(mp3_target, "wb") as f:
@@ -396,7 +400,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                             done = False
                             while not done:
                                 _, done = downloader.next_chunk()
-                        wav_target = MUSIC_DIR / "Esther Abrami - No.6 In My Dreams (1).wav"
+                        wav_target = MUSIC_DIR / "Barty Crouch Junior! - Harry Potter and the Goblet of Fire Complete Score (Film Mix).wav"
                         subprocess.run([
                             "ffmpeg", "-y", "-loglevel", "error",
                             "-i", str(mp3_target),
@@ -412,17 +416,19 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
         # FFmpeg filter complex:
         # [0:a] Narration vocal track (Full prominence, weight 1.0)
-        # [1:a] BGM track looped, attenuated by bgm_volume_db (-8.0dB), 0.8s fade-in, 1.5s fade-out, mixed at 0.45 weight
-        # amix with weights=1 0.45 ensures narration clearly dominates while BGM provides distinct rhythmic energy matching reference
+        # [1:a] BGM track looped, adjusted to 1.2x speed (atempo=1.2), attenuated by bgm_volume_db (-18.0dB), 0.8s fade-in, 1.5s fade-out, mixed at 0.20 weight
+        # amix with weights=1 0.20 ensures Male 18 voice is completely prominent while BGM sits as an atmospheric, low-level bed at 1.2x speed
         fade_out_start = max(0.0, total_duration - 1.5)
+        speed_filter = f"atempo={bgm_speed:.2f}," if bgm_speed != 1.0 else ""
         filter_complex = (
             f"[1:a]aloop=loop=-1:size=2e+09,"
+            f"{speed_filter}"
             f"volume={bgm_volume_db}dB,"
             f"afade=t=in:ss=0:d=0.8,"
             f"afade=t=out:st={fade_out_start:.2f}:d=1.5,"
             f"atrim=0:{total_duration:.2f}[bgm];"
-            f"[0:a][bgm]amix=inputs=2:weights=1 0.45:duration=first:dropout_transition=0.5,"
-            f"loudnorm=I=-12.0:TP=-1.0:LRA=9[aout]"
+            f"[0:a][bgm]amix=inputs=2:weights=1 {bgm_amix_weight}:duration=first:dropout_transition=0.5,"
+            f"loudnorm=I=-14.0:TP=-1.5:LRA=9[aout]"
         )
 
         cmd = [

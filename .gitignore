@@ -53,6 +53,7 @@ data/voice/
 data/visuals/
 data/assets/
 data/captions/
+data/bgm/
 data/vault_ready/
 data/books/
 !data/books/.gitkeep

@@ -80,7 +80,7 @@ logger = logging.getLogger("ProduceValidationShort")
 DRIVE_READY_FOLDER_ID = "12KIXzk0RgolYI8t_gtXWJxXWp4Ziwzx6"
 MOVIE_1_PATH = DATA_DIR / "movies" / "Harry Potter and the Sorcerers Stone (2001) Dual Audio {Hindi-English} 1080p BluRay 2.8GB ESub.mkv"
 MOVIE_8_PATH = DATA_DIR / "movies" / "Harry Potter and the Deathly Hallows Part 2 2011 Dual Audio Hindi 720p BluRay (1).mkv"
-CANONICAL_BGM_PATH = MUSIC_DIR / "Esther Abrami - No.6 In My Dreams (1).wav"
+CANONICAL_BGM_PATH = MUSIC_DIR / "Barty Crouch Junior! - Harry Potter and the Goblet of Fire Complete Score (Film Mix).wav"
 
 
 def verify_isolation_and_safety():

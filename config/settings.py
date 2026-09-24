@@ -167,11 +167,13 @@ APPROVED_PRODUCTION_VOICES = ["male_18", "MALE_18_FenrirOnyx_DarkBaritone", "af_
 KOKORO_MODEL_PATH = DATA_DIR / "kokoro-v1.0.onnx"
 KOKORO_VOICES_PATH = DATA_DIR / "voices-v1.0.bin"
 
-# Background Music (BGM) Settings — Canonical Esther Abrami - No.6 In My Dreams
+# Background Music (BGM) Settings — Canonical Harry Potter BGM (Barty Crouch Junior! Complete Score)
 BGM_ENABLED = True
-BGM_DEFAULT_TRACK = "Esther Abrami - No.6 In My Dreams (1).wav"
-BGM_DEFAULT_DRIVE_ID = "1GwpmcEzrZg_grsDpEfgqf0hxXNfQ6brI"
-BGM_VOLUME = float(os.getenv("BGM_VOLUME", "0.45"))  # -7.0 dB ducking relative to speech (matched to Wizards' Laboratory reference)
+BGM_DEFAULT_TRACK = "Barty Crouch Junior! - Harry Potter and the Goblet of Fire Complete Score (Film Mix).wav"
+BGM_DEFAULT_DRIVE_ID = "1KExAdFU1tI7Ht_j0AxTqzIqgV3HtHkIe"
+BGM_SPEED = float(os.getenv("BGM_SPEED", "1.2"))  # Permanent 1.2x playback speed
+BGM_VOLUME = float(os.getenv("BGM_VOLUME", "0.20"))  # Very low background level
+BGM_VOLUME_DB = float(os.getenv("BGM_VOLUME_DB", "-18.0"))  # -18.0 dB relative mix level
 
 # Image Generation Fallback Provider (Permanently disabled; 100% movie footage policy enforced)
 IMAGE_PROVIDER = None

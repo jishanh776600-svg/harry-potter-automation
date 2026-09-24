@@ -26,8 +26,26 @@ from core.models import AssetRecord
 logger = logging.getLogger(__name__)
 
 
-# 4 Approved Core BGM Tracks with distinct Mood & Context Mappings
+# 5 Approved Core BGM Tracks with distinct Mood & Context Mappings
 BGM_LIBRARY = {
+    "hp_permanent_score": {
+        "primary_files": [
+            "Barty Crouch Junior! - Harry Potter and the Goblet of Fire Complete Score (Film Mix).wav",
+            "Barty Crouch Junior! - Harry Potter and the Goblet of Fire Complete Score (Film Mix)_1.2x.wav",
+            "Barty Crouch Junior! - Harry Potter and the Goblet of Fire Complete Score (Film Mix).mp3",
+            "Barty Crouch Junior! - Harry Potter and the Goblet of Fire Complete Score (Film Mix)_1.2x.mp3"
+        ],
+        "display_name": "Barty Crouch Junior! - Harry Potter and the Goblet of Fire Complete Score (Film Mix)",
+        "mood": "Harry Potter Lore / Battle / Tension / Dark Baritone",
+        "default_intensity": "Subtle-Low",
+        "speed": 1.2,
+        "default_volume_db": -18.0,
+        "description": "Permanent canonical Harry Potter score mix, played at 1.2x speed and subtle low volume.",
+        "keywords": [
+            "harry potter", "battle", "hogwarts", "voldemort", "deathly hallows",
+            "dark", "curse", "spell", "canon", "wizard", "magic", "crouch"
+        ]
+    },
     "best_historical": {
         "primary_files": ["No copyright Best Historical.wav", "No copyright Best Historical.mp3"],
         "display_name": "No copyright Best Historical",
@@ -283,20 +301,21 @@ class AudioMixer:
         output_bgm_only_path: Path,
         duration: float,
         bgm_volume_db: float = BGM_MIX_VOLUME_DB,
-        target_bgm_lufs: float = TARGET_BGM_LUFS
+        target_bgm_lufs: float = TARGET_BGM_LUFS,
+        bgm_speed: float = 1.0
     ) -> Path:
         """
         Stage B: Produces standalone, listenable BGM-only audio file
         with exact looping, trimming, standardized bed loudness normalization (-30.0 LUFS),
-        and smooth fade in/out. Guarantees consistent BGM-to-narration balance regardless
-        of intrinsic source track mastering loudness.
+        optional speed scaling (e.g. 1.2x), and smooth fade in/out.
         """
         output_bgm_only_path.parent.mkdir(parents=True, exist_ok=True)
         fade_out_start = max(0.5, duration - BGM_FADE_OUT_SEC)
+        speed_filter = f"atempo={bgm_speed:.2f}," if bgm_speed != 1.0 else ""
 
         # Primary: Normalize BGM bed to standardized target LUFS (-30.0 LUFS) with true peak ceiling
         filter_b = (
-            f"aloop=loop=-1:size=2e+09,atrim=0:{duration},"
+            f"aloop=loop=-1:size=2e+09,{speed_filter}atrim=0:{duration},"
             f"loudnorm=I={target_bgm_lufs}:LRA=11:tp=-3.0,"
             f"afade=t=in:ss=0:d={BGM_FADE_IN_SEC},"
             f"afade=t=out:st={fade_out_start:.2f}:d={BGM_FADE_OUT_SEC},"
@@ -314,7 +333,7 @@ class AudioMixer:
         if res.returncode != 0 or not output_bgm_only_path.exists() or output_bgm_only_path.stat().st_size < 1000:
             logger.warning(f"Loudnorm Stage B fallback for {source_music_path.name}")
             filter_fallback = (
-                f"aloop=loop=-1:size=2e+09,atrim=0:{duration},"
+                f"aloop=loop=-1:size=2e+09,{speed_filter}atrim=0:{duration},"
                 f"volume={bgm_volume_db}dB,"
                 f"afade=t=in:ss=0:d={BGM_FADE_IN_SEC},"
                 f"afade=t=out:st={fade_out_start:.2f}:d={BGM_FADE_OUT_SEC},"
@@ -341,7 +360,8 @@ class AudioMixer:
         job_id: str = "",
         sfx_layer_path: Optional[Path] = None,
         target_bgm_lufs: float = TARGET_BGM_LUFS,
-        bgm_policy: str = "NONE"
+        bgm_policy: str = "NONE",
+        bgm_speed: float = 1.0
     ) -> Tuple[Path, Optional[Path]]:
         """
         Produces Stage B (BGM-only, if enabled) and Stage C (Master mixed audio normalized to -14.0 LUFS)
@@ -365,13 +385,17 @@ class AudioMixer:
 
         bgm_only_path: Optional[Path] = None
         if use_bgm:
+            # Auto-detect 1.2x speed requirement if Harry Potter permanent track
+            if music_path and "barty crouch" in music_path.name.lower() and bgm_speed == 1.0:
+                bgm_speed = 1.2
             bgm_only_path = self.renders_dir / f"bgm_only_{job_tag}.wav"
             self.generate_stage_b_bgm_only(
                 source_music_path=music_path,
                 output_bgm_only_path=bgm_only_path,
                 duration=duration,
                 bgm_volume_db=bgm_volume_db,
-                target_bgm_lufs=target_bgm_lufs
+                target_bgm_lufs=target_bgm_lufs,
+                bgm_speed=bgm_speed
             )
 
             if has_sfx:

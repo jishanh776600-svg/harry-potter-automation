@@ -23,8 +23,8 @@ if not creds_file:
 creds = Credentials.from_authorized_user_file(str(creds_file))
 drive = build("drive", "v3", credentials=creds)
 
-file_id = "1GwpmcEzrZg_grsDpEfgqf0hxXNfQ6brI"
-filename = "Esther Abrami - No.6 In My Dreams (1).mp3"
+file_id = "1KExAdFU1tI7Ht_j0AxTqzIqgV3HtHkIe"
+filename = "Barty Crouch Junior! - Harry Potter and the Goblet of Fire Complete Score (Film Mix).mp3"
 dest_mp3 = music_dir / filename
 
 print(f"Downloading {filename} (id: {file_id}) from Harry Potter Google Drive...")
@@ -49,3 +49,15 @@ cmd = [
 ]
 subprocess.run(cmd, check=True)
 print(f"Converted WAV: {dest_wav} ({dest_wav.stat().st_size} bytes)")
+
+# Generate 1.2x speed WAV
+dest_12x_wav = music_dir / (dest_mp3.stem + "_1.2x.wav")
+cmd_12x = [
+    "ffmpeg", "-y", "-loglevel", "error",
+    "-i", str(dest_wav),
+    "-filter:a", "atempo=1.2",
+    "-ar", "44100", "-ac", "2",
+    str(dest_12x_wav)
+]
+subprocess.run(cmd_12x, check=True)
+print(f"Generated 1.2x WAV: {dest_12x_wav} ({dest_12x_wav.stat().st_size} bytes)")
