@@ -18,7 +18,7 @@ from core.safe_url_validator import SafeURLValidator
 logger = logging.getLogger("AssetAcquisition.Provider")
 
 DEFAULT_CONNECT_TIMEOUT = 5.0
-DEFAULT_READ_TIMEOUT = 25.0
+DEFAULT_READ_TIMEOUT = 12.0
 DEFAULT_MAX_BYTES = 100 * 1024 * 1024  # 100 MB max download ceiling per asset
 
 

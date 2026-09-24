@@ -101,22 +101,41 @@ class InternetArchiveProvider(AssetSourceProvider):
 
                 files = item_meta.get("files", [])
                 target_file = None
-                is_video = doc.get("mediatype") == "movies"
+                doc_is_video = doc.get("mediatype") == "movies"
 
-                if is_video:
+                # Filter strictly by requested media type
+                if req_media_type in (MediaCategory.IMAGE, "image"):
+                    for f in files:
+                        fmt = f.get("format", "").lower()
+                        name = f.get("name", "").lower()
+                        if (fmt in ("jpeg", "png", "thumbnail") or name.endswith((".jpg", ".jpeg", ".png", ".webp"))) and not name.startswith("."):
+                            target_file = f
+                            break
+                    is_video = False
+                elif req_media_type in (MediaCategory.VIDEO, "video"):
                     for f in files:
                         fmt = f.get("format", "").lower()
                         name = f.get("name", "").lower()
                         if (fmt in ("512kb mpeg4", "h.264", "mp4") or name.endswith(".mp4")) and not name.startswith("."):
                             target_file = f
                             break
+                    is_video = True
                 else:
-                    for f in files:
-                        fmt = f.get("format", "").lower()
-                        name = f.get("name", "").lower()
-                        if fmt in ("jpeg", "png") or name.endswith((".jpg", ".png", ".webp")):
-                            target_file = f
-                            break
+                    is_video = doc_is_video
+                    if is_video:
+                        for f in files:
+                            fmt = f.get("format", "").lower()
+                            name = f.get("name", "").lower()
+                            if (fmt in ("512kb mpeg4", "h.264", "mp4") or name.endswith(".mp4")) and not name.startswith("."):
+                                target_file = f
+                                break
+                    else:
+                        for f in files:
+                            fmt = f.get("format", "").lower()
+                            name = f.get("name", "").lower()
+                            if fmt in ("jpeg", "png") or name.endswith((".jpg", ".png", ".webp")):
+                                target_file = f
+                                break
 
                 if not target_file:
                     continue

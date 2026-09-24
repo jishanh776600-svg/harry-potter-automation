@@ -59,7 +59,24 @@ class AcquisitionQueryGenerator:
         if primary_entity:
             queries.append(cls._clean(f"{primary_entity} Harry Potter"))
 
-        # 4. Fallback from narration text if no specific entities
+        # 4. Tier 4: Specific Objects & Props
+        if objects:
+            for obj in objects:
+                clean_obj = cls._clean(obj)
+                if clean_obj:
+                    queries.append(clean_obj)
+                    queries.append(cls._clean(f"{clean_obj} Harry Potter"))
+
+        # 5. Tier 5: Split compound entities ("A and B") for high-precision individual searches
+        if primary_entity and (" and " in primary_entity.lower() or " / " in primary_entity):
+            parts = re.split(r"\s+(?:and|/)\s+", primary_entity, flags=re.IGNORECASE)
+            for part in parts:
+                clean_part = cls._clean(part.strip())
+                if clean_part and len(clean_part) > 2:
+                    queries.append(clean_part)
+                    queries.append(cls._clean(f"{clean_part} Harry Potter"))
+
+        # 6. Fallback from narration text if no specific entities
         if not queries and narration:
             extracted = cls._extract_key_phrases(narration)
             if extracted:

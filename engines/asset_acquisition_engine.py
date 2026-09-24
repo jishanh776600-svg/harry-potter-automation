@@ -26,6 +26,7 @@ from engines.acquisition.media_analyzer import MediaAnalyzer, MediaValidationErr
 from engines.acquisition.providers.base_provider import AssetSourceProvider, ProviderError
 from engines.acquisition.providers.archive_org_provider import InternetArchiveProvider
 from engines.acquisition.providers.direct_web_provider import DirectWebProvider
+from engines.acquisition.providers.movie_archive_provider import MovieArchiveProvider
 from engines.acquisition.providers.wikimedia_provider import WikimediaCommonsProvider
 from engines.acquisition.query_generator import AcquisitionQueryGenerator
 
@@ -49,6 +50,7 @@ class AssetAcquisitionEngine:
         self.providers: Dict[str, AssetSourceProvider] = {}
 
         default_providers = providers or [
+            MovieArchiveProvider(enabled=True),
             WikimediaCommonsProvider(enabled=True),
             InternetArchiveProvider(enabled=True),
             DirectWebProvider(enabled=True),
