@@ -83,10 +83,14 @@ class EditorialTreatmentSelector:
         if is_archival_document:
             return CompositionTreatment.BLURRED_PADDING
 
-        if shot_scale in (ShotScale.CLOSE_UP, ShotScale.MEDIUM_SHOT):
+        scale_val = shot_scale.value if hasattr(shot_scale, "value") else str(shot_scale)
+        scale = ShotScale.from_string(scale_val)
+
+        if scale in (ShotScale.CLOSE_UP, ShotScale.EXTREME_CLOSE_UP):
             return CompositionTreatment.FULL_BLEED_RECENTERED
 
-        # Wide shot, group shot, or two-shot
+        # Natural cinematic movie framing (MEDIUM_SHOT, TWO_SHOT, MEDIUM_WIDE, WIDE, GROUP_SHOT):
+        # Preserves subject and surrounding cinematic context without aggressive digital cropping
         return CompositionTreatment.HYBRID_MODERATE_CROP
 
     @classmethod

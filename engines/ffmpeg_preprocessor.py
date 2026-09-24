@@ -190,7 +190,7 @@ class FFmpegVisualPreprocessor:
         Extracts, crops/pads, normalizes, and mutes a video segment to 1080x1920 @ 30fps.
         """
         source_p = Path(source_video_path) if source_video_path else None
-        f_scale = ShotScale(framing_intent) if isinstance(framing_intent, str) else framing_intent
+        f_scale = ShotScale.from_string(framing_intent.value if hasattr(framing_intent, "value") else str(framing_intent))
         strat = strategy or self.infer_strategy_for_framing(f_scale, media_type="VIDEO")
 
         # Forbidden provider hard guard
@@ -384,7 +384,7 @@ class FFmpegVisualPreprocessor:
         Enforces the existing strict rights gate (must not be unverified/quarantined without approval).
         """
         art_p = Path(artwork_image_path) if artwork_image_path else None
-        f_scale = ShotScale(framing_intent) if isinstance(framing_intent, str) else framing_intent
+        f_scale = ShotScale.from_string(framing_intent.value if hasattr(framing_intent, "value") else str(framing_intent))
 
         # Validation: check duration
         if duration_seconds <= 0:

@@ -70,47 +70,68 @@ class BeastV2TemporalGrounder:
         else:
             effective_target = target_duration
 
+        # Reject candidate shots that only contain BEFORE or AFTER phase
+        phase_str = str(meta.get("phase") or meta.get("action_phase") or "").upper()
+        if phase_str in ("BEFORE", "AFTER"):
+            interval = TemporalMicroInterval(
+                source_start=shot_start,
+                source_end=shot_end,
+                action_start=action_start,
+                action_peak=action_peak,
+                action_end=action_end,
+                target_duration=effective_target,
+            )
+            return (
+                interval,
+                False,
+                f"Temporal Phase Mismatch: Candidate shot only contains {phase_str} phase, lacking active DURING execution."
+            )
+
         # CASE 7 Check: If candidate_interval is provided, check if it coincides with action interval
         if candidate_interval and action_start is not None and action_end is not None:
             c_start, c_end = candidate_interval
             # Check overlap between candidate interval and actual action
             overlap = max(0.0, min(c_end, action_end) - max(c_start, action_start))
-            if overlap <= 0.0:
-                # Candidate interval misses the action!
-                # Create the corrected interval centered on the action
-                peak = action_peak if action_peak is not None else ((action_start + action_end) / 2.0)
-                sub_start = max(shot_start, peak - (effective_target / 2.0))
+            if overlap <= 0.0 or c_end <= action_start or c_start >= action_end:
+                # Candidate interval misses the action or is purely BEFORE/AFTER phase!
+                # Create the corrected interval starting directly at action onset (DURING phase)
+                sub_start = max(shot_start, action_start)
                 sub_end = min(shot_end, sub_start + effective_target)
                 if sub_end - sub_start < effective_target:
                     sub_start = max(shot_start, sub_end - effective_target)
 
+                peak = action_peak if action_peak is not None else ((action_start + action_end) / 2.0)
                 corrected = TemporalMicroInterval(
                     source_start=round(sub_start, 3),
                     source_end=round(sub_end, 3),
                     action_start=action_start,
-                    action_peak=action_peak,
+                    action_peak=peak,
                     action_end=action_end,
                     target_duration=effective_target,
                 )
+                phase_reason = "BEFORE" if c_end <= action_start else ("AFTER" if c_start >= action_end else "WRONG")
                 reason = (
-                    f"Wrong Interval: Action occurs at [{action_start:.2f}, {action_end:.2f}] "
+                    f"Wrong Interval ({phase_reason} phase): Action occurs at [{action_start:.2f}, {action_end:.2f}] "
                     f"but candidate segment was [{c_start:.2f}, {c_end:.2f}]."
                 )
                 return corrected, False, reason
 
-        # Action-guided centering if action_peak is known
-        if action_peak is not None and shot_start <= action_peak <= shot_end:
-            sub_start = max(shot_start, action_peak - (effective_target / 2.0))
+        # Action-guided onset alignment: cut starts directly at action_start (DURING phase)
+        # to eliminate visual delay so footage already shows the action at visual onset.
+        if action_start is not None and action_end is not None:
+            sub_start = max(shot_start, action_start)
             sub_end = min(shot_end, sub_start + effective_target)
             if (sub_end - sub_start) < effective_target:
                 sub_start = max(shot_start, sub_end - effective_target)
-        elif action_start is not None and action_end is not None:
-            mid = (action_start + action_end) / 2.0
-            sub_start = max(shot_start, mid - (effective_target / 2.0))
+            if action_peak is None:
+                action_peak = (action_start + action_end) / 2.0
+        elif action_peak is not None and shot_start <= action_peak <= shot_end:
+            # If only peak is known, use minimal lead-in so action is actively occurring
+            lead_in = min(0.2, effective_target * 0.15)
+            sub_start = max(shot_start, action_peak - lead_in)
             sub_end = min(shot_end, sub_start + effective_target)
             if (sub_end - sub_start) < effective_target:
                 sub_start = max(shot_start, sub_end - effective_target)
-            action_peak = mid
         else:
             # Fallback if no sub-action timestamps: natural shot bounded
             if shot_dur <= effective_target:

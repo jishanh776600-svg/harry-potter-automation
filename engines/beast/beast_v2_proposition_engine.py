@@ -142,6 +142,11 @@ class BeastV2PropositionEngine:
         prop_subject = (proposition.subject or "").strip()
         prop_action = (proposition.action or "").strip()
         prop_object = (proposition.object or "").strip()
+        prop_context = (proposition.context or "").strip()
+        raw_role = getattr(proposition, "visual_role", "DIRECT_EVIDENCE") or "DIRECT_EVIDENCE"
+        role_upper = raw_role.value.upper() if hasattr(raw_role, "value") else str(raw_role).upper()
+        is_obj_centric = self.is_object_centric_proposition(proposition)
+
         # ----------------------------------------------------------------------
         # 0. EXPLICIT NO_VALID_VISUAL PROPOSITION CHECK
         # ----------------------------------------------------------------------
@@ -244,8 +249,13 @@ class BeastV2PropositionEngine:
             action_alignment = action_score
             if act_contras:
                 contradictions.extend(act_contras)
-                if action_score < 40.0:
+            if action_score < 60.0 or act_contras:
+                if act_contras:
                     gating_failures.extend(act_contras)
+                else:
+                    msg = f"Action Mismatch: Proposition requires action '{prop_action}', but candidate does not depict it."
+                    gating_failures.append(msg)
+                    contradictions.append(msg)
 
         # ----------------------------------------------------------------------
         # F. OBJECT ALIGNMENT
@@ -267,13 +277,10 @@ class BeastV2PropositionEngine:
             if obj_match:
                 object_alignment = 100.0
             else:
-                if is_obj_centric:
-                    object_alignment = 0.0
-                    contra_msg = f"Missing Object: Proposition requires '{prop_object}' but object is absent."
-                    contradictions.append(contra_msg)
-                    gating_failures.append(contra_msg)
-                else:
-                    object_alignment = 40.0
+                object_alignment = 0.0
+                contra_msg = f"Missing Object: Proposition requires '{prop_object}' but object is absent from candidate shot."
+                contradictions.append(contra_msg)
+                gating_failures.append(contra_msg)
 
         # ----------------------------------------------------------------------
         # G. CONTEXT / LOCATION ALIGNMENT

@@ -37,6 +37,7 @@ from core.composition_models import ShotScale
 from engines.editorial.pacing_engine import EditorialPacingEngine
 from engines.editorial.treatment_selector import EditorialTreatmentSelector
 from engines.editorial.caption_sfx_intelligence import CaptionSFXIntelligence
+from engines.movie_retrieval_engine import MovieRetrievalEngine
 
 logger = logging.getLogger("EditorialPlanner")
 
@@ -77,6 +78,17 @@ class EditorialPlanner:
         match_map = {m.candidate_id: m for m in beast_matches}
         match_by_prop = {m.verification_metadata.get("proposition_id", m.candidate_id): m for m in beast_matches}
 
+        # Detect Discovery Short vs Big / other formats
+        fmt_str = str(getattr(topic_pack, "format", "") or "").upper()
+        cand_str = str(candidate_type).lower()
+        target_dur = getattr(topic_pack, "total_target_duration", 65.0)
+        is_discovery_short = (
+            "DISCOVERY_SHORT" in fmt_str
+            or ("SHORT" in fmt_str and "DISCOVERY" in fmt_str)
+            or ("short" in cand_str and "discovery" in cand_str)
+            or target_dur <= 35.0
+        )
+
         # ----------------------------------------------------------------------
         # A. HOOK EDITING: Hard cold open (first 0.8 - 1.5s)
         # ----------------------------------------------------------------------
@@ -92,7 +104,10 @@ class EditorialPlanner:
             narrative_role="HOOK",
             narrative_weight=hook_weight,
             available_narration_duration=1.4,
+            is_discovery_short=is_discovery_short,
         )
+        if is_discovery_short:
+            hook_duration = min(1.50, hook_duration)
 
         hook_motion = MotionTreatment.PUNCH_IN_115 if hook_weight >= 0.85 else MotionTreatment.STATIC
         hook_sfx, hook_sfx_reason = CaptionSFXIntelligence.select_sfx_treatment(
@@ -104,6 +119,11 @@ class EditorialPlanner:
         )
         if hook_sfx != SFXTreatment.NONE:
             last_sfx_time = current_time
+
+        # Natural framing for hook: preserve cinematic context
+        hook_comp = EditorialTreatmentSelector.select_composition_treatment(
+            shot_scale=ShotScale.MEDIUM_SHOT,
+        )
 
         hook_unit = EditorialUnit(
             unit_id=f"unit_{unit_idx:02d}_hook",
@@ -126,7 +146,7 @@ class EditorialPlanner:
             motion_treatment=hook_motion,
             caption_treatment=CaptionTreatment.REVEAL_WORD_BURST,
             sfx_treatment=hook_sfx,
-            composition_treatment=CompositionTreatment.FULL_BLEED_RECENTERED,
+            composition_treatment=hook_comp,
             reason="Hard cold open: Immediate proposition promise with rapid hook pacing",
         )
         units.append(hook_unit)
@@ -176,30 +196,36 @@ class EditorialPlanner:
                 match = match_by_prop.get(prop.proposition_id)
                 if not match and prop.proposition_id in match_map:
                     match = match_map.get(prop.proposition_id)
-                if not match and len(beast_matches) == 1:
-                    match = beast_matches[0]
-                elif not match and beast_matches and (fact_idx + 1) < len(beast_matches):
-                    match = beast_matches[fact_idx + 1]
-                elif not match and beast_matches:
-                    match_idx = (len(units) - 1) % len(beast_matches)
-                    match = beast_matches[match_idx]
+
+                # Part D: Strict fail-closed. NEVER cycle or substitute unrelated clips to fill time!
+                if not match and len(props) == 1 and len(beast_matches) == 1:
+                    single_m = beast_matches[0]
+                    prop_meta = single_m.verification_metadata.get("proposition_id")
+                    if not prop_meta or prop_meta == prop.proposition_id:
+                        match = single_m
 
                 if not match or match.decision == BeastV2Decision.NO_VALID_VISUAL:
                     validation_warnings.append(
                         f"NO_VALID_VISUAL on fact {fact.fact_id} proposition {prop.proposition_id}."
                     )
 
-                # Duration per proposition unit
+                # Duration per proposition unit (with Discovery Short hard 1.5s cap)
                 unit_dur = EditorialPacingEngine.calculate_editorial_duration(
                     narrative_role=fact.narrative_role or "BODY",
                     narrative_weight=fact_weight,
                     available_narration_duration=max(1.2, (fact_duration - elapsed_fact_time) / max(1, len(props) - prop_sub_idx)),
+                    is_discovery_short=is_discovery_short,
                 )
 
-                # Check anti-padding rule
+                if is_discovery_short:
+                    unit_dur = min(1.50, unit_dur)
+
+                # Check anti-padding rule (no stretching, looping, or freezing!)
                 if match and match.source_end - match.source_start < unit_dur:
                     # Clip available is shorter than target; use exact available (no stretching!)
                     unit_dur = max(0.8, match.source_end - match.source_start)
+                    if is_discovery_short:
+                        unit_dur = min(1.50, unit_dur)
 
                 elapsed_fact_time += unit_dur
 
@@ -237,10 +263,25 @@ class EditorialPlanner:
                     is_prop_inscription=is_prop_detail,
                 )
 
-                # Composition
+                # Composition - Natural cinematic movie framing (Part E)
                 is_book_movie = fact.claim_type.value == "BOOK_VS_MOVIE" if hasattr(fact.claim_type, "value") else "BOOK" in str(fact.claim_type)
+                prop_framing = getattr(prop, "preferred_framing", None) or getattr(prop, "shot_scale", None)
+                if not prop_framing or str(prop_framing).upper() in ("NONE", ""):
+                    beat_dict = {
+                        "visual_requirement": prop.action or "",
+                        "action": prop.action or "",
+                        "narration_text": fact.claim,
+                        "text": f"{prop.subject} {prop.action} {prop.object}",
+                        "characters": [prop.subject] if prop.subject and prop.subject.lower() != "none" else [],
+                        "location": prop.context or "",
+                    }
+                    try:
+                        prop_framing = MovieRetrievalEngine.infer_target_shot_scale(beat_dict)
+                    except Exception:
+                        prop_framing = ShotScale.MEDIUM_SHOT
+
                 comp = EditorialTreatmentSelector.select_composition_treatment(
-                    shot_scale=ShotScale.MEDIUM_SHOT,
+                    shot_scale=prop_framing,
                     is_book_vs_movie_comparison=(is_book_movie and prop_sub_idx == 1),
                 )
 
@@ -282,6 +323,11 @@ class EditorialPlanner:
 
                 is_no_valid = (not match) or (match.decision == BeastV2Decision.NO_VALID_VISUAL)
                 final_evidence = "NO_VALID_VISUAL" if is_no_valid else match.evidence_type.value
+
+                # Part C: Align visual onset directly to spoken onset when timestamps are present
+                prop_spoken_start = getattr(prop, "spoken_start", None) or getattr(prop, "spoken_onset", None)
+                if prop_spoken_start is not None and prop_spoken_start >= 0.0:
+                    current_time = float(prop_spoken_start)
 
                 unit = EditorialUnit(
                     unit_id=f"unit_{unit_idx:02d}_{fact.fact_id}",
@@ -328,10 +374,10 @@ class EditorialPlanner:
                 })
 
         # ----------------------------------------------------------------------
-        # C. PAYOFF & EPIPHANY HOLD (Final 2.5 - 4.0s)
+        # C. PAYOFF & EPIPHANY HOLD
         # ----------------------------------------------------------------------
         payoff_text = (topic_pack.payoff_text or "").strip()
-        payoff_dur = 3.2
+        payoff_dur = 1.40 if is_discovery_short else 3.2
         last_match = beast_matches[-1] if beast_matches else None
         
         payoff_sfx, _ = CaptionSFXIntelligence.select_sfx_treatment(
@@ -340,6 +386,10 @@ class EditorialPlanner:
             narrative_weight=0.98,
             last_sfx_timestamp=last_sfx_time,
             current_timestamp=current_time,
+        )
+
+        payoff_comp = EditorialTreatmentSelector.select_composition_treatment(
+            shot_scale=ShotScale.MEDIUM_SHOT,
         )
 
         payoff_unit = EditorialUnit(
@@ -363,7 +413,7 @@ class EditorialPlanner:
             motion_treatment=MotionTreatment.SLOW_PUSH_IN,
             caption_treatment=CaptionTreatment.REVEAL_WORD_BURST,
             sfx_treatment=payoff_sfx,
-            composition_treatment=CompositionTreatment.FULL_BLEED_RECENTERED,
+            composition_treatment=payoff_comp,
             reason="Final climax hold: Deliberate visual breathing room on unifying epiphany",
         )
         units.append(payoff_unit)

@@ -48,6 +48,8 @@ class EditorialPacingEngine:
         adjusted = weight * (0.85 + (0.15 * min(1.0, max(0.0, visual_evidence_strength))))
         return round(min(1.0, max(0.05, adjusted)), 3)
 
+    MAX_DISCOVERY_SHOT_DURATION: float = 1.50
+
     @classmethod
     def calculate_editorial_duration(
         cls,
@@ -55,10 +57,12 @@ class EditorialPacingEngine:
         narrative_weight: float,
         available_narration_duration: float,
         evidence_type: str = "DIRECT_EVIDENCE",
+        is_discovery_short: bool = False,
     ) -> float:
         """
         Determines target cut duration for a visual unit based on role and weight.
         Breaks rigid metronomic boundaries dynamically.
+        Enforces HARD 1.5-second visual shot cap for Discovery Shorts.
         """
         role_upper = (narrative_role or "BODY").upper()
 
@@ -82,6 +86,10 @@ class EditorialPacingEngine:
         # Cap at available narration duration if specified and positive
         if available_narration_duration > 0:
             target = min(target, available_narration_duration)
+
+        # HARD 1.5s CAP: No single ordinary movie footage interval may exceed 1.5 seconds in Discovery Shorts
+        if is_discovery_short:
+            target = min(cls.MAX_DISCOVERY_SHOT_DURATION, target)
 
         # Enforce minimum mobile readability threshold (never cut faster than 0.7s)
         return round(max(0.75, target), 2)
