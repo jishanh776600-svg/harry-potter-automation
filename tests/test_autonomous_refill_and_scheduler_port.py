@@ -327,6 +327,64 @@ class TestAutonomousRefillAndSchedulerPort(unittest.TestCase):
             to_folder="01_READY"
         )
 
+    def test_08_canonical_non_overlapping_format_detection(self):
+        """
+        Verify format detection logic strictly obeys:
+        1. Explicit metadata as primary source of truth.
+        2. Non-overlapping canonical duration fallback boundaries:
+           - 25.0–30.0s   -> DISCOVERY_SHORT
+           - 45.0–<60.0s  -> NOVEL_STORY
+           - 60.0–70.0s   -> DISCOVERY_BIG
+           - 30.0–<45.0s  -> UNKNOWN
+           - >70.0s/<25.0s-> UNKNOWN
+        """
+        from main import ShortsPipeline
+        detect = ShortsPipeline.detect_candidate_format
+
+        # 1. Explicit metadata priority
+        self.assertEqual(detect({"properties": {"format": "NOVEL_STORY"}}), "NOVEL_STORY")
+        self.assertEqual(detect({"properties": {"format": "DISCOVERY_BIG"}}), "DISCOVERY_BIG")
+        self.assertEqual(detect({"properties": {"format": "DISCOVERY_SHORT"}}), "DISCOVERY_SHORT")
+        self.assertEqual(detect({"properties": {"content_type": "novel_story"}}), "NOVEL_STORY")
+        self.assertEqual(detect({"properties": {"content_type": "discovery_big"}}), "DISCOVERY_BIG")
+        self.assertEqual(detect({"properties": {"content_type": "discovery_short"}}), "DISCOVERY_SHORT")
+        self.assertEqual(detect({"name": "discovery_big_chamber.mp4"}), "DISCOVERY_BIG")
+        self.assertEqual(detect({"name": "discovery_short_mirror.mp4"}), "DISCOVERY_SHORT")
+        self.assertEqual(detect({"name": "hps_boy_who_lived.mp4"}), "NOVEL_STORY")
+
+        # 2. Strict non-overlapping duration boundaries (unspecified content_type)
+        # DISCOVERY_SHORT: 25.0 - 30.0s
+        self.assertEqual(detect({"properties": {"duration": 25.0}}), "DISCOVERY_SHORT")
+        self.assertEqual(detect({"properties": {"duration": 27.5}}), "DISCOVERY_SHORT")
+        self.assertEqual(detect({"properties": {"duration": 30.0}}), "DISCOVERY_SHORT")
+
+        # Forbidden gap: 30.0 < dur < 45.0s -> UNKNOWN
+        self.assertEqual(detect({"properties": {"duration": 30.1}}), "UNKNOWN")
+        self.assertEqual(detect({"properties": {"duration": 35.0}}), "UNKNOWN")
+        self.assertEqual(detect({"properties": {"duration": 40.0}}), "UNKNOWN")
+        self.assertEqual(detect({"properties": {"duration": 44.9}}), "UNKNOWN")
+
+        # NOVEL_STORY: 45.0 <= dur < 60.0s
+        self.assertEqual(detect({"properties": {"duration": 45.0}}), "NOVEL_STORY")
+        self.assertEqual(detect({"properties": {"duration": 52.5}}), "NOVEL_STORY")
+        self.assertEqual(detect({"properties": {"duration": 59.9}}), "NOVEL_STORY")
+
+        # DISCOVERY_BIG: 60.0 <= dur <= 70.0s
+        self.assertEqual(detect({"properties": {"duration": 60.0}}), "DISCOVERY_BIG")
+        self.assertEqual(detect({"properties": {"duration": 65.0}}), "DISCOVERY_BIG")
+        self.assertEqual(detect({"properties": {"duration": 70.0}}), "DISCOVERY_BIG")
+
+        # Out-of-bounds: > 70.0s or < 25.0s -> UNKNOWN
+        self.assertEqual(detect({"properties": {"duration": 70.1}}), "UNKNOWN")
+        self.assertEqual(detect({"properties": {"duration": 90.0}}), "UNKNOWN")
+        self.assertEqual(detect({"properties": {"duration": 20.0}}), "UNKNOWN")
+        self.assertEqual(detect({"properties": {"duration": 24.9}}), "UNKNOWN")
+
+        # 3. Discovery generic type with duration fallback
+        self.assertEqual(detect({"properties": {"content_type": "discovery", "duration": 27.0}}), "DISCOVERY_SHORT")
+        self.assertEqual(detect({"properties": {"content_type": "discovery", "duration": 65.0}}), "DISCOVERY_BIG")
+        self.assertEqual(detect({"properties": {"content_type": "discovery", "duration": 52.0}}), "UNKNOWN")
+
 
 if __name__ == "__main__":
     unittest.main()

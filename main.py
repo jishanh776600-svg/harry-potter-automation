@@ -342,6 +342,51 @@ class ShortsPipeline:
             db.close()
         logger.info(f"[PIPELINE_INIT] Run-scoped authoritative voice captured: '{self.run_voice}'")
 
+    @staticmethod
+    def detect_candidate_format(candidate: Dict[str, Any]) -> str:
+        """
+        Determines the canonical content format for a production candidate.
+        Prioritizes explicit format/content-type metadata as primary source of truth,
+        falling back to strictly non-overlapping duration boundaries:
+          - 25.0–30.0s   -> DISCOVERY_SHORT
+          - 45.0–<60.0s  -> NOVEL_STORY (unless explicitly marked discovery)
+          - 60.0–70.0s   -> DISCOVERY_BIG
+          - 30.0–<45.0s  -> UNKNOWN
+          - >70.0s/<25.0s-> UNKNOWN
+        """
+        props = candidate.get("properties", {}) or {}
+
+        # 1. Primary source of truth: Explicit format metadata
+        fmt = (props.get("format") or props.get("discovery_format") or props.get("content_format") or "").upper()
+        if fmt in ("NOVEL_STORY", "DISCOVERY_BIG", "DISCOVERY_SHORT"):
+            return fmt
+
+        # 2. Content-type and filename metadata
+        ctype = (props.get("content_type") or "").lower()
+        name = (candidate.get("name") or "").lower()
+
+        if ctype in ("novel_story", "novel"):
+            return "NOVEL_STORY"
+        if ctype in ("discovery_big", "big_discovery") or "discovery_big" in name:
+            return "DISCOVERY_BIG"
+        if ctype in ("discovery_short", "micro_discovery", "short_discovery") or "discovery_short" in name:
+            return "DISCOVERY_SHORT"
+        if name.startswith("hps_") and not ("disc" in name or "discovery" in name):
+            return "NOVEL_STORY"
+
+        # 3. Canonical non-overlapping fallback duration mapping
+        duration = float(props.get("duration", 0) or props.get("duration_sec", 0) or 0)
+        if 25.0 <= duration <= 30.0:
+            return "DISCOVERY_SHORT"
+        elif 45.0 <= duration < 60.0:
+            if ctype == "discovery":
+                return "UNKNOWN"
+            return "NOVEL_STORY"
+        elif 60.0 <= duration <= 70.0:
+            return "DISCOVERY_BIG"
+        else:
+            return "UNKNOWN"
+
     def _render_and_qa_job(self, db, job: Job, topic: Topic, force: bool = False) -> Tuple[Optional[RenderOutput], Optional[Dict[str, Any]]]:
         """Internal helper: Executes research -> script -> visuals -> voice -> audio -> render -> QA -> SEO."""
         job.topic_id = topic.id
@@ -1497,31 +1542,7 @@ class ShortsPipeline:
             console.print(f"[bold green][*] Proactively scheduling {eligible_to_schedule} eligible Short(s) into earliest vacant slots across 2-day horizon...[/bold green]")
             scheduled_results = []
 
-            def _detect_candidate_format(candidate: Dict[str, Any]) -> str:
-                props = candidate.get("properties", {}) or {}
-                fmt = (props.get("format") or props.get("discovery_format") or props.get("content_format") or "").upper()
-                if fmt in ("NOVEL_STORY", "DISCOVERY_BIG", "DISCOVERY_SHORT"):
-                    return fmt
-                ctype = (props.get("content_type") or "").lower()
-                name = (candidate.get("name") or "").lower()
-                if "discovery_big" in name or fmt == "DISCOVERY_BIG":
-                    return "DISCOVERY_BIG"
-                if "discovery_short" in name or fmt == "DISCOVERY_SHORT":
-                    return "DISCOVERY_SHORT"
-                duration = float(props.get("duration", 0) or props.get("duration_sec", 0) or 0)
-                if ctype == "discovery":
-                    if duration >= 50.0:  # Canonical Discovery Big: 60-70s
-                        return "DISCOVERY_BIG"
-                    return "DISCOVERY_SHORT"  # Canonical Discovery Short: 25-30s
-                if ctype == "novel_story" or name.startswith("hps_"):
-                    return "NOVEL_STORY"  # Canonical Novel Story: 45-60s
-                if duration >= 60.0:
-                    return "DISCOVERY_BIG"
-                if 40.0 <= duration < 60.0:
-                    return "NOVEL_STORY"
-                if 20.0 <= duration < 40.0:
-                    return "DISCOVERY_SHORT"
-                return "UNKNOWN"
+            _detect_candidate_format = ShortsPipeline.detect_candidate_format
 
             # Cadence slot preferred formats (STORY FORGE 4 Shorts / day cadence):
             # 02:00 UTC -> NOVEL_STORY
