@@ -28,6 +28,20 @@ class SafeURLValidator:
         "instance-data",
     }
 
+    # STORY FORGE Policy: Never acquire from generic or commercial stock providers
+    DISALLOWED_STOCK_DOMAINS: Set[str] = {
+        "pexels.com",
+        "unsplash.com",
+        "pixabay.com",
+        "shutterstock.com",
+        "gettyimages.com",
+        "istockphoto.com",
+        "stock.adobe.com",
+        "storyblocks.com",
+        "videvo.net",
+        "freepik.com",
+    }
+
     PRIVATE_NETWORKS: List[ipaddress.IPv4Network | ipaddress.IPv6Network] = [
         ipaddress.ip_network("0.0.0.0/8"),
         ipaddress.ip_network("10.0.0.0/8"),
@@ -71,6 +85,10 @@ class SafeURLValidator:
 
         if hostname in cls.BLOCKED_HOSTNAMES:
             return False, f"Prohibited hostname '{hostname}'"
+
+        for stock_domain in cls.DISALLOWED_STOCK_DOMAINS:
+            if hostname == stock_domain or hostname.endswith("." + stock_domain):
+                return False, f"STORY FORGE Policy: Stock media provider '{stock_domain}' is strictly prohibited."
 
         # Check direct IP literals in hostname
         try:

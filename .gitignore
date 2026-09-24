@@ -55,6 +55,10 @@ data/assets/
 data/captions/
 data/bgm/
 data/vault_ready/
+data/reference_analysis/*.wav
+data/reference_analysis/*.mp3
+data/reference_analysis/*.mp4
+data/reference_analysis/*.txt
 data/books/
 !data/books/.gitkeep
 data/movies/

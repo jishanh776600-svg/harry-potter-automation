@@ -29,6 +29,7 @@ from engines.acquisition.providers.direct_web_provider import DirectWebProvider
 from engines.acquisition.providers.movie_archive_provider import MovieArchiveProvider
 from engines.acquisition.providers.wikimedia_provider import WikimediaCommonsProvider
 from engines.acquisition.query_generator import AcquisitionQueryGenerator
+from core.safe_url_validator import SafeURLValidator
 
 logger = logging.getLogger("AssetAcquisitionEngine")
 
@@ -65,12 +66,17 @@ class AssetAcquisitionEngine:
     def acquire_for_requirement(
         self,
         requirement: Any,
-        target_media_category: MediaCategory = MediaCategory.IMAGE,
+        target_media_category: MediaCategory = MediaCategory.VIDEO,
         limit: int = 1
     ) -> AssetAcquisitionResult:
         """
         Main entry point for story beats and BeastVisualRequirement specifications.
+        Enforces permanent STORY FORGE Policy: VISUALS = VIDEO ONLY.
         """
+        if target_media_category == MediaCategory.IMAGE:
+            logger.warning("[AssetAcquisition] Overriding IMAGE request: STORY FORGE Policy enforces VISUALS = VIDEO ONLY.")
+            target_media_category = MediaCategory.VIDEO
+
         queries = AcquisitionQueryGenerator.generate_queries(requirement, target_media=target_media_category)
         logger.info(f"[AssetAcquisition] Generated {len(queries)} query tiers: {queries}")
 
@@ -103,12 +109,17 @@ class AssetAcquisitionEngine:
     def acquire_by_query(
         self,
         query: str,
-        target_media_category: MediaCategory = MediaCategory.IMAGE,
+        target_media_category: MediaCategory = MediaCategory.VIDEO,
         limit: int = 1
     ) -> AssetAcquisitionResult:
         """
         Queries all active providers, validates candidates, and indexes verified media.
+        Enforces permanent STORY FORGE Policy: VISUALS = VIDEO ONLY.
         """
+        if target_media_category == MediaCategory.IMAGE:
+            logger.warning("[AssetAcquisition] Overriding IMAGE query request: STORY FORGE Policy enforces VISUALS = VIDEO ONLY.")
+            target_media_category = MediaCategory.VIDEO
+
         logger.info(f"[AssetAcquisition] Executing acquisition for query: '{query}'")
         candidates: List[AssetCandidate] = []
         errors: List[str] = []
@@ -145,6 +156,18 @@ class AssetAcquisitionEngine:
             temp_path = Path(temp_dir)
 
             for cand in candidates:
+                # STORY FORGE Policy: VISUALS = VIDEO ONLY. Never acquire images or non-video visual assets.
+                if cand.media_category != MediaCategory.VIDEO:
+                    logger.debug(f"[AssetAcquisition] Skipping candidate '{cand.title}': media category '{cand.media_category}' is not VIDEO.")
+                    continue
+
+                # SSRF & Disallowed Stock Media Provider Validation
+                is_safe, reason = SafeURLValidator.is_safe_url(cand.download_url)
+                if not is_safe:
+                    logger.warning(f"[AssetAcquisition] Candidate '{cand.title}' rejected by security policy: {reason}")
+                    errors.append(f"Security validation rejected {cand.download_url}: {reason}")
+                    continue
+
                 # Fast URL check in registry
                 cached_by_url = self.registry.get_by_url(cand.download_url)
                 if cached_by_url:

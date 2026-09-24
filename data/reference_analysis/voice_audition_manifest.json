@@ -1,0 +1,432 @@
+{
+  "session_id": "ref_voice_repl_v1",
+  "created_at_iso": "2026-09-24T17:20:00Z",
+  "combined_audition_wav": "data/reference_analysis/combined_audition_candidates_01_to_08.wav",
+  "combined_audition_mp3": "data/reference_analysis/combined_audition_candidates_01_to_08.mp3",
+  "candidates_count": 8,
+  "candidates": [
+    {
+      "candidate_id": "CANDIDATE_01",
+      "candidate_number": 1,
+      "label": "Candidate 1: Guy (Edge-TTS)",
+      "spoken_label": "Candidate One.",
+      "engine": "edge_tts",
+      "voice_id": "en-US-GuyNeural",
+      "accent": "General American",
+      "style_description": "Punchy broadcast presenter, conversational, energetic",
+      "delivery_settings": {
+        "speed_param": "+14%",
+        "pitch_param": "+3Hz",
+        "kokoro_speed": null,
+        "blend_weights": null
+      },
+      "post_processing": {
+        "highpass_hz": 80,
+        "presence_boost_db": 1.5,
+        "compression_threshold_db": -18,
+        "compression_ratio": 2.5,
+        "target_lufs": -14.0,
+        "max_true_peak_db": -1.0
+      },
+      "measurements": {
+        "duration_s": 23.81,
+        "f0_median_hz": 160.0,
+        "f0_mean_hz": 181.31,
+        "f0_min_hz": 111.89,
+        "f0_max_hz": 380.95,
+        "f0_range_hz": 269.06,
+        "f0_std_hz": 71.55,
+        "spectral_centroid_hz": 2262.57,
+        "spectral_rolloff_hz": 1152.64,
+        "spectral_brightness_pct": 10.57,
+        "vocal_presence_pct": 15.14,
+        "rms_dbfs": -15.41,
+        "integrated_lufs": -15.0,
+        "true_peak_db": -1.0,
+        "words_per_second": 3.11
+      },
+      "reference_baseline": {
+        "f0_median_hz": 190.48,
+        "spectral_centroid_hz": 2696.21,
+        "words_per_second": 4.06,
+        "spectral_brightness_pct": 8.23,
+        "vocal_presence_pct": 9.98
+      },
+      "acoustic_distance_to_reference": 0.2474,
+      "wav_path": "data/reference_analysis/candidate_01_en-US-GuyNeural.wav",
+      "mp3_path": "data/reference_analysis/candidate_01_en-US-GuyNeural.mp3",
+      "rank": 3
+    },
+    {
+      "candidate_id": "CANDIDATE_02",
+      "candidate_number": 2,
+      "label": "Candidate 2: Puck (Kokoro-82M)",
+      "spoken_label": "Candidate Two.",
+      "engine": "kokoro",
+      "voice_id": "am_puck",
+      "accent": "General American",
+      "style_description": "Youthful curiosity tenor, punchy, high presence",
+      "delivery_settings": {
+        "speed_param": null,
+        "pitch_param": null,
+        "kokoro_speed": 1.18,
+        "blend_weights": null
+      },
+      "post_processing": {
+        "highpass_hz": 80,
+        "presence_boost_db": 1.5,
+        "compression_threshold_db": -18,
+        "compression_ratio": 2.5,
+        "target_lufs": -14.0,
+        "max_true_peak_db": -1.0
+      },
+      "measurements": {
+        "duration_s": 20.28,
+        "f0_median_hz": 110.34,
+        "f0_mean_hz": 164.85,
+        "f0_min_hz": 94.67,
+        "f0_max_hz": 380.95,
+        "f0_range_hz": 286.28,
+        "f0_std_hz": 106.81,
+        "spectral_centroid_hz": 3383.01,
+        "spectral_rolloff_hz": 803.5,
+        "spectral_brightness_pct": 10.82,
+        "vocal_presence_pct": 6.7,
+        "rms_dbfs": -16.08,
+        "integrated_lufs": -16.0,
+        "true_peak_db": -1.0,
+        "words_per_second": 3.65
+      },
+      "reference_baseline": {
+        "f0_median_hz": 190.48,
+        "spectral_centroid_hz": 2696.21,
+        "words_per_second": 4.06,
+        "spectral_brightness_pct": 8.23,
+        "vocal_presence_pct": 9.98
+      },
+      "acoustic_distance_to_reference": 0.3177,
+      "wav_path": "data/reference_analysis/candidate_02_am_puck.wav",
+      "mp3_path": "data/reference_analysis/candidate_02_am_puck.mp3",
+      "rank": 7
+    },
+    {
+      "candidate_id": "CANDIDATE_03",
+      "candidate_number": 3,
+      "label": "Candidate 3: Puck-Liam Blend 70/30 (Kokoro-82M)",
+      "spoken_label": "Candidate Three.",
+      "engine": "kokoro_blend",
+      "voice_id": "blend_puck_liam",
+      "accent": "General American",
+      "style_description": "Spectral match tenor, youthful insider storytelling",
+      "delivery_settings": {
+        "speed_param": null,
+        "pitch_param": null,
+        "kokoro_speed": 1.16,
+        "blend_weights": {
+          "am_puck": 0.7,
+          "am_liam": 0.3
+        }
+      },
+      "post_processing": {
+        "highpass_hz": 80,
+        "presence_boost_db": 1.5,
+        "compression_threshold_db": -18,
+        "compression_ratio": 2.5,
+        "target_lufs": -14.0,
+        "max_true_peak_db": -1.0
+      },
+      "measurements": {
+        "duration_s": 20.92,
+        "f0_median_hz": 112.68,
+        "f0_mean_hz": 145.77,
+        "f0_min_hz": 95.24,
+        "f0_max_hz": 380.95,
+        "f0_range_hz": 285.71,
+        "f0_std_hz": 84.29,
+        "spectral_centroid_hz": 3140.2,
+        "spectral_rolloff_hz": 1084.16,
+        "spectral_brightness_pct": 12.58,
+        "vocal_presence_pct": 8.68,
+        "rms_dbfs": -16.32,
+        "integrated_lufs": -16.1,
+        "true_peak_db": -1.0,
+        "words_per_second": 3.54
+      },
+      "reference_baseline": {
+        "f0_median_hz": 190.48,
+        "spectral_centroid_hz": 2696.21,
+        "words_per_second": 4.06,
+        "spectral_brightness_pct": 8.23,
+        "vocal_presence_pct": 9.98
+      },
+      "acoustic_distance_to_reference": 0.3132,
+      "wav_path": "data/reference_analysis/candidate_03_blend_puck_liam.wav",
+      "mp3_path": "data/reference_analysis/candidate_03_blend_puck_liam.mp3",
+      "rank": 5
+    },
+    {
+      "candidate_id": "CANDIDATE_04",
+      "candidate_number": 4,
+      "label": "Candidate 4: Brian (Edge-TTS)",
+      "spoken_label": "Candidate Four.",
+      "engine": "edge_tts",
+      "voice_id": "en-US-BrianNeural",
+      "accent": "General American",
+      "style_description": "Natural conversational storyteller, high vocal presence",
+      "delivery_settings": {
+        "speed_param": "+14%",
+        "pitch_param": "+2Hz",
+        "kokoro_speed": null,
+        "blend_weights": null
+      },
+      "post_processing": {
+        "highpass_hz": 80,
+        "presence_boost_db": 1.5,
+        "compression_threshold_db": -18,
+        "compression_ratio": 2.5,
+        "target_lufs": -14.0,
+        "max_true_peak_db": -1.0
+      },
+      "measurements": {
+        "duration_s": 24.31,
+        "f0_median_hz": 129.03,
+        "f0_mean_hz": 158.4,
+        "f0_min_hz": 103.9,
+        "f0_max_hz": 380.95,
+        "f0_range_hz": 277.05,
+        "f0_std_hz": 81.93,
+        "spectral_centroid_hz": 3009.47,
+        "spectral_rolloff_hz": 682.26,
+        "spectral_brightness_pct": 7.28,
+        "vocal_presence_pct": 5.97,
+        "rms_dbfs": -14.25,
+        "integrated_lufs": -14.5,
+        "true_peak_db": -1.0,
+        "words_per_second": 3.04
+      },
+      "reference_baseline": {
+        "f0_median_hz": 190.48,
+        "spectral_centroid_hz": 2696.21,
+        "words_per_second": 4.06,
+        "spectral_brightness_pct": 8.23,
+        "vocal_presence_pct": 9.98
+      },
+      "acoustic_distance_to_reference": 0.2644,
+      "wav_path": "data/reference_analysis/candidate_04_en-US-BrianNeural.wav",
+      "mp3_path": "data/reference_analysis/candidate_04_en-US-BrianNeural.mp3",
+      "rank": 4
+    },
+    {
+      "candidate_id": "CANDIDATE_05",
+      "candidate_number": 5,
+      "label": "Candidate 5: Eric (Kokoro-82M)",
+      "spoken_label": "Candidate Five.",
+      "engine": "kokoro",
+      "voice_id": "am_eric",
+      "accent": "General American",
+      "style_description": "Fast conversational articulation, energetic tempo",
+      "delivery_settings": {
+        "speed_param": null,
+        "pitch_param": null,
+        "kokoro_speed": 1.18,
+        "blend_weights": null
+      },
+      "post_processing": {
+        "highpass_hz": 80,
+        "presence_boost_db": 1.5,
+        "compression_threshold_db": -18,
+        "compression_ratio": 2.5,
+        "target_lufs": -14.0,
+        "max_true_peak_db": -1.0
+      },
+      "measurements": {
+        "duration_s": 21.63,
+        "f0_median_hz": 156.86,
+        "f0_mean_hz": 176.59,
+        "f0_min_hz": 114.29,
+        "f0_max_hz": 380.95,
+        "f0_range_hz": 266.66,
+        "f0_std_hz": 69.82,
+        "spectral_centroid_hz": 2212.69,
+        "spectral_rolloff_hz": 519.02,
+        "spectral_brightness_pct": 8.08,
+        "vocal_presence_pct": 8.0,
+        "rms_dbfs": -14.39,
+        "integrated_lufs": -14.5,
+        "true_peak_db": -1.0,
+        "words_per_second": 3.42
+      },
+      "reference_baseline": {
+        "f0_median_hz": 190.48,
+        "spectral_centroid_hz": 2696.21,
+        "words_per_second": 4.06,
+        "spectral_brightness_pct": 8.23,
+        "vocal_presence_pct": 9.98
+      },
+      "acoustic_distance_to_reference": 0.167,
+      "wav_path": "data/reference_analysis/candidate_05_am_eric.wav",
+      "mp3_path": "data/reference_analysis/candidate_05_am_eric.mp3",
+      "rank": 1
+    },
+    {
+      "candidate_id": "CANDIDATE_06",
+      "candidate_number": 6,
+      "label": "Candidate 6: Steffan (Edge-TTS)",
+      "spoken_label": "Candidate Six.",
+      "engine": "edge_tts",
+      "voice_id": "en-US-SteffanNeural",
+      "accent": "General American",
+      "style_description": "Modern digital creator cadence, upbeat delivery",
+      "delivery_settings": {
+        "speed_param": "+16%",
+        "pitch_param": "+4Hz",
+        "kokoro_speed": null,
+        "blend_weights": null
+      },
+      "post_processing": {
+        "highpass_hz": 80,
+        "presence_boost_db": 1.5,
+        "compression_threshold_db": -18,
+        "compression_ratio": 2.5,
+        "target_lufs": -14.0,
+        "max_true_peak_db": -1.0
+      },
+      "measurements": {
+        "duration_s": 25.15,
+        "f0_median_hz": 135.59,
+        "f0_mean_hz": 169.49,
+        "f0_min_hz": 110.34,
+        "f0_max_hz": 380.95,
+        "f0_range_hz": 270.61,
+        "f0_std_hz": 85.91,
+        "spectral_centroid_hz": 2819.26,
+        "spectral_rolloff_hz": 734.53,
+        "spectral_brightness_pct": 8.2,
+        "vocal_presence_pct": 6.56,
+        "rms_dbfs": -15.08,
+        "integrated_lufs": -15.0,
+        "true_peak_db": -1.0,
+        "words_per_second": 2.94
+      },
+      "reference_baseline": {
+        "f0_median_hz": 190.48,
+        "spectral_centroid_hz": 2696.21,
+        "words_per_second": 4.06,
+        "spectral_brightness_pct": 8.23,
+        "vocal_presence_pct": 9.98
+      },
+      "acoustic_distance_to_reference": 0.2378,
+      "wav_path": "data/reference_analysis/candidate_06_en-US-SteffanNeural.wav",
+      "mp3_path": "data/reference_analysis/candidate_06_en-US-SteffanNeural.mp3",
+      "rank": 2
+    },
+    {
+      "candidate_id": "CANDIDATE_07",
+      "candidate_number": 7,
+      "label": "Candidate 7: Puck-Adam Blend 65/35 (Kokoro-82M)",
+      "spoken_label": "Candidate Seven.",
+      "engine": "kokoro_blend",
+      "voice_id": "blend_puck_adam",
+      "accent": "General American",
+      "style_description": "Grounded narrative tenor, matched centroid, authorial clarity",
+      "delivery_settings": {
+        "speed_param": null,
+        "pitch_param": null,
+        "kokoro_speed": 1.18,
+        "blend_weights": {
+          "am_puck": 0.65,
+          "am_adam": 0.35
+        }
+      },
+      "post_processing": {
+        "highpass_hz": 80,
+        "presence_boost_db": 1.5,
+        "compression_threshold_db": -18,
+        "compression_ratio": 2.5,
+        "target_lufs": -14.0,
+        "max_true_peak_db": -1.0
+      },
+      "measurements": {
+        "duration_s": 21.75,
+        "f0_median_hz": 115.94,
+        "f0_mean_hz": 177.53,
+        "f0_min_hz": 93.57,
+        "f0_max_hz": 380.95,
+        "f0_range_hz": 287.38,
+        "f0_std_hz": 112.22,
+        "spectral_centroid_hz": 3286.87,
+        "spectral_rolloff_hz": 1067.25,
+        "spectral_brightness_pct": 12.52,
+        "vocal_presence_pct": 8.49,
+        "rms_dbfs": -16.33,
+        "integrated_lufs": -16.0,
+        "true_peak_db": -1.0,
+        "words_per_second": 3.4
+      },
+      "reference_baseline": {
+        "f0_median_hz": 190.48,
+        "spectral_centroid_hz": 2696.21,
+        "words_per_second": 4.06,
+        "spectral_brightness_pct": 8.23,
+        "vocal_presence_pct": 9.98
+      },
+      "acoustic_distance_to_reference": 0.3167,
+      "wav_path": "data/reference_analysis/candidate_07_blend_puck_adam.wav",
+      "mp3_path": "data/reference_analysis/candidate_07_blend_puck_adam.mp3",
+      "rank": 6
+    },
+    {
+      "candidate_id": "CANDIDATE_08",
+      "candidate_number": 8,
+      "label": "Candidate 8: Liam (Kokoro-82M)",
+      "spoken_label": "Candidate Eight.",
+      "engine": "kokoro",
+      "voice_id": "am_liam",
+      "accent": "General American",
+      "style_description": "Youthful American conversational insider",
+      "delivery_settings": {
+        "speed_param": null,
+        "pitch_param": null,
+        "kokoro_speed": 1.18,
+        "blend_weights": null
+      },
+      "post_processing": {
+        "highpass_hz": 80,
+        "presence_boost_db": 1.5,
+        "compression_threshold_db": -18,
+        "compression_ratio": 2.5,
+        "target_lufs": -14.0,
+        "max_true_peak_db": -1.0
+      },
+      "measurements": {
+        "duration_s": 22.39,
+        "f0_median_hz": 131.15,
+        "f0_mean_hz": 175.99,
+        "f0_min_hz": 98.37,
+        "f0_max_hz": 380.95,
+        "f0_range_hz": 282.58,
+        "f0_std_hz": 96.25,
+        "spectral_centroid_hz": 2730.96,
+        "spectral_rolloff_hz": 1604.46,
+        "spectral_brightness_pct": 16.09,
+        "vocal_presence_pct": 17.18,
+        "rms_dbfs": -15.32,
+        "integrated_lufs": -15.0,
+        "true_peak_db": -1.0,
+        "words_per_second": 3.3
+      },
+      "reference_baseline": {
+        "f0_median_hz": 190.48,
+        "spectral_centroid_hz": 2696.21,
+        "words_per_second": 4.06,
+        "spectral_brightness_pct": 8.23,
+        "vocal_presence_pct": 9.98
+      },
+      "acoustic_distance_to_reference": 0.4293,
+      "wav_path": "data/reference_analysis/candidate_08_am_liam.wav",
+      "mp3_path": "data/reference_analysis/candidate_08_am_liam.mp3",
+      "rank": 8
+    }
+  ],
+  "selection_status": "VOICE SELECTION REQUIRED \u2014 NO PRODUCTION VOICE CHANGED."
+}

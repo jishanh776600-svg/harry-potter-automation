@@ -191,21 +191,22 @@ def test_cloud_asset_registry_caching(tmp_path):
 # ==============================================================================
 
 class MockTestProvider(AssetSourceProvider):
-    def __init__(self, sample_file: Path):
+    def __init__(self, sample_file: Path, media_category: MediaCategory = MediaCategory.VIDEO):
         super().__init__(name="mock_test_provider", enabled=True)
         self.sample_file = sample_file
+        self.media_category = media_category
 
     def search(self, query: str, requirements=None, limit: int = 5):
         return [
             AssetCandidate(
                 candidate_id="mock_001",
-                title="Mock Hogwarts Castle",
-                download_url="https://example.com/mock_castle.jpg",
-                preview_url="https://example.com/mock_castle_thumb.jpg",
-                media_category=MediaCategory.IMAGE,
+                title="Mock Hogwarts Footage",
+                download_url=f"https://archive.org/download/mock/{self.sample_file.name}",
+                preview_url="https://archive.org/download/mock/thumb.jpg",
+                media_category=self.media_category,
                 source_category=SourceCategory.ARCHIVAL,
                 provenance=AssetProvenance(
-                    source_url="https://example.com/mock_castle.jpg",
+                    source_url=f"https://archive.org/download/mock/{self.sample_file.name}",
                     provider_name=self.name,
                     search_query=query,
                     retrieved_at_iso="2026-09-24T00:00:00Z",
@@ -221,14 +222,23 @@ class MockTestProvider(AssetSourceProvider):
         return dest_path
 
 
+def _create_mock_video(target_path: Path):
+    import subprocess
+    subprocess.run(
+        ["ffmpeg", "-y", "-f", "lavfi", "-i", "color=c=blue:s=320x240:d=0.5", "-c:v", "libx264", "-pix_fmt", "yuv420p", str(target_path)],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=True
+    )
+
+
 def test_asset_acquisition_engine_mock_end_to_end(tmp_path):
-    # Setup mock image
-    sample_img = tmp_path / "mock_castle.jpg"
-    img = Image.new("RGB", (200, 200), color="green")
-    img.save(sample_img, format="JPEG")
+    # Setup mock video
+    sample_vid = tmp_path / "mock_castle.mp4"
+    _create_mock_video(sample_vid)
 
     registry = CloudAssetRegistry(local_cache_dir=tmp_path / "cache", use_drive=False)
-    mock_provider = MockTestProvider(sample_img)
+    mock_provider = MockTestProvider(sample_vid, media_category=MediaCategory.VIDEO)
 
     engine = AssetAcquisitionEngine(registry=registry, providers=[mock_provider], use_drive=False)
 
@@ -237,8 +247,8 @@ def test_asset_acquisition_engine_mock_end_to_end(tmp_path):
     assert result.success is True
     assert len(result.asset_records) == 1
     record = result.asset_records[0]
-    assert record.technical_meta.width == 200
-    assert record.technical_meta.height == 200
+    assert record.technical_meta.width == 320
+    assert record.technical_meta.height == 240
     assert record.provenance.provider_name == "mock_test_provider"
     assert registry.has_asset_sha(record.sha256) is True
 
@@ -252,11 +262,10 @@ def test_provider_error_isolation(tmp_path):
         def search(self, query: str, requirements=None, limit: int = 5):
             raise RuntimeError("Provider connection exploded")
 
-    sample_img = tmp_path / "fallback.jpg"
-    img = Image.new("RGB", (100, 100), color="red")
-    img.save(sample_img, format="JPEG")
+    sample_vid = tmp_path / "fallback.mp4"
+    _create_mock_video(sample_vid)
 
-    mock_provider = MockTestProvider(sample_img)
+    mock_provider = MockTestProvider(sample_vid, media_category=MediaCategory.VIDEO)
     failing_provider = FailingProvider()
 
     registry = CloudAssetRegistry(local_cache_dir=tmp_path / "cache", use_drive=False)
@@ -270,3 +279,34 @@ def test_provider_error_isolation(tmp_path):
     assert result.success is True
     assert len(result.asset_records) == 1
     assert any("Provider 'failing_provider' error" in err for err in result.errors)
+
+
+def test_policy_blocks_images_and_disallowed_stock_domains(tmp_path):
+    """Enforces STORY FORGE rules: VISUALS = VIDEO ONLY and stock providers blocked."""
+    # 1. Test blocked stock domains in SafeURLValidator
+    stock_urls = [
+        "https://www.pexels.com/video/hogwarts-12345/",
+        "https://images.unsplash.com/photo-123",
+        "https://pixabay.com/videos/download/castle.mp4",
+        "https://www.shutterstock.com/video/clip-123.mp4",
+        "https://media.gettyimages.com/videos/hp-123.mp4",
+        "https://www.istockphoto.com/video/castle-123.mp4",
+    ]
+    for url in stock_urls:
+        safe, reason = SafeURLValidator.is_safe_url(url)
+        assert safe is False
+        assert "STORY FORGE Policy: Stock media provider" in reason
+
+    # 2. Test candidate with IMAGE category is rejected
+    sample_img = tmp_path / "mock_castle.jpg"
+    img = Image.new("RGB", (100, 100), color="blue")
+    img.save(sample_img, format="JPEG")
+
+    registry = CloudAssetRegistry(local_cache_dir=tmp_path / "cache", use_drive=False)
+    image_provider = MockTestProvider(sample_img, media_category=MediaCategory.IMAGE)
+    engine = AssetAcquisitionEngine(registry=registry, providers=[image_provider], use_drive=False)
+
+    res = engine.acquire_by_query("Hogwarts Castle Image", limit=1)
+    # Must reject images per VISUALS = VIDEO ONLY policy
+    assert res.success is False
+    assert len(res.asset_records) == 0
