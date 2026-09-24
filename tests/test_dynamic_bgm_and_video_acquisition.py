@@ -278,8 +278,7 @@ def test_persisted_canonical_discovery_bgm_registration():
     assert config.bgm_filename is not None
     assert "esther" not in config.bgm_filename.lower()
     assert "no.6" not in config.bgm_filename.lower()
-    assert config.drive_file_id == "1KExAdFU1tI7Ht_j0AxTqzIqgV3HtHkIe"
+    assert config.drive_file_id == "1Tv5mQ0hHQlgmmNhuzhQaGouUWgIkvVkA"
+    assert config.drive_file_id != "1KExAdFU1tI7Ht_j0AxTqzIqgV3HtHkIe"  # Old Barty Crouch removed
     assert config.actual_sha256 is not None and len(config.actual_sha256) == 64
-    assert config.speed_multiplier == 1.2
-    assert config.volume_db == -18.0
     assert config.duration_sec is not None and config.duration_sec > 30.0

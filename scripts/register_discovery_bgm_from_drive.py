@@ -37,23 +37,9 @@ def register_bgm_from_drive() -> DiscoveryBGMConfig:
     creds = Credentials.from_authorized_user_file(str(creds_file))
     drive = build("drive", "v3", credentials=creds)
 
-    # 1. Locate the dedicated Bgm folder inside the STORY FORGE root
-    query = f"'{EXPECTED_DRIVE_ROOT_ID}' in parents and mimeType = 'application/vnd.google-apps.folder' and name = 'Bgm' and trashed = false"
-    res = drive.files().list(q=query, fields="files(id, name, modifiedTime)").execute()
-    folders = res.get("files", [])
-
-    if not folders:
-        # Fallback to general Bgm query
-        query_fallback = "mimeType = 'application/vnd.google-apps.folder' and name = 'Bgm' and trashed = false"
-        res_fb = drive.files().list(q=query_fallback, fields="files(id, name, parents, modifiedTime)").execute()
-        folders = res_fb.get("files", [])
-
-    if not folders:
-        raise RuntimeError("No Bgm folder found in Google Drive.")
-
-    bgm_folder = folders[0]
-    folder_id = bgm_folder["id"]
-    logger.info(f"Inspecting Authoritative Drive Bgm Folder: '{bgm_folder['name']}' (ID: {folder_id})")
+    # 1. Authoritative dedicated Bgm folder in STORY FORGE
+    folder_id = "1kf4KrH2Nqebtx3Suz5izLb3PtRNyu7b6"
+    logger.info(f"Inspecting Authoritative Dedicated Drive Bgm Folder (ID: {folder_id})")
 
     # 2. List items in the Bgm folder
     f_res = drive.files().list(
