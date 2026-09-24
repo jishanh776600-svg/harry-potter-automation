@@ -98,6 +98,8 @@ data/timecode_audit/
 data/voice_audition/
 data/auditions/*.wav
 data/auditions/*.mp3
+data/auditions/*/*.wav
+data/auditions/*/*.mp3
 data/subtitles/
 data/validation_frames/
 data/test_inspect_frames/

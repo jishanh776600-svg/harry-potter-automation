@@ -157,19 +157,21 @@ def get_content_mix_allocation(total_shorts: int | None = None) -> dict[str, int
     }
 
 
-# TTS Settings — Bella (af_bella) — Permanent Production Voice
-# Kokoro-82M ONNX US Female voice
+# TTS Settings — Male 18 (Fenrir Onyx - Dark Baritone) — Permanent Production Voice
+# Kokoro-82M ONNX blended acoustic style (0.6 am_fenrir + 0.4 am_onyx, speed=1.05)
 TTS_PROVIDER = os.getenv("TTS_PROVIDER", "kokoro")
-KOKORO_VOICE = os.getenv("KOKORO_VOICE", "af_bella")
+KOKORO_VOICE = os.getenv("KOKORO_VOICE", "male_18")
 ACTIVE_VOICE_PITCH = os.getenv("ACTIVE_VOICE_PITCH", "+0Hz")
 ACTIVE_VOICE_RATE = os.getenv("ACTIVE_VOICE_RATE", "+0%")
-APPROVED_PRODUCTION_VOICES = ["af_bella"]
+APPROVED_PRODUCTION_VOICES = ["male_18", "MALE_18_FenrirOnyx_DarkBaritone", "af_bella"]
 KOKORO_MODEL_PATH = DATA_DIR / "kokoro-v1.0.onnx"
 KOKORO_VOICES_PATH = DATA_DIR / "voices-v1.0.bin"
 
-# Background Music (BGM) Settings
+# Background Music (BGM) Settings — Canonical Esther Abrami - No.6 In My Dreams
 BGM_ENABLED = True
-BGM_VOLUME = float(os.getenv("BGM_VOLUME", "0.14"))  # -17 dB ducking relative to speech
+BGM_DEFAULT_TRACK = "Esther Abrami - No.6 In My Dreams (1).wav"
+BGM_DEFAULT_DRIVE_ID = "1GwpmcEzrZg_grsDpEfgqf0hxXNfQ6brI"
+BGM_VOLUME = float(os.getenv("BGM_VOLUME", "0.45"))  # -7.0 dB ducking relative to speech (matched to Wizards' Laboratory reference)
 
 # Image Generation Fallback Provider (Permanently disabled; 100% movie footage policy enforced)
 IMAGE_PROVIDER = None

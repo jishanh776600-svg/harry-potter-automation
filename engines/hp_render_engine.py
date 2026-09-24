@@ -54,14 +54,15 @@ RENDERS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 CAPTIONS_DIR.mkdir(parents=True, exist_ok=True)
 CLIPS_DIR.mkdir(parents=True, exist_ok=True)
 
-# Locked Voice Parameters — Bella (af_bella, Kokoro-82M ONNX) — Permanent Production Voice
-LOCKED_VOICE_ID = "af_bella"
+# Locked Voice Parameters — Male 18 (Fenrir Onyx - Dark Baritone) — Permanent Production Voice
+LOCKED_VOICE_ID = "male_18"
 LOCKED_VOICE_PITCH = "+0Hz"
 LOCKED_VOICE_RATE = "+0%"
 
 # BGM Catalog — Strictly Harry Potter dedicated Drive vault asset (Single Canonical BGM)
 DEFAULT_BGM_TRACK = "Esther Abrami - No.6 In My Dreams (1).wav"
 DEFAULT_BGM_DRIVE_ID = "1GwpmcEzrZg_grsDpEfgqf0hxXNfQ6brI"
+DEFAULT_BGM_VOLUME_DB = -8.0  # Matched to Wizards' Laboratory reference Short volume (-3.36 dB speech ratio)
 FRAMING_POLICY_VERSION = "v2_natural_medium"
 VISUAL_POLICY_VERSION = "HYBRID_TRUTHFUL_V1"
 
@@ -74,7 +75,7 @@ def compute_render_fingerprint(
     voice_pitch: str = LOCKED_VOICE_PITCH,
     voice_rate: str = LOCKED_VOICE_RATE,
     bgm_track: str = DEFAULT_BGM_TRACK,
-    bgm_volume_db: float = -28.0,
+    bgm_volume_db: float = DEFAULT_BGM_VOLUME_DB,
     framing_policy_version: str = FRAMING_POLICY_VERSION,
     visual_policy: str = VISUAL_POLICY_VERSION
 ) -> str:
@@ -363,12 +364,13 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         total_duration: float,
         output_master_wav: Path,
         bgm_filename: str = DEFAULT_BGM_TRACK,
-        bgm_volume_db: float = -28.0
+        bgm_volume_db: float = DEFAULT_BGM_VOLUME_DB
     ) -> Tuple[Path, float]:
         """
         Mixes Narration + BGM bed, applies fade-in/out, ducking,
-        and normalizes final master to -14.0 LUFS broadcast target.
-        Enforces clear narration dominance with subtle ambient background music.
+        and normalizes final master to broadcast target.
+        Enforces clear narration dominance with distinct, energetic rhythmic background music
+        matching the Wizards' Laboratory reference Short.
         Returns: (output_master_wav, measured_lufs)
         """
         bgm_path = MUSIC_DIR / bgm_filename
@@ -410,8 +412,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
         # FFmpeg filter complex:
         # [0:a] Narration vocal track (Full prominence, weight 1.0)
-        # [1:a] BGM track looped, attenuated by bgm_volume_db (-28dB), 0.8s fade-in, 1.5s fade-out, mixed at 0.2 weight
-        # amix with weights=1 0.2 ensures narration clearly dominates while BGM remains subtle background
+        # [1:a] BGM track looped, attenuated by bgm_volume_db (-8.0dB), 0.8s fade-in, 1.5s fade-out, mixed at 0.45 weight
+        # amix with weights=1 0.45 ensures narration clearly dominates while BGM provides distinct rhythmic energy matching reference
         fade_out_start = max(0.0, total_duration - 1.5)
         filter_complex = (
             f"[1:a]aloop=loop=-1:size=2e+09,"
@@ -419,8 +421,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             f"afade=t=in:ss=0:d=0.8,"
             f"afade=t=out:st={fade_out_start:.2f}:d=1.5,"
             f"atrim=0:{total_duration:.2f}[bgm];"
-            f"[0:a][bgm]amix=inputs=2:weights=1 0.2:duration=first:dropout_transition=0.5,"
-            f"loudnorm=I=-14.0:TP=-1.5:LRA=11[aout]"
+            f"[0:a][bgm]amix=inputs=2:weights=1 0.45:duration=first:dropout_transition=0.5,"
+            f"loudnorm=I=-12.0:TP=-1.0:LRA=9[aout]"
         )
 
         cmd = [

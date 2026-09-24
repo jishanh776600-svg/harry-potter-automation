@@ -30,6 +30,26 @@ class VoiceVariationPolicy:
     """
 
     APPROVED_PERSONAS: Dict[str, Dict[str, Any]] = {
+        "male_18": {
+            "id": "male_18",
+            "name": "Male 18 (Fenrir Onyx - Dark Baritone)",
+            "gender": "MALE",
+            "style": "Deep gothic baritone narrator",
+            "persona": "Deep Gothic Lore Narrator",
+            "best_for": ["harry potter", "novel", "discovery", "mystery", "dark arts", "lore"],
+            "profile": DeliveryProfile.INVESTIGATIVE,
+            "supported_profiles": [DeliveryProfile.INVESTIGATIVE, DeliveryProfile.CONVERSATIONAL]
+        },
+        "MALE_18_FenrirOnyx_DarkBaritone": {
+            "id": "MALE_18_FenrirOnyx_DarkBaritone",
+            "name": "Male 18 (Fenrir Onyx - Dark Baritone)",
+            "gender": "MALE",
+            "style": "Deep gothic baritone narrator",
+            "persona": "Deep Gothic Lore Narrator",
+            "best_for": ["harry potter", "novel", "discovery", "mystery", "dark arts", "lore"],
+            "profile": DeliveryProfile.INVESTIGATIVE,
+            "supported_profiles": [DeliveryProfile.INVESTIGATIVE, DeliveryProfile.CONVERSATIONAL]
+        },
         "af_bella": {
             "id": "af_bella",
             "name": "Bella (US Female)",
@@ -44,7 +64,7 @@ class VoiceVariationPolicy:
 
     # Backward compatibility alias
     AVAILABLE_VOICES = list(APPROVED_PERSONAS.keys())
-    APPROVED_PRODUCTION_VOICES = ["af_bella"]
+    APPROVED_PRODUCTION_VOICES = ["male_18", "MALE_18_FenrirOnyx_DarkBaritone", "af_bella"]
 
     MAX_CONSECUTIVE_VOICE = 2
     MAX_CONSECUTIVE_PROFILE = 2
@@ -80,15 +100,15 @@ class VoiceVariationPolicy:
         enforce_rotation: bool = True,
         profanity_level: ProfanityLevel = ProfanityLevel.NONE,
         intensity: str = "MEDIUM",
-        bgm_policy: str = "NONE"
+        bgm_policy: str = "CANONICAL_BGM"
     ) -> VoiceDeliveryDecision:
         """
         Coordinates full voice identity + speaking style selection.
         Enforces:
-        - Strict lock to APPROVED_PRODUCTION_VOICES (am_liam, af_sarah)
+        - Strict lock to APPROVED_PRODUCTION_VOICES (male_18, MALE_18_FenrirOnyx_DarkBaritone)
         - Story topic / tone matching
         - Anti-consecutive voice repetition (max 2) with alternating balance
-        - Direct coupling: am_liam -> LIAM_MAX_CREATOR, af_sarah -> SARAH_MAX_CREATOR
+        - Direct coupling to appropriate profile
         - Solemnity / tragedy humor suppression
         - Channel identity preservation
         """
@@ -119,10 +139,12 @@ class VoiceVariationPolicy:
 
         chosen_voice = max(voice_scores.items(), key=lambda x: x[1])[0]
         if chosen_voice not in self.APPROVED_PRODUCTION_VOICES:
-            chosen_voice = "af_bella"
+            chosen_voice = "male_18"
 
         # 2. Select Delivery Profile coupled directly to the chosen voice
-        if chosen_voice == "am_liam":
+        if chosen_voice in ["male_18", "MALE_18_FenrirOnyx_DarkBaritone"]:
+            profile = DeliveryProfile.INVESTIGATIVE
+        elif chosen_voice == "am_liam":
             profile = DeliveryProfile.LIAM_MAX_CREATOR
         elif chosen_voice == "af_sarah":
             profile = DeliveryProfile.SARAH_MAX_CREATOR

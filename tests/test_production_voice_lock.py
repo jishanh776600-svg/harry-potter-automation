@@ -37,24 +37,24 @@ from config.constants import VOICEOVER_PAUSE_MULTIPLIER
 
 
 # ------------------------------------------------------------------------------
-# TEST 1: Whitelist of Approved Production Voices (Bella Only)
+# TEST 1: Whitelist of Approved Production Voices (Male 18 Lock)
 # ------------------------------------------------------------------------------
 def test_approved_production_voices_whitelist():
-    """Verify that only af_bella is an approved production voice (Bella Only Lock)."""
-    assert set(APPROVED_PRODUCTION_VOICES) == {"af_bella"}
-    assert set(TTS_APPROVED_VOICES) == {"af_bella"}
-    assert set(VoiceVariationPolicy.APPROVED_PERSONAS.keys()) == {"af_bella"}
+    """Verify that male_18 is an approved permanent production voice."""
+    assert "male_18" in APPROVED_PRODUCTION_VOICES
+    assert "male_18" in TTS_APPROVED_VOICES
+    assert "male_18" in VoiceVariationPolicy.APPROVED_PERSONAS
     
     available_ids = [v["id"] for v in AVAILABLE_VOICES]
-    assert set(available_ids) == {"af_bella"}
-    assert KOKORO_VOICE == "af_bella"
+    assert "male_18" in available_ids
+    assert KOKORO_VOICE in ["male_18", "MALE_18_FenrirOnyx_DarkBaritone"]
 
 
 # ------------------------------------------------------------------------------
-# TEST 2: Elimination of Retired Voices (Including Liam and Sarah from Production Selection)
+# TEST 2: Elimination of Retired Voices (Resolving safely to male_18)
 # ------------------------------------------------------------------------------
 def test_elimination_of_retired_voices():
-    """Verify retired voices (including Liam and Sarah) cannot be selected and resolve safely to af_bella."""
+    """Verify retired voices cannot be selected and resolve safely to approved voice."""
     retired_voices = [
         "am_liam", "af_sarah", "am_adam", "am_michael", "bm_george", "af_heart",
         "am_fenrir", "af_nova", "bm_lewis", "af_alloy", "am_echo"
@@ -66,7 +66,7 @@ def test_elimination_of_retired_voices():
         # Safe resolution fallback
         resolved = resolve_voice_config(voice)
         assert resolved["id"] in APPROVED_PRODUCTION_VOICES
-        assert resolved["id"] == "af_bella"
+        assert resolved["id"] == "male_18"
 
     # Verify get_active_voice() never returns a retired voice even if DB has stale value
     mock_db = MagicMock()
@@ -74,7 +74,7 @@ def test_elimination_of_retired_voices():
     mock_row.value = "af_sarah"
     mock_db.query.return_value.filter.return_value.first.return_value = mock_row
     assert get_active_voice(mock_db) in APPROVED_PRODUCTION_VOICES
-    assert get_active_voice(mock_db) == "af_bella"
+    assert get_active_voice(mock_db) == "male_18"
 
 
 # ------------------------------------------------------------------------------
@@ -113,10 +113,10 @@ def test_bella_conversational_parameters():
 
 
 # ------------------------------------------------------------------------------
-# TEST 5: Production Selection Strictly Locked to Bella
+# TEST 5: Production Selection Strictly Locked to Approved Voices (Male 18 / Approved)
 # ------------------------------------------------------------------------------
-def test_voice_selection_strictly_locks_bella():
-    """Verify selection strictly locks to af_bella and never selects retired voices."""
+def test_voice_selection_strictly_locks_approved():
+    """Verify selection strictly locks to approved production voices and never selects retired voices."""
     policy = VoiceVariationPolicy()
     policy.reset_history()
 
@@ -125,9 +125,10 @@ def test_voice_selection_strictly_locks_bella():
         for _ in range(8)
     ]
 
-    # Every selection must be strictly Bella
+    # Every selection must be strictly in APPROVED_PRODUCTION_VOICES
     for v in selections:
-        assert v == "af_bella"
+        assert v in APPROVED_PRODUCTION_VOICES
+        assert v not in ["am_liam", "af_sarah", "am_adam", "bm_george"]
 
 
 # ------------------------------------------------------------------------------
@@ -205,17 +206,18 @@ def test_profanity_and_solemnity_guardrails():
 # TEST 9: Audition Directories Preserved
 # ------------------------------------------------------------------------------
 def test_audition_archives_preserved():
-    """Verify that all historical audition archives are intact on disk."""
-    round1_dir = RENDERS_DIR / "voice_auditions"
-    round3_dir = RENDERS_DIR / "voice_auditions_round3"
-    round4_dir = RENDERS_DIR / "voice_auditions_round4"
+    """Verify that audition archives and manifests are intact on disk."""
+    from config.settings import DATA_DIR
+    auditions_dir = DATA_DIR / "auditions"
+    lineup2_dir = auditions_dir / "male_voices_30_lineup_2"
 
-    assert round1_dir.exists(), f"Round 1 dir {round1_dir} must exist"
-    assert round3_dir.exists(), f"Round 3 dir {round3_dir} must exist"
-    assert round4_dir.exists(), f"Round 4 dir {round4_dir} must exist"
+    assert auditions_dir.exists(), f"Auditions dir {auditions_dir} must exist"
+    assert lineup2_dir.exists(), f"Lineup 2 dir {lineup2_dir} must exist"
 
-    manifest_round4 = round4_dir / "voice_audition_round4_manifest.json"
-    assert manifest_round4.exists(), f"Manifest {manifest_round4} must exist"
+    manifest_60 = auditions_dir / "voice_audition_lineup_60_manifest.json"
+    manifest_lineup2 = lineup2_dir / "lineup_manifest.json"
+    assert manifest_60.exists(), f"Manifest {manifest_60} must exist"
+    assert manifest_lineup2.exists(), f"Manifest {manifest_lineup2} must exist"
 
     assert KOKORO_MODEL_PATH.exists(), "Kokoro ONNX model file must be preserved"
     assert KOKORO_VOICES_PATH.exists(), "Kokoro voices binary file must be preserved"

@@ -29,14 +29,50 @@ logger = logging.getLogger(__name__)
 KOKORO_MODEL_URL = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx"
 KOKORO_VOICES_URL = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin"
 
-APPROVED_PRODUCTION_VOICES = ["af_bella"]
+APPROVED_PRODUCTION_VOICES = ["male_18", "MALE_18_FenrirOnyx_DarkBaritone", "af_bella"]
 
 AVAILABLE_VOICES = [
+    {
+        "id": "male_18",
+        "display_name": "Male 18 (Fenrir Onyx - Dark Baritone)",
+        "engine": "Kokoro-82M ONNX Blend (0.6 am_fenrir + 0.4 am_onyx)",
+        "description": "Permanent Production Voice: Deep gothic baritone narrator for Harry Potter Shorts.",
+        "style": "Deep gothic baritone narrator",
+        "gender": "Male",
+        "accent": "American Gothic Baritone",
+        "age": "32",
+        "kokoro_voice": "male_18",
+        "edge_voice": "en-US-ChristopherNeural",
+        "edge_pitch": "-3Hz",
+        "edge_rate": "+3%",
+        "delivery_profile": "DARK_BARITONE",
+        "blend": [("am_fenrir", 0.6), ("am_onyx", 0.4)],
+        "speed": 1.05,
+        "available": True
+    },
+    {
+        "id": "MALE_18_FenrirOnyx_DarkBaritone",
+        "display_name": "Male 18 (Fenrir Onyx - Dark Baritone)",
+        "engine": "Kokoro-82M ONNX Blend (0.6 am_fenrir + 0.4 am_onyx)",
+        "description": "Permanent Production Voice: Deep gothic baritone narrator for Harry Potter Shorts.",
+        "style": "Deep gothic baritone narrator",
+        "gender": "Male",
+        "accent": "American Gothic Baritone",
+        "age": "32",
+        "kokoro_voice": "male_18",
+        "edge_voice": "en-US-ChristopherNeural",
+        "edge_pitch": "-3Hz",
+        "edge_rate": "+3%",
+        "delivery_profile": "DARK_BARITONE",
+        "blend": [("am_fenrir", 0.6), ("am_onyx", 0.4)],
+        "speed": 1.05,
+        "available": True
+    },
     {
         "id": "af_bella",
         "display_name": "Bella (Expressive US Female)",
         "engine": "Kokoro-82M ONNX",
-        "description": "Warm, expressive, cinematic American female narrator for Novel Story Shorts.",
+        "description": "Warm, expressive, cinematic American female narrator.",
         "style": "Cinematic Storyteller",
         "gender": "Female",
         "accent": "American",
@@ -93,7 +129,10 @@ def resolve_voice_config(voice_id: str) -> dict:
     for v in AVAILABLE_VOICES:
         if v["id"] == voice_id and v.get("available", False) and v["id"] in APPROVED_PRODUCTION_VOICES:
             return v
-    # Safe fallback to approved production voice (Bella)
+    # Safe fallback to approved permanent production voice (Male 18)
+    for v in AVAILABLE_VOICES:
+        if v["id"] == "male_18":
+            return v
     return AVAILABLE_VOICES[0]
 
 
@@ -106,7 +145,7 @@ def get_active_voice(db: Optional[Session] = None) -> str:
                 return cfg.value
         except Exception:
             pass
-    return "af_bella"
+    return "male_18"
 
 
 def select_voice_by_policy(category: str = "", title: str = "", script_text: str = "") -> str:
@@ -178,8 +217,8 @@ class TTSEngine:
         self,
         text: str,
         output_path: Path,
-        voice: str = "af_bella",
-        speed: float = 1.00,
+        voice: Any = "male_18",
+        speed: float = 1.05,
         sentence_pause: float = EFFECTIVE_SENTENCE_PAUSE_SEC,
         clause_pause: float = EFFECTIVE_CLAUSE_PAUSE_SEC
     ) -> Tuple[bool, float]:
@@ -188,9 +227,21 @@ class TTSEngine:
         if not kokoro:
             return False, 0.0
         try:
+            kokoro_voice_param = voice
+            if isinstance(voice, str) and voice in ["male_18", "MALE_18_FenrirOnyx_DarkBaritone"]:
+                try:
+                    fenrir = kokoro.get_voice_style("am_fenrir")
+                    onyx = kokoro.get_voice_style("am_onyx")
+                    kokoro_voice_param = 0.6 * fenrir + 0.4 * onyx
+                    if speed == 1.00:
+                        speed = 1.05
+                except Exception as blend_err:
+                    logger.warning(f"Failed to blend style vectors for {voice}, falling back to am_fenrir: {blend_err}")
+                    kokoro_voice_param = "am_fenrir"
+
             samples, sample_rate = kokoro.create(
                 text,
-                voice=voice,
+                voice=kokoro_voice_param,
                 speed=speed,
                 sentence_pause=sentence_pause,
                 clause_pause=clause_pause,
@@ -384,8 +435,8 @@ class TTSEngine:
 
         active_voice = voice or get_active_voice(db)
         if active_voice not in APPROVED_PRODUCTION_VOICES:
-            logger.warning(f"[TTS_ENGINE] Voice '{active_voice}' not approved for production. Defaulting to 'af_sarah'.")
-            active_voice = "af_sarah"
+            logger.warning(f"[TTS_ENGINE] Voice '{active_voice}' not approved for production. Defaulting to 'male_18'.")
+            active_voice = "male_18"
         v_cfg = resolve_voice_config(active_voice)
         kokoro_v = v_cfg.get("kokoro_voice", active_voice)
         edge_v = v_cfg.get("edge_voice", "en-US-JennyNeural")
@@ -475,7 +526,7 @@ class TTSEngine:
                 logger.warning(f"Could not calibrate atempo: {tempo_err}")
 
         # 4. Duration sanity logging
-        logger.info(f"[TTS_PACING] Bella narration duration: {duration:.2f}s (dead-air cap: {EFFECTIVE_MAX_SILENCE_CAP_SEC}s).")
+        logger.info(f"[TTS_PACING] Male 18 narration duration: {duration:.2f}s (dead-air cap: {EFFECTIVE_MAX_SILENCE_CAP_SEC}s).")
 
         # 5. Apply Studio Presence Mastering Chain
         mastered_wav = self.voice_dir / f"{asset_id}_mastered.wav"
