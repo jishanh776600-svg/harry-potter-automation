@@ -265,3 +265,21 @@ def test_direct_evidence_lineage_protection_rejects_non_video():
         )
     assert "LINEAGE VIOLATION" in str(exc_info.value)
     assert "Non-video assets" in str(exc_info.value)
+
+
+# ==============================================================================
+# 5. LIVE PERSISTED CANONICAL DISCOVERY BGM VERIFICATION
+# ==============================================================================
+
+def test_persisted_canonical_discovery_bgm_registration():
+    """Validates the live registered Discovery BGM configuration from Google Drive."""
+    config = DiscoveryBGMGate.verify_and_resolve_bgm()
+    assert config.status == "VERIFIED"
+    assert config.bgm_filename is not None
+    assert "esther" not in config.bgm_filename.lower()
+    assert "no.6" not in config.bgm_filename.lower()
+    assert config.drive_file_id == "1KExAdFU1tI7Ht_j0AxTqzIqgV3HtHkIe"
+    assert config.actual_sha256 is not None and len(config.actual_sha256) == 64
+    assert config.speed_multiplier == 1.2
+    assert config.volume_db == -18.0
+    assert config.duration_sec is not None and config.duration_sec > 30.0

@@ -1,0 +1,15 @@
+{
+  "bgm_filename": "Barty Crouch\u2026 Junior! - Harry Potter and the Goblet of Fire Complete Score (Film Mix).wav",
+  "source_provider": "GOOGLE_DRIVE_STORY_FORGE_BGM_VAULT",
+  "drive_file_id": "1KExAdFU1tI7Ht_j0AxTqzIqgV3HtHkIe",
+  "expected_sha256": "665c49fe632d04cba49f8fdbcfd3f50c2c086e45c5930f65fdd418b45b3a79f0",
+  "actual_sha256": "665c49fe632d04cba49f8fdbcfd3f50c2c086e45c5930f65fdd418b45b3a79f0",
+  "duration_sec": 62.94929705215419,
+  "sample_rate": 44100,
+  "speed_multiplier": 1.2,
+  "volume_db": -18.0,
+  "volume_amix_weight": 0.2,
+  "status": "VERIFIED",
+  "rejection_reason": null,
+  "config_fingerprint": "1df3ccb1e0c7f0e8f6296575ca3b82d0bd2330577e95abefd2559cdce5304b2c"
+}
