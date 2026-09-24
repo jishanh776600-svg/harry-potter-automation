@@ -342,3 +342,30 @@ class BeastVisualMatchingEngine:
         """Resets session tracking states between production runs."""
         self._recently_used_queue.clear()
         self._recently_used_shots.clear()
+
+    # --------------------------------------------------------------------------
+    # BEAST V2: PROPOSITION-AWARE VISUAL EVIDENCE
+    # --------------------------------------------------------------------------
+    def find_proposition_match(
+        self,
+        proposition: Any,
+        candidates: List[BeastCandidateShot],
+        target_duration: float = 2.0,
+        is_book_only_claim: bool = False,
+        is_bts_claim: bool = False,
+    ) -> Any:
+        """
+        BEAST V2 proposition-aware visual evidence interface.
+        """
+        from engines.beast.beast_v2_proposition_engine import BeastV2PropositionEngine
+        v2_engine = BeastV2PropositionEngine(
+            min_confidence_threshold=self.min_confidence_threshold,
+            repetition_window_size=self.repetition_window_size,
+        )
+        return v2_engine.find_best_proposition_match(
+            proposition=proposition,
+            candidates=candidates,
+            target_duration=target_duration,
+            is_book_only_claim=is_book_only_claim,
+            is_bts_claim=is_bts_claim,
+        )
