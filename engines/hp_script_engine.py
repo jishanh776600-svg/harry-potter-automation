@@ -9,7 +9,7 @@ for YouTube Shorts, grounded exclusively in:
   - Canonical Movie 1-8 scene & dialogue index (`movie_subtitles_fts`)
 
 Supports two content types:
-  A. NOVEL STORY SHORTS (~25-30s, 55-75 spoken words, conversational cinematic English)
+  A. NOVEL STORY SHORTS (~45-60s, 100-150 spoken words, conversational cinematic English)
   B. DISCOVERY SHORTS (~25-30s, 55-75 spoken words, novel vs movie differences & lore)
 
 Voice Specification:
@@ -105,6 +105,16 @@ MAX_WORD_COUNT = 75
 PREFERRED_MIN_WORDS = 60
 PREFERRED_MAX_WORDS = 70
 
+NOVEL_STORY_MIN_WORDS = 100
+NOVEL_STORY_MAX_WORDS = 150
+NOVEL_STORY_MIN_DURATION = 45.0
+NOVEL_STORY_MAX_DURATION = 60.0
+
+DISCOVERY_SHORT_MIN_WORDS = 55
+DISCOVERY_SHORT_MAX_WORDS = 75
+DISCOVERY_SHORT_MIN_DURATION = 25.0
+DISCOVERY_SHORT_MAX_DURATION = 30.0
+
 
 @dataclass
 class VisualBeatPlan:
@@ -198,14 +208,14 @@ class HarryPotterScriptEngine:
         Rigorous programmatic QA gate verifying all Step 8 invariants.
         Fails closed if any rule is violated.
         Supports DEEP_DISCOVERY (220-300 words, 65-80.9s), MICRO_DISCOVERY (55-85 words, 20-35s),
-        and strictly preserves NOVEL_STORY isolation (55-75 words, 20-32s).
+        and strictly preserves NOVEL_STORY isolation (100-150 words, 45-60s).
         """
         words = script_text.strip().split()
         word_count = len(words)
 
         c_type_upper = str(candidate_type).upper()
         is_deep_discovery = (c_type_upper == "DEEP_DISCOVERY") or (c_type_upper == "DISCOVERY" and word_count >= 150)
-        is_micro_discovery = (c_type_upper == "MICRO_DISCOVERY")
+        is_micro_discovery = (c_type_upper == "MICRO_DISCOVERY") or (c_type_upper in ("DISCOVERY_SHORT", "DISCOVERY") and word_count < 100)
 
         if is_deep_discovery:
             min_words = 220
@@ -215,20 +225,20 @@ class HarryPotterScriptEngine:
             target_speech_rate = 3.55  # ~3.4 - 3.7 wps
             estimated_duration = round(word_count / target_speech_rate, 1)
         elif is_micro_discovery:
-            min_words = 55
-            max_words = 85
-            min_duration = 20.0
-            max_duration = 35.0
+            min_words = DISCOVERY_SHORT_MIN_WORDS
+            max_words = DISCOVERY_SHORT_MAX_WORDS
+            min_duration = DISCOVERY_SHORT_MIN_DURATION
+            max_duration = DISCOVERY_SHORT_MAX_DURATION
             target_speech_rate = 2.5
             estimated_duration = round(word_count / target_speech_rate, 1)
         else:
-            # NOVEL_STORY and legacy defaults: strictly 55 to 75 words at ~2.5 wps
-            min_words = MIN_WORD_COUNT
-            max_words = MAX_WORD_COUNT
-            min_duration = 20.0
-            max_duration = 32.0
-            target_speech_rate = 2.5
-            estimated_duration = round(word_count / 2.5, 1)
+            # NOVEL_STORY defaults: strictly 45 to 60 seconds (100 to 150 words at ~2.4 wps)
+            min_words = NOVEL_STORY_MIN_WORDS
+            max_words = NOVEL_STORY_MAX_WORDS
+            min_duration = NOVEL_STORY_MIN_DURATION
+            max_duration = NOVEL_STORY_MAX_DURATION
+            target_speech_rate = 2.4
+            estimated_duration = round(word_count / 2.4, 1)
 
         feedback = []
         cliches_detected = []
@@ -567,7 +577,7 @@ MANDATORY STORYTELLING RULES:
    - If the novel contains a detail the movies never showed, focus your storytelling on what the movies ACTUALLY show!
 
 4. HARD INVARIANTS:
-   - WORD COUNT: Exactly 58 to 72 spoken words (HARD BOUNDS: 55 to 75 words).
+   - WORD COUNT: Exactly 110 to 140 spoken words (HARD BOUNDS: 100 to 150 words for 45–60s duration).
    - STANDALONE: Must make 100% complete sense on its own.
    - NEVER speak "part 1", "chapter 1", "episode 1", or any numbering.
    - NEVER use clickbait clichés ("will shock you", "you won't believe", "mind-blowing").

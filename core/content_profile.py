@@ -93,7 +93,7 @@ HARRY_POTTER_PROFILE = ContentProfile(
     script_objective="Tell the novel like a movie using original narration, or reveal standalone book vs movie discoveries.",
     system_role_instruction=(
         "You are an expert Harry Potter narrative storyteller and canonical book researcher. "
-        "Your task is to transform scenes from the Harry Potter novels into cinematic 25-30 second YouTube Shorts. "
+        "Your task is to transform scenes from the Harry Potter novels into cinematic 45-60 second YouTube Shorts. "
         "Strict Requirements:\n"
         "- Simple English, conversational, cinematic, easy to understand.\n"
         "- Natural narration with no forced dramatic language or artificial 'mysterious narrator' style.\n"
@@ -136,10 +136,10 @@ HARRY_POTTER_PROFILE = ContentProfile(
     hook_markers=[
         r"\b(Harry|Hogwarts|Dumbledore|Voldemort|Snape|magic|wand|spell|Gryffindor|Slytherin|secret|danger|curse)\b"
     ],
-    preferred_cadence="Conversational, natural English. Clear, simple phrasing. 25-30 seconds duration.",
-    min_words=55,
-    max_words=75,
-    target_words="62-68 words",
+    preferred_cadence="Conversational, natural English. Clear, simple phrasing. 45-60 seconds duration.",
+    min_words=100,
+    max_words=150,
+    target_words="115-135 words",
     discovery_profile=None,
     deduplication_policy="canonical_scene",
     research_strategy="novel_canon",

@@ -20,7 +20,7 @@ Evaluates 12 deterministic criteria:
   9. sound_design: contextual SFX integration with graceful fail-safe handling.
   10. ending_completeness: intentional ending structure without abrupt cutoffs.
   11. loop_engagement_quality: seamless narrative loop or story-grounded question.
-  12. subtitle_render_integrity: vertical 1080x1920, 21.0-25.5s duration, valid container.
+  12. subtitle_render_integrity: vertical 1080x1920, canonical duration (25.0-70.0s), valid container.
 """
 import re
 import json
@@ -215,11 +215,11 @@ class ContentQualityGate:
         checks["ending_completeness"] = ending_score >= 0.75
         checks["loop_quality"] = loop_score >= 0.75
 
-        # 10. Subtitle & Container Integrity
+        # 10. Subtitle & Container Integrity (Accommodates 25-30s Short, 45-60s Novel, 60-70s Big)
         render_score = 0.95
-        if render_duration < 21.0 or render_duration > 25.5:
+        if render_duration < 20.0 or render_duration > 75.0:
             render_score -= 0.30
-            failures.append(f"Duration constraint: render duration ({render_duration:.1f}s) outside 21.0-25.5s window.")
+            failures.append(f"Duration constraint: render duration ({render_duration:.1f}s) outside canonical 20.0-75.0s window.")
         checks["render_integrity"] = render_score >= 0.80
 
         # Overall composite calculation

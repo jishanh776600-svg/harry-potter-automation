@@ -364,7 +364,7 @@ class ShortsPipeline:
         StateMachine.transition(db, job, JobState.FACT_CHECKED, f"Verified {research_res['claims_count']} historical claims")
         console.print(f"[green][+] Fact-Checking Complete:[/green] {research_res['claims_count']} claims verified against historical archives.")
 
-        # 2. SCRIPT GENERATION (Calibrated 21-25s Story Flow with Multi-Stage Critic & Strategy)
+        # 2. SCRIPT GENERATION (Calibrated Story Flow with Multi-Stage Critic & Strategy)
         StateMachine.transition(db, job, JobState.SCRIPTING, f"Writing script with {strategy.get('hook_archetype')} hook & {strategy.get('duration_target')} duration")
         script = self.script_engine.generate_script(db, topic, research_data=research_res, strategy=strategy)
         StateMachine.transition(db, job, JobState.SCRIPT_READY, f"Script approved ({script.word_count} words)")
@@ -1366,7 +1366,13 @@ class ShortsPipeline:
                         logger.error(f"Failed to quarantine AL AMR file {candidate['id']}: {q_err}")
                     continue
 
-                if filename.startswith("hps_"):
+                if (
+                    filename.startswith("hps_")
+                    or filename.startswith("disc_")
+                    or filename.startswith("hpd_")
+                    or c_props.get("content_type") in ("novel_story", "discovery", "discovery_big", "discovery_short")
+                    or c_props.get("format") in ("NOVEL_STORY", "DISCOVERY_BIG", "DISCOVERY_SHORT")
+                ):
                     is_comp, comp_reason = True, "APPROVED: Harry Potter pipeline output (pre-validated)"
                 else:
                     is_comp, comp_reason = is_niche_compliant(title=c_title, text=c_desc)
@@ -1379,9 +1385,16 @@ class ShortsPipeline:
                         logger.error(f"Failed to quarantine non-compliant file {candidate['id']}: {q_err}")
                     continue
 
+                # Initialize event_id safely for candidate
+                event_id = c_props.get("event_id")
+                if not event_id:
+                    m_evt = re.search(r"evt_[a-z0-9_]+", candidate.get("name", ""))
+                    if m_evt:
+                        event_id = m_evt.group(0)
+
                 # Resolve topic_id to exclude from deduplication check (prevent candidate self-matching against its own PRODUCED topic)
                 cand_topic_id = c_props.get("topic_id")
-                if not cand_topic_id and filename.startswith("hps_"):
+                if not cand_topic_id and (filename.startswith("hps_") or filename.startswith("disc_")):
                     cand_topic_id = filename.replace(".mp4", "")
                 elif not cand_topic_id and c_job_id:
                     j = db.query(Job).filter(Job.id == c_job_id).first()
@@ -1399,16 +1412,10 @@ class ShortsPipeline:
                             top = db.query(Topic).filter(Topic.event_id == rec.event_id).first()
                             if top:
                                 cand_topic_id = top.id
-                if not cand_topic_id:
-                    event_id = c_props.get("event_id")
-                    if not event_id:
-                        m_evt = re.search(r"evt_[a-z0-9_]+", candidate.get("name", ""))
-                        if m_evt:
-                            event_id = m_evt.group(0)
-                    if event_id:
-                        top = db.query(Topic).filter(Topic.event_id == event_id).first()
-                        if top:
-                            cand_topic_id = top.id
+                if not cand_topic_id and event_id:
+                    top = db.query(Topic).filter(Topic.event_id == event_id).first()
+                    if top:
+                        cand_topic_id = top.id
                 if not cand_topic_id and c_title:
                     top = db.query(Topic).filter(Topic.title.ilike(c_title.strip())).first()
                     if top:
@@ -1490,15 +1497,68 @@ class ShortsPipeline:
             console.print(f"[bold green][*] Proactively scheduling {eligible_to_schedule} eligible Short(s) into earliest vacant slots across 2-day horizon...[/bold green]")
             scheduled_results = []
 
+            def _detect_candidate_format(candidate: Dict[str, Any]) -> str:
+                props = candidate.get("properties", {}) or {}
+                fmt = (props.get("format") or props.get("discovery_format") or props.get("content_format") or "").upper()
+                if fmt in ("NOVEL_STORY", "DISCOVERY_BIG", "DISCOVERY_SHORT"):
+                    return fmt
+                ctype = (props.get("content_type") or "").lower()
+                name = (candidate.get("name") or "").lower()
+                if "discovery_big" in name or fmt == "DISCOVERY_BIG":
+                    return "DISCOVERY_BIG"
+                if "discovery_short" in name or fmt == "DISCOVERY_SHORT":
+                    return "DISCOVERY_SHORT"
+                duration = float(props.get("duration", 0) or props.get("duration_sec", 0) or 0)
+                if ctype == "discovery":
+                    if duration >= 50.0:  # Canonical Discovery Big: 60-70s
+                        return "DISCOVERY_BIG"
+                    return "DISCOVERY_SHORT"  # Canonical Discovery Short: 25-30s
+                if ctype == "novel_story" or name.startswith("hps_"):
+                    return "NOVEL_STORY"  # Canonical Novel Story: 45-60s
+                if duration >= 60.0:
+                    return "DISCOVERY_BIG"
+                if 40.0 <= duration < 60.0:
+                    return "NOVEL_STORY"
+                if 20.0 <= duration < 40.0:
+                    return "DISCOVERY_SHORT"
+                return "UNKNOWN"
+
+            # Cadence slot preferred formats (STORY FORGE 4 Shorts / day cadence):
+            # 02:00 UTC -> NOVEL_STORY
+            # 08:00 UTC -> DISCOVERY_BIG
+            # 14:00 UTC -> NOVEL_STORY
+            # 20:00 UTC -> DISCOVERY_SHORT
+            slot_hour_to_format = {
+                2: "NOVEL_STORY",
+                8: "DISCOVERY_BIG",
+                14: "NOVEL_STORY",
+                20: "DISCOVERY_SHORT",
+            }
+
+            remaining_pool = list(all_eligible_candidates)
             for i in range(eligible_to_schedule):
-                cand = all_eligible_candidates[i]
-                cand_folder = "02_PROCESSING" if cand in recovered_candidates else "01_READY"
+                if not remaining_pool:
+                    break
                 target_slot = vacant_horizon_slots[i]
-                console.print(f"[cyan][*] Candidate {i+1}/{eligible_to_schedule} allocated Slot:[/cyan] [bold yellow]{target_slot.strftime('%Y-%m-%d %H:%M')} UTC[/bold yellow]")
+                desired_fmt = slot_hour_to_format.get(target_slot.hour)
+
+                chosen_cand = None
+                if desired_fmt:
+                    for cand in remaining_pool:
+                        if _detect_candidate_format(cand) == desired_fmt:
+                            chosen_cand = cand
+                            break
+
+                if not chosen_cand:
+                    chosen_cand = remaining_pool[0]
+
+                remaining_pool.remove(chosen_cand)
+                cand_folder = "02_PROCESSING" if chosen_cand in recovered_candidates else "01_READY"
+                console.print(f"[cyan][*] Candidate {i+1}/{eligible_to_schedule} allocated Slot:[/cyan] [bold yellow]{target_slot.strftime('%Y-%m-%d %H:%M')} UTC[/bold yellow] (Target: {desired_fmt or 'ANY'}, Actual: {_detect_candidate_format(chosen_cand)})")
 
                 upload_rec = self._schedule_single_drive_file(
                     db=db,
-                    target_file=cand,
+                    target_file=chosen_cand,
                     scheduled_slot=target_slot,
                     current_folder=cand_folder
                 )

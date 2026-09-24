@@ -2,7 +2,7 @@
 Quality Assurance (QA) & Policy Compliance Engine.
 Performs automated multi-factor validation before any Short can be scheduled or uploaded:
 - Video Resolution: Exactly 1080x1920 (9:16 vertical)
-- Duration: Strictly within 21.0 - 25.5 seconds
+- Duration: Strictly within canonical bounds (Novel Story: 45-60s, Discovery Big: 60-70s, Discovery Short: 25-30s)
 - Codecs: H.264 video / AAC audio
 - Audio Quality & Deep BGM Identity Verification: 
   * Extracts audio directly from the final rendered MP4 file
@@ -225,11 +225,27 @@ class QAEngine:
         if not resolution_ok:
             reasons.append(f"Invalid resolution: {media_info['width']}x{media_info['height']} (Required: {VIDEO_WIDTH}x{VIDEO_HEIGHT})")
 
-        # 3. Duration check (Strict 21.0 - 26.2s including outro padding margin)
+        # 3. Duration check (Format-aware: Novel Story 45-60s, Discovery Big 60-70s, Discovery Short 25-30s)
         duration = media_info["duration"] if media_info["duration"] > 0 else render.duration_sec
-        duration_ok = (MIN_DURATION_SEC <= duration <= (MAX_DURATION_SEC + 1.2))
+        format_tag = getattr(job, "format", None) or getattr(job, "content_type", None) or ""
+        format_tag_upper = str(format_tag).upper()
+
+        if "NOVEL_STORY" in format_tag_upper or format_tag == "novel_story":
+            target_min_dur = 45.0
+            target_max_dur = 60.0
+        elif "DISCOVERY_BIG" in format_tag_upper or "BIG" in format_tag_upper:
+            target_min_dur = 60.0
+            target_max_dur = 70.0
+        elif "DISCOVERY_SHORT" in format_tag_upper or "SHORT" in format_tag_upper:
+            target_min_dur = 25.0
+            target_max_dur = 30.0
+        else:
+            target_min_dur = MIN_DURATION_SEC
+            target_max_dur = MAX_DURATION_SEC
+
+        duration_ok = ((target_min_dur - 1.0) <= duration <= (target_max_dur + 1.2))
         if not duration_ok:
-            reasons.append(f"Video duration {duration:.2f}s is outside acceptable range ({MIN_DURATION_SEC}s - {MAX_DURATION_SEC + 1.2}s)")
+            reasons.append(f"Video duration {duration:.2f}s is outside acceptable range ({target_min_dur}s - {target_max_dur + 1.2}s for {format_tag or 'default'})")
 
         # 3.5. Narration Completeness & Safety Margin Check (0.6s Breathing Margin)
         voice_assets = [a for a in assets_used if a.asset_type == "voice" and getattr(a, "duration_sec", 0) > 0]

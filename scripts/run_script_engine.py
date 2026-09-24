@@ -8,7 +8,7 @@ Generates, validates, and persists scripts + structured visual beat plans for:
   - SHORT 4: Discovery (Neville Longbottom's Sorting Hat Plea)
 
 Enforces:
-  - 55-75 word count bounds (~25-30s speaking time at Andrew Hype delivery)
+  - Word count bounds (Novel Story: 100-150 words / 45-60s; Discovery Short: 55-75 words / 25-30s)
   - Strict MOVIE FOOTAGE ONLY visual requirements
   - Zero spoken part/chapter/book numbering
   - Complete factual grounding in novel/movie evidence

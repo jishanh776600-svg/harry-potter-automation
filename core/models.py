@@ -733,7 +733,7 @@ class ChronologyState(Base):
 
 class NovStoryCandidate(Base):
     """
-    Structured content plan for a Novel Story Short (~25-30 seconds).
+    Structured content plan for a Novel Story Short (45–60 seconds).
     Grounded in canonical HP novel text. Does NOT contain final narration.
     Fully traceable: Book -> Chapter -> Chunk range -> Global Chronology Index.
     Visual policy: MOVIE FOOTAGE ONLY. No AI, stock, Pexels, or images.

@@ -182,6 +182,55 @@ def test_b_discovery_short_duration_bounds():
     assert any("exceeds maximum 30.0s" in w for w in warnings_long)
 
 
+def test_novel_story_duration_bounds():
+    """Test: NOVEL_STORY duration bounds must be strictly 45–60s."""
+    min_dur, max_dur = FORMAT_DURATION_BOUNDS[ContentFormat.NOVEL_STORY]
+    assert min_dur == 45.0
+    assert max_dur == 60.0
+
+    # Topic pack validation for NOVEL_STORY
+    pack_novel = MultiFactTopicPack(
+        topic_id="novel_01",
+        theme="The Boy Who Lived",
+        hook="Mr and Mrs Dursley were proud to say they were perfectly normal.",
+        suggested_title="Arrival on Privet Drive",
+        format=MultiFactFormat.NOVEL_STORY,
+        total_target_duration=52.0,
+        facts=[create_sample_fact(1, "Dumbledore leaves baby Harry on the doorstep", 50.0)],
+    )
+    is_valid, warnings = pack_novel.validate_content_architecture()
+    assert is_valid
+    assert len(warnings) == 0
+
+    # Out of bounds: too short (< 45s)
+    pack_too_short = MultiFactTopicPack(
+        topic_id="novel_short",
+        theme="The Boy Who Lived",
+        hook="Short hook.",
+        suggested_title="Too Short Novel",
+        format=MultiFactFormat.NOVEL_STORY,
+        total_target_duration=30.0,
+        facts=[create_sample_fact(1, "Too short", 30.0)],
+    )
+    is_valid_short, warnings_short = pack_too_short.validate_content_architecture()
+    assert not is_valid_short
+    assert any("below minimum 45.0s" in w for w in warnings_short)
+
+    # Out of bounds: too long (> 60s)
+    pack_too_long = MultiFactTopicPack(
+        topic_id="novel_long",
+        theme="The Boy Who Lived",
+        hook="Long hook.",
+        suggested_title="Too Long Novel",
+        format=MultiFactFormat.NOVEL_STORY,
+        total_target_duration=65.0,
+        facts=[create_sample_fact(1, "Too long", 65.0)],
+    )
+    is_valid_long, warnings_long = pack_too_long.validate_content_architecture()
+    assert not is_valid_long
+    assert any("exceeds maximum 60.0s" in w for w in warnings_long)
+
+
 # ==============================================================================
 # TESTS C, D, E, F: FACT COUNT FLEXIBILITY (NO FIXED FACT REQUIREMENT)
 # ==============================================================================

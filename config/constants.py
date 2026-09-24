@@ -195,10 +195,26 @@ class ContentNiche(str, Enum):
     MYSTERY_BIZARRE = "Mystery / Bizarre Real-World Stories"
 
 
-# Duration targets (Seconds for Harry Potter Shorts: 25-30s sweet spot)
+# Canonical Format Duration Targets (Seconds)
+# Novel Story: 45–60 seconds (immersive novel storytelling)
+NOVEL_STORY_MIN_DURATION_SEC = 45.0
+NOVEL_STORY_MAX_DURATION_SEC = 60.0
+NOVEL_STORY_TARGET_DURATION_SEC = 52.5
+
+# Discovery Big: 60–70 seconds (5–7 facts or 1 deep lore breakdown)
+DISCOVERY_BIG_MIN_DURATION_SEC = 60.0
+DISCOVERY_BIG_MAX_DURATION_SEC = 70.0
+DISCOVERY_BIG_TARGET_DURATION_SEC = 65.0
+
+# Discovery Short: 25–30 seconds (1 deep difference or compact discovery)
+DISCOVERY_SHORT_MIN_DURATION_SEC = 25.0
+DISCOVERY_SHORT_MAX_DURATION_SEC = 30.0
+DISCOVERY_SHORT_TARGET_DURATION_SEC = 27.5
+
+# Overall YouTube Shorts Bounds across all formats (25.0s – 70.0s)
 MIN_DURATION_SEC = 25.0
-MAX_DURATION_SEC = 30.0
-TARGET_DURATION_SEC = 27.5
+MAX_DURATION_SEC = 70.0
+TARGET_DURATION_SEC = 52.5
 
 # Visual Part Marker Configuration (Visual only, strictly never spoken)
 PART_MARKER_ENABLED = True
@@ -270,7 +286,17 @@ MAX_AUDIO_LOUDNESS_LUFS = -10.0
 MAX_TRUE_PEAK_DBTP = -0.5
 MIN_BGM_RMS_ENERGY = 0.005  # Ensures BGM is physically audible in final render
 
-# Script Constraints (55-75 words optimal for 25-30s natural Bella delivery)
+# Novel Story Script Constraints (100-150 words optimal for 45-60s natural delivery)
+NOVEL_STORY_MIN_WORD_COUNT = 100
+NOVEL_STORY_MAX_WORD_COUNT = 150
+NOVEL_STORY_OPTIMAL_WORD_COUNT = 125
+
+# Discovery Short Script Constraints (55-75 words optimal for 25-30s natural delivery)
+DISCOVERY_SHORT_MIN_WORD_COUNT = 55
+DISCOVERY_SHORT_MAX_WORD_COUNT = 75
+DISCOVERY_SHORT_OPTIMAL_WORD_COUNT = 65
+
+# Baseline Word Count Constraints (Discovery Short default)
 MIN_WORD_COUNT = 55
 MAX_WORD_COUNT = 75
 OPTIMAL_WORD_COUNT = 65

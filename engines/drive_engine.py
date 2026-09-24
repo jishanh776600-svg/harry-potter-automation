@@ -92,7 +92,7 @@ def is_valid_ready_short(
     A file counts toward VALID_READY_STOCK only if ALL conditions pass:
     - Exists, readable, non-empty, size >= 5 MB (or >= 500 KB in test mode)
     - Not a known test artifact (test_render, short_job_manifest, job_test_, top_test_)
-    - Valid MP4 container (1080x1920 video, audio present, duration 20.0s - 60.0s)
+    - Valid MP4 container (1080x1920 video, audio present, duration 20.0s - 75.0s)
     - Metadata maps to real non-published, non-failed job
     - Database state compatible with READY (not already published or processing)
     """
@@ -132,9 +132,10 @@ def is_valid_ready_short(
             if topic_id.startswith(("top_test_", "test_")):
                 return False, f"Test artifact topic_id: '{topic_id}'"
 
-        # Voice property check — must match current production voice (af_bella)
+        # Voice property check — must match approved HP production voice
         v_prop = props.get("voice") or props.get("voice_id")
-        if v_prop and v_prop not in ("af_bella", "bella"):
+        allowed_hp_voices = ("af_bella", "bella", "male_18", "MALE_18_FenrirOnyx_DarkBaritone", "f5_tts")
+        if v_prop and v_prop not in allowed_hp_voices and not str(v_prop).startswith(("af_bella", "f5")):
             return False, f"Non-authoritative voice '{v_prop}' in properties (af_bella required)"
 
         # Foreign AL AMR artifact check
@@ -147,7 +148,7 @@ def is_valid_ready_short(
                 from core.models import HPRender
                 r = db.query(HPRender).filter(HPRender.video_path.ilike(f"%{name}%")).first()
                 if r:
-                    if r.voice_id not in ("af_bella", "bella"):
+                    if r.voice_id not in allowed_hp_voices and not str(r.voice_id).startswith(("af_bella", "f5")):
                         return False, f"Non-authoritative voice '{r.voice_id}' (af_bella required)"
                     if r.qa_status != "PASSED":
                         return False, f"QA status is '{r.qa_status}'"
@@ -211,8 +212,8 @@ def is_valid_ready_short(
         if (w != 1080 or h != 1920) and not allow_test_artifacts:
             return False, f"Resolution {w}x{h} != 1080x1920"
         dur = float(media_info.get("duration", 0.0))
-        if (dur < 20.0 or dur > 60.0) and not allow_test_artifacts:
-            return False, f"Duration {dur:.1f}s out of acceptable range (20.0s - 60.0s)"
+        if (dur < 20.0 or dur > 75.0) and not allow_test_artifacts:
+            return False, f"Duration {dur:.1f}s out of acceptable range (20.0s - 75.0s)"
     except Exception as probe_err:
         if not allow_test_artifacts:
             return False, f"Media inspection failed: {probe_err}"
