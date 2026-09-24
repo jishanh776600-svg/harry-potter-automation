@@ -379,39 +379,18 @@ class TTSEngine:
     @staticmethod
     def compress_silence_gaps(input_wav: Path, output_wav: Path, max_pause_sec: float = EFFECTIVE_MAX_SILENCE_CAP_SEC) -> Tuple[bool, float]:
         """
-        Compresses dead air and excessive pauses between spoken phrases/sentences down to max_pause_sec.
+        Compresses dead air and excessive pauses between spoken phrases/sentences down to max_pause_sec (<= 0.20s).
         Preserves natural breathing pauses (110-140ms) without clipping words or phonemes.
         """
         try:
-            data, sr = sf.read(str(input_wav))
-            if len(data) == 0:
-                return False, 0.0
-
-            # 10ms frame analysis
-            frame_len = max(1, int(0.01 * sr))
-            frames = [data[i : i + frame_len] for i in range(0, len(data), frame_len)]
-            rms = [float(np.sqrt(np.mean(f**2))) if len(f) > 0 else 0.0 for f in frames]
-            silence_thresh = 0.012  # RMS threshold for acoustic silence
-            is_silence = [r < silence_thresh for r in rms]
-
-            max_silence_frames = max(2, int(max_pause_sec / 0.01))
-            new_frames = []
-            cur_silence = 0
-            for f, is_sil in zip(frames, is_silence):
-                if is_sil:
-                    cur_silence += 1
-                    if cur_silence <= max_silence_frames:
-                        new_frames.append(f)
-                else:
-                    cur_silence = 0
-                    new_frames.append(f)
-
-            if new_frames:
-                compressed = np.concatenate(new_frames, axis=0)
-                sf.write(str(output_wav), compressed, sr)
-                new_dur = round(len(compressed) / float(sr), 2)
-                return True, new_dur
-            return False, 0.0
+            from engines.tts.voice_pause_compressor import VoicePauseCompressor
+            res = VoicePauseCompressor.compress_pause_gaps(
+                input_wav=input_wav,
+                output_wav=output_wav,
+                max_pause_sec=max_pause_sec,
+                target_pause_sec=min(0.15, max_pause_sec),
+            )
+            return res.get("success", False), res.get("compressed_duration", 0.0)
         except Exception as e:
             logger.warning(f"Silence compression notice: {e}")
             return False, 0.0
