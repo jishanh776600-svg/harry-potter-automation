@@ -93,17 +93,30 @@ def validate_evidence_lineage(
     """
     Guarantees immutable evidence lineage:
     ACQUISITION -> BEAST V2 -> EDITORIAL.
-    If BEAST V2 says NO_VALID_VISUAL, Editorial cannot upgrade to DIRECT.
-    If media_category is not video, cannot be DIRECT_EVIDENCE.
-    Only BEAST V2 can establish the evidence class.
+    1. If BEAST V2 says NO_VALID_VISUAL, Editorial MUST retain NO_VALID_VISUAL.
+    2. CONTEXT cannot become DIRECT_EVIDENCE.
+    3. CONTRAST cannot become DIRECT_EVIDENCE.
+    4. Non-video assets are strictly forbidden (VIDEO-ONLY policy).
     """
     if beast_decision == BeastV2Decision.NO_VALID_VISUAL:
         return EvidenceType.NO_VALID_VISUAL
 
-    if media_category != "video" and claimed_evidence == EvidenceType.DIRECT_EVIDENCE:
+    if media_category.lower() != "video":
         raise ValueError(
-            "LINEAGE VIOLATION: Non-video assets (artwork, stills, images) can NEVER be classified as DIRECT_EVIDENCE."
+            f"LINEAGE VIOLATION: VIDEO-ONLY POLICY VIOLATION: Non-video assets (artwork, stills, images) can NEVER be classified as DIRECT_EVIDENCE. Media category '{media_category}' is forbidden. Only video assets permitted."
         )
+
+    # Check promotion guards
+    claimed_val = claimed_evidence.value if hasattr(claimed_evidence, "value") else str(claimed_evidence)
+    if claimed_val == EvidenceType.DIRECT_EVIDENCE.value:
+        if beast_decision in (BeastV2Decision.ACCEPT_CONTEXT, BeastV2Decision.ACCEPT_ORIENTATION):
+            raise ValueError(
+                "LINEAGE VIOLATION: CONTEXT cannot be silently promoted to DIRECT_EVIDENCE. Context must remain orientation only."
+            )
+        if beast_decision == BeastV2Decision.ACCEPT_CONTRAST:
+            raise ValueError(
+                "LINEAGE VIOLATION: CONTRAST cannot be silently promoted to DIRECT_EVIDENCE. Movie reality contrast must remain CONTRAST."
+            )
 
     return claimed_evidence
 

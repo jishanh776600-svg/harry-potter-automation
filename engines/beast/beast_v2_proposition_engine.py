@@ -142,9 +142,13 @@ class BeastV2PropositionEngine:
         prop_subject = (proposition.subject or "").strip()
         prop_action = (proposition.action or "").strip()
         prop_object = (proposition.object or "").strip()
-        prop_context = (proposition.context or "").strip()
-        is_obj_centric = self.is_object_centric_proposition(proposition)
-        role_upper = (proposition.visual_role or "").upper()
+        # ----------------------------------------------------------------------
+        # 0. EXPLICIT NO_VALID_VISUAL PROPOSITION CHECK
+        # ----------------------------------------------------------------------
+        req_rel = getattr(proposition, "required_relationship", None)
+        req_rel_val = req_rel.value if hasattr(req_rel, "value") else str(req_rel)
+        if role_upper in ("NO_VALID_VISUAL", "NO_VALID_DIRECT_VISUAL") or req_rel_val == "NO_VALID_VISUAL":
+            gating_failures.append("Proposition explicitly designated as NO_VALID_VISUAL (omitted from film).")
 
         # ----------------------------------------------------------------------
         # A. SOURCE-AWARE EVIDENCE SEPARATION
@@ -430,7 +434,8 @@ class BeastV2PropositionEngine:
             try:
                 from engines.acquisition.query_generator import AcquisitionQueryGenerator
                 from core.acquisition_types import AssetAcquisitionRequest, MediaCategory
-                queries = AcquisitionQueryGenerator.generate_queries(proposition, MediaCategory.IMAGE)
+                # VIDEO ONLY policy: NEVER acquire images or stock
+                queries = AcquisitionQueryGenerator.generate_queries(proposition, MediaCategory.VIDEO)
                 if queries:
                     acq_res = self.asset_acquisition_engine.acquire_asset(
                         AssetAcquisitionRequest(

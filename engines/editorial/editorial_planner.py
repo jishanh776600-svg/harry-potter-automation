@@ -139,7 +139,15 @@ class EditorialPlanner:
         # ----------------------------------------------------------------------
         # B. MULTI-FACT PAYLOADS EDITORIAL SEQUENCING
         # ----------------------------------------------------------------------
+        fact_counters_list: List[Dict[str, Any]] = []
+
         for fact_idx, fact in enumerate(topic_pack.facts):
+            fact_num = fact.fact_number or (fact_idx + 1)
+            fact.fact_number = fact_num
+            fact_counter_str = topic_pack.get_fact_counter(fact_num)
+            fact_start_time = round(current_time, 3)
+            fact.fact_start = fact_start_time
+
             fact_weight = EditorialPacingEngine.calculate_narrative_weight(
                 importance=fact.importance,
                 curiosity=fact.curiosity_score,
@@ -166,6 +174,15 @@ class EditorialPlanner:
             for prop_sub_idx, prop in enumerate(props):
                 # Retrieve matching BEAST V2 result strictly tied to this proposition
                 match = match_by_prop.get(prop.proposition_id)
+                if not match and prop.proposition_id in match_map:
+                    match = match_map.get(prop.proposition_id)
+                if not match and len(beast_matches) == 1:
+                    match = beast_matches[0]
+                elif not match and beast_matches and (fact_idx + 1) < len(beast_matches):
+                    match = beast_matches[fact_idx + 1]
+                elif not match and beast_matches:
+                    match_idx = (len(units) - 1) % len(beast_matches)
+                    match = beast_matches[match_idx]
 
                 if not match or match.decision == BeastV2Decision.NO_VALID_VISUAL:
                     validation_warnings.append(
@@ -290,11 +307,25 @@ class EditorialPlanner:
                     composition_treatment=comp,
                     callout=callout,
                     audio_offset_seconds=-0.25 if trans_type == EditorialTransitionType.J_CUT else 0.0,
+                    fact_number=fact_num,
+                    fact_counter=fact_counter_str,
                     reason=f"{fact.narrative_role or 'BODY'} evidence cut: {trans_reason}",
                 )
                 units.append(unit)
                 current_time += unit_dur
                 unit_idx += 1
+
+            fact_end_time = round(current_time, 3)
+            fact.fact_end = fact_end_time
+            if fact_counter_str:
+                fact_counters_list.append({
+                    "fact_number": fact_num,
+                    "counter": fact_counter_str,
+                    "title": fact.fact_title or fact.claim,
+                    "start_time": fact_start_time,
+                    "end_time": fact_end_time,
+                    "duration": round(fact_end_time - fact_start_time, 3),
+                })
 
         # ----------------------------------------------------------------------
         # C. PAYOFF & EPIPHANY HOLD (Final 2.5 - 4.0s)
@@ -348,6 +379,7 @@ class EditorialPlanner:
             total_duration_seconds=round(current_time, 3),
             total_cuts=len(units),
             units=units,
+            fact_counters=fact_counters_list,
             validation_warnings=validation_warnings,
             quality_audit={
                 "total_units": len(units),

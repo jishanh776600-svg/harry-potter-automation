@@ -142,6 +142,8 @@ class EditorialUnit:
     split_screen_asset_id: Optional[str] = None
     pip_asset_id: Optional[str] = None
     audio_offset_seconds: float = 0.0               # J-cut / L-cut offset
+    fact_number: Optional[int] = None               # 1-indexed fact number (1, 2, 3...)
+    fact_counter: Optional[str] = None              # "FACT 01", "FACT 02", etc. (absent if single fact or Novel Story)
     reason: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
@@ -153,6 +155,8 @@ class EditorialUnit:
         d["sfx_treatment"] = self.sfx_treatment.value
         d["composition_treatment"] = self.composition_treatment.value
         d["callout"] = self.callout.to_dict() if self.callout else None
+        d["fact_number"] = self.fact_number
+        d["fact_counter"] = self.fact_counter
         return d
 
 
@@ -167,6 +171,7 @@ class EditorialTimelineV2:
     total_duration_seconds: float
     total_cuts: int
     units: List[EditorialUnit] = field(default_factory=list)
+    fact_counters: List[Dict[str, Any]] = field(default_factory=list)
     deterministic_fingerprint: str = ""
     is_valid: bool = True
     validation_warnings: List[str] = field(default_factory=list)
