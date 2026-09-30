@@ -1,0 +1,174 @@
+{
+  "benchmark_name": "SmolVLM2-500M Editorial Video Auditor Benchmark",
+  "version": "1.0.0",
+  "description": "Controlled benchmark evaluating SmolVLM2-500M-Video-Instruct for editorial narrative-to-visual evidence auditing on standard GitHub runner",
+  "categories": [
+    "A_KNOWN_NEGATIVE_SORTING_HAT_FAILURE",
+    "B_KNOWN_POSITIVE",
+    "C_SAME_CHARACTER_WRONG_EVENT",
+    "D_CORRECT_EVENT",
+    "E_NON_VISUAL_INTERNAL_CLAIM"
+  ],
+  "test_cases": [
+    {
+      "id": "A1_sorting_hat_beat1_landscape",
+      "category": "A_KNOWN_NEGATIVE_SORTING_HAT_FAILURE",
+      "title": "Sorting Hat Beat 1 - Slytherin Consideration vs Hogwarts Lake Pan",
+      "claim": "Did you know the Sorting Hat considered placing Harry Potter in Slytherin?",
+      "video_file": "final_disc_sorting_hat_debate_1790453701.mp4",
+      "beat_window_sec": [0.0, 3.5],
+      "frame_timestamps": [0.5, 1.75, 3.0],
+      "frame_files": [
+        "sorting_beat1_f1_0.50s.jpg",
+        "sorting_beat1_f2_1.75s.jpg",
+        "sorting_beat1_f3_3.00s.jpg"
+      ],
+      "ground_truth": "DOES_NOT_SUPPORT",
+      "expected_subjects": [],
+      "expected_objects": [],
+      "expected_location": "Hogwarts castle exterior / mountains / lake landscape",
+      "expected_action": "Scenic landscape pan across mountains and water",
+      "ground_truth_rationale": "The footage displays a scenic exterior camera pan of Hogwarts and a lake. No Sorting Hat is visible, Harry Potter is not visible, and no Sorting ceremony or Slytherin discussion occurs."
+    },
+    {
+      "id": "A2_sorting_hat_beat2_action",
+      "category": "A_KNOWN_NEGATIVE_SORTING_HAT_FAILURE",
+      "title": "Sorting Hat Beat 2 - Hat Placed on Head & Detected Ambition",
+      "claim": "When placed on his head, the hat detected great talent, resourcefulness, and hidden ambition.",
+      "video_file": "final_disc_sorting_hat_debate_1790453701.mp4",
+      "beat_window_sec": [3.5, 7.8],
+      "frame_timestamps": [4.5, 5.65, 7.0],
+      "frame_files": [
+        "sorting_beat2_f1_4.50s.jpg",
+        "sorting_beat2_f2_5.65s.jpg",
+        "sorting_beat2_f3_7.00s.jpg"
+      ],
+      "ground_truth": "PARTIALLY_SUPPORTS",
+      "expected_subjects": ["Harry Potter", "Professor McGonagall"],
+      "expected_objects": ["Sorting Hat", "Stool"],
+      "expected_location": "Hogwarts Great Hall",
+      "expected_action": "The Sorting Hat is lowered onto Harry Potter's head",
+      "ground_truth_rationale": "The physical action of placing the Sorting Hat onto Harry's head is directly visible. However, the internal cognitive/metaphysical detection of 'great talent, resourcefulness, and hidden ambition' is non-visual lore that cannot be directly proven by the visual frames."
+    },
+    {
+      "id": "A3_sorting_hat_beat3_wandshop_mismatch",
+      "category": "A_KNOWN_NEGATIVE_SORTING_HAT_FAILURE",
+      "title": "Sorting Hat Beat 3 - Hat Debates Out Loud vs Ollivander Wand Handover",
+      "claim": "In the book, the hat debates out loud, explicitly naming Slytherin before Harry pleads for Gryffindor.",
+      "video_file": "final_disc_sorting_hat_debate_1790453701.mp4",
+      "beat_window_sec": [7.8, 12.1],
+      "frame_timestamps": [8.8, 10.0, 11.5],
+      "frame_files": [
+        "sorting_beat3_f1_8.80s.jpg",
+        "sorting_beat3_f2_10.00s.jpg",
+        "sorting_beat3_f3_11.50s.jpg"
+      ],
+      "ground_truth": "DOES_NOT_SUPPORT",
+      "expected_subjects": ["Harry Potter", "Mr. Ollivander"],
+      "expected_objects": ["Magic wand", "Wand box"],
+      "expected_location": "Ollivanders Wand Shop in Diagon Alley",
+      "expected_action": "Ollivander handing a wand box to Harry Potter",
+      "ground_truth_rationale": "CRITICAL MISMATCH: Narration discusses the Sorting Hat debating aloud between Slytherin and Gryffindor in the Great Hall, but the rendered visual is Mr. Ollivander handing Harry a wand in his Diagon Alley shop. Completely unrelated scene, location, and action."
+    },
+    {
+      "id": "A4_sorting_hat_beat4_quidditch_mismatch",
+      "category": "A_KNOWN_NEGATIVE_SORTING_HAT_FAILURE",
+      "title": "Sorting Hat Beat 4 - Hat Honours Choice vs Quidditch Snitch Catch",
+      "claim": "The hat honours his choice -- but the ambition it sensed would define his entire journey.",
+      "video_file": "final_disc_sorting_hat_debate_1790453701.mp4",
+      "beat_window_sec": [12.1, 16.0],
+      "frame_timestamps": [13.0, 14.0, 15.2],
+      "frame_files": [
+        "sorting_beat4_f1_13.00s.jpg",
+        "sorting_beat4_f2_14.00s.jpg",
+        "sorting_beat4_f3_15.20s.jpg"
+      ],
+      "ground_truth": "DOES_NOT_SUPPORT",
+      "expected_subjects": ["Harry Potter"],
+      "expected_objects": ["Golden Snitch", "Quidditch robes"],
+      "expected_location": "Quidditch pitch",
+      "expected_action": "Harry tumbling on grass and catching the Golden Snitch",
+      "ground_truth_rationale": "CRITICAL MISMATCH: Narration discusses the Sorting Hat honouring Harry's house choice, but the rendered visual is Harry catching the Golden Snitch on the Quidditch pitch. Completely unrelated sporting event."
+    },
+    {
+      "id": "B1_known_positive_snitch_catch",
+      "category": "B_KNOWN_POSITIVE",
+      "title": "Known Positive - Harry Catches Golden Snitch in Quidditch",
+      "claim": "During his first Quidditch match, Harry Potter caught the Golden Snitch to win the game.",
+      "video_file": "m1_snitch_catch.mp4",
+      "beat_window_sec": [0.0, 5.7],
+      "frame_timestamps": [1.0, 2.5, 4.0],
+      "frame_files": [
+        "snitch_pos_f1_1.00s.jpg",
+        "snitch_pos_f2_2.50s.jpg",
+        "snitch_pos_f3_4.00s.jpg"
+      ],
+      "ground_truth": "SUPPORTS",
+      "expected_subjects": ["Harry Potter"],
+      "expected_objects": ["Golden Snitch", "Quidditch robes"],
+      "expected_location": "Quidditch pitch",
+      "expected_action": "Harry Potter catches and displays the Golden Snitch",
+      "ground_truth_rationale": "Direct positive alignment: Harry Potter in Quidditch attire catches and presents the Golden Snitch on the field."
+    },
+    {
+      "id": "C1_same_character_wrong_event",
+      "category": "C_SAME_CHARACTER_WRONG_EVENT",
+      "title": "Same Character Wrong Event - Harry Wand Selection vs Quidditch Catch Claim",
+      "claim": "Harry Potter is flying on his broomstick chasing the Golden Snitch during a Quidditch match.",
+      "video_file": "m1_ollivander_wand_handover.mp4",
+      "beat_window_sec": [0.0, 3.0],
+      "frame_timestamps": [0.5, 1.5, 2.5],
+      "frame_files": [
+        "wand_samechar_f1_0.50s.jpg",
+        "wand_samechar_f2_1.50s.jpg",
+        "wand_samechar_f3_2.50s.jpg"
+      ],
+      "ground_truth": "DOES_NOT_SUPPORT",
+      "expected_subjects": ["Harry Potter", "Mr. Ollivander"],
+      "expected_objects": ["Magic wand", "Wand box", "Shelves of wands"],
+      "expected_location": "Ollivanders Wand Shop",
+      "expected_action": "Harry being handed a wand in a shop",
+      "ground_truth_rationale": "Harry Potter is clearly present, but the visible action is choosing a wand in Ollivanders shop, NOT flying on a broomstick or chasing a Golden Snitch."
+    },
+    {
+      "id": "D1_correct_event_sorting_ceremony",
+      "category": "D_CORRECT_EVENT",
+      "title": "Correct Event - McGonagall Places Sorting Hat on Harry",
+      "claim": "Professor McGonagall places the ancient Sorting Hat onto Harry Potter's head during the sorting ceremony.",
+      "video_file": "m1_sorting_hat_placed.mp4",
+      "beat_window_sec": [0.0, 5.5],
+      "frame_timestamps": [1.5, 3.0, 4.5],
+      "frame_files": [
+        "hat_event_f1_1.50s.jpg",
+        "hat_event_f2_3.00s.jpg",
+        "hat_event_f3_4.50s.jpg"
+      ],
+      "ground_truth": "SUPPORTS",
+      "expected_subjects": ["Professor McGonagall", "Harry Potter"],
+      "expected_objects": ["Sorting Hat", "Stool"],
+      "expected_location": "Hogwarts Great Hall",
+      "expected_action": "McGonagall lowers the Sorting Hat onto Harry's head",
+      "ground_truth_rationale": "Direct positive alignment: Professor McGonagall lowers the pointed Sorting Hat onto Harry's head in front of the Great Hall."
+    },
+    {
+      "id": "E1_non_visual_internal_claim",
+      "category": "E_NON_VISUAL_INTERNAL_CLAIM",
+      "title": "Non-Visual Internal Claim - Hat Senses Voldemort Soul Fragment",
+      "claim": "The Sorting Hat sensed Harry Potter's secret internal thoughts and the hidden soul fragment of Lord Voldemort.",
+      "video_file": "m1_sorting_hat_placed.mp4",
+      "beat_window_sec": [0.0, 5.5],
+      "frame_timestamps": [1.5, 3.0, 4.5],
+      "frame_files": [
+        "hat_nonvis_f1_1.50s.jpg",
+        "hat_nonvis_f2_3.00s.jpg",
+        "hat_nonvis_f3_4.50s.jpg"
+      ],
+      "ground_truth": "DOES_NOT_SUPPORT",
+      "expected_subjects": ["Harry Potter", "Professor McGonagall"],
+      "expected_objects": ["Sorting Hat"],
+      "expected_location": "Hogwarts Great Hall",
+      "expected_action": "Harry sitting quietly with the hat on his head",
+      "ground_truth_rationale": "While Harry wearing the hat is visible, internal mental thoughts and metaphysical soul fragments cannot be visually verified by camera frames. An editorial auditor must distinguish physical appearance from unverified internal lore."
+    }
+  ]
+}

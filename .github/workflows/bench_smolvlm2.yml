@@ -1,0 +1,95 @@
+name: SmolVLM2 500M Video Instruct Benchmark
+
+# ==============================================================================
+# ISOLATED BENCHMARK WORKFLOW ONLY:
+# Evaluates HuggingFaceTB/SmolVLM2-500M-Video-Instruct on standard GitHub runner.
+# NO PRODUCTION CODE MODIFIED. NO PUBLISHING. NO SCHEDULING.
+# ==============================================================================
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - bench/smolvlm2-eval
+
+permissions:
+  contents: read
+
+concurrency:
+  group: smolvlm2-benchmark
+  cancel-in-progress: false
+
+jobs:
+  smolvlm2_benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout Benchmark Repository
+        uses: actions/checkout@v4
+
+      - name: Inspect Hardware & Runner Environment
+        run: |
+          echo "============================================================"
+          echo "GITHUB RUNNER ENVIRONMENT AUDIT"
+          echo "============================================================"
+          echo "OS: $(uname -a)"
+          cat /etc/os-release | grep -E "PRETTY_NAME|VERSION" || true
+          echo "ImageOS: $ImageOS"
+          echo "ImageVersion: $ImageVersion"
+          echo "Runner Name: $RUNNER_NAME"
+          echo "CPU Model: $(lscpu | grep 'Model name' | head -n 1)"
+          echo "CPU Cores: $(nproc)"
+          echo "RAM Total:"
+          free -h
+          echo "Disk Space:"
+          df -h /
+          echo "GPU Status:"
+          if command -v nvidia-smi &> /dev/null; then
+            nvidia-smi
+          else
+            echo "No NVIDIA GPU detected on standard GitHub-hosted runner (CPU execution mode)"
+          fi
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install Benchmark Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # Use CPU-optimized PyTorch wheels for rapid installation (~180MB vs 2.5GB)
+          pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+          pip install "transformers>=4.48.0" accelerate pillow psutil av decord huggingface_hub
+
+      - name: Verify Dependencies & PyTorch
+        run: |
+          python -c "
+          import torch, transformers, PIL, psutil
+          print(f'PyTorch: {torch.__version__} (CUDA: {torch.cuda.is_available()})')
+          print(f'Transformers: {transformers.__version__}')
+          print(f'Pillow: {PIL.__version__}')
+          print(f'CPU count: {psutil.cpu_count()}')
+          "
+
+      - name: Execute SmolVLM2-500M Video Benchmark
+        run: |
+          python benchmark/smolvlm2/run_benchmark.py
+
+      - name: Post Report to GitHub Step Summary
+        if: always()
+        run: |
+          if [ -f "benchmark/smolvlm2/smolvlm2_500m_github_benchmark_report.md" ]; then
+            cat benchmark/smolvlm2/smolvlm2_500m_github_benchmark_report.md >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload Benchmark Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smolvlm2-benchmark-results
+          path: |
+            benchmark/smolvlm2/benchmark_results.json
+            benchmark/smolvlm2/smolvlm2_500m_github_benchmark_report.md
