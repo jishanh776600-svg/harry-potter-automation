@@ -62,7 +62,7 @@ jobs:
           python -m pip install --upgrade pip
           # Use CPU-optimized PyTorch wheels for rapid installation (~180MB vs 2.5GB)
           pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-          pip install "transformers>=4.48.0" accelerate pillow psutil av decord huggingface_hub
+          pip install "transformers>=4.48.0" accelerate pillow psutil av decord huggingface_hub num2words
 
       - name: Verify Dependencies & PyTorch
         run: |
