@@ -647,7 +647,8 @@ def generate_markdown_report(data: Dict[str, Any], out_path: Path):
     md.append("5. **Can it detect the exact type of visual/narrative mismatch that destroyed the previous Sorting Hat Short?**\n")
     md.append(f"   - **{crit['verdict']}**. The model correctly distinguished that exterior lake pan, Diagon Alley wand shop, and Quidditch flying footage did NOT support the Sorting Hat debate narration.\n\n")
 
-    rec = "YES" if (sorting_hat_pass and perf["extrapolated_25_30s_short_time_min"] < 10.0 and data['summary']['runner_ram_percent_consumed'] < 70.0) else "NEEDS MORE TESTING"
+    sorting_hat_pass = (crit["verdict"] == "PASS")
+    rec = "YES" if (sorting_hat_pass and perf["extrapolated_25_30s_short_time_min"] < 10.0 and data['summary']['runner_ram_percent_consumed'] < 70.0) else "NO"
     md.append("## Recommendation\n\n")
     md.append(f"### SMOLVLM2 PRODUCTION CANDIDATE: **{rec}**\n\n")
     md.append("SmolVLM2-500M exhibits genuine semantic distinction between narration claims and actual visual footage. It is technically and economically feasible on standard GitHub Actions CPU runners without requiring expensive GPU infrastructure. However, per project directives, it remains strictly isolated and is NOT integrated into active production pipelines.\n")
