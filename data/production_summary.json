@@ -1,12 +1,12 @@
 {
   "action": "MAINTAIN_BUFFER",
-  "outcome": "SUCCEEDED",
-  "block_reason": null,
+  "outcome": "PARTIAL",
+  "block_reason": "Discovery Short candidate 'disc_snape_first_words_v1' failed: Visual retrieval yielded 0 accepted movie shots for disc_snape_first_words_v1; Discovery Short candidate 'disc_devils_snare_1790797829' failed: Visual retrieval yielded 0 accepted movie shots for disc_devils_snare_1790797829",
   "requested_deficit": 8,
-  "produced_count": 4,
+  "produced_count": 2,
   "initial_stock": 0,
-  "final_stock": 4,
+  "final_stock": 2,
   "target_stock": 8,
   "voice": "af_bella",
-  "timestamp": "2026-10-01T20:02:35.439904Z"
+  "timestamp": "2026-10-01T22:15:38.733861Z"
 }
