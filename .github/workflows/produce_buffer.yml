@@ -8,9 +8,9 @@ name: YouTube Shorts Cloud Buffer Producer
 
 on:
   schedule:
-    # Autonomous buffer maintenance: Checks Drive 01_READY stock every 4 hours.
+    # Autonomous buffer maintenance: Checks Drive 01_READY stock every 2 hours.
     # Exits cleanly in <15s if buffer is satisfied (8/8). Replenishes if deficit detected.
-    - cron: '0 */4 * * *'
+    - cron: '0 */2 * * *'
   workflow_dispatch:
     inputs:
       target_buffer:
@@ -128,8 +128,11 @@ jobs:
           echo "HP_YOUTUBE_CHANNEL_ID=UCsghEXDa3EzxI4d93cjT-bQ" >> .env
           echo "HP_YOUTUBE_CHANNEL_NAME=STORY FORGE" >> .env
           echo "VISUAL_SOURCE_PRIORITY=movie_footage" >> .env
+          echo "DISCOVERY_ONLY=true" >> .env
           echo "TARGET_RESERVE_BUFFER=8" >> .env
           echo "SHORTS_PER_DAY=4" >> .env
+          echo "NOVEL_SHORTS_PER_DAY=0" >> .env
+          echo "DISCOVERY_SHORTS_PER_DAY=4" >> .env
           echo "SCHEDULING_HORIZON_HOURS=48" >> .env
           echo "PUBLISHING_ENABLED=false" >> .env
           echo "UPLOAD_ENABLED=false" >> .env

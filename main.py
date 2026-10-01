@@ -877,6 +877,57 @@ class ShortsPipeline:
         outcome_color = "green" if telemetry.status == "SUCCEEDED" else ("yellow" if telemetry.status == "PARTIAL" else ("cyan" if telemetry.status == "BLOCKED" else "red"))
         reasons_str = "; ".join(telemetry.failure_reasons) if telemetry.failure_reasons else "None"
 
+        # Explicit Observability Report (PART D)
+        ceiling = getattr(telemetry, "production_ceiling", 4)
+        run_start = getattr(telemetry, "start_time_iso", "") or (datetime.utcnow().isoformat() + "Z")
+        run_end = getattr(telemetry, "end_time_iso", "") or (datetime.utcnow().isoformat() + "Z")
+        trig_type = getattr(telemetry, "trigger_type", "MANUAL")
+        lock_st = getattr(telemetry, "lock_status", "NONE")
+        
+        failure_msg = "; ".join(telemetry.failure_reasons) if telemetry.failure_reasons else "NONE"
+        zero_reason = ""
+        if telemetry.videos_deposited == 0:
+            if req_deficit == 0:
+                zero_reason = f"READY target already satisfied (Current {telemetry.initial_ready_stock} >= Target {clamped_target})"
+            elif telemetry.status == "BLOCKED":
+                zero_reason = f"Active lock held in Drive vault ({lock_st})"
+            elif telemetry.circuit_breaker_tripped:
+                zero_reason = f"Circuit breaker tripped after failures ({failure_msg})"
+            elif telemetry.events_rejected > 0 and telemetry.videos_deposited == 0:
+                zero_reason = f"All candidate topics rejected by editorial/visual gates ({failure_msg})"
+            else:
+                zero_reason = f"Production deficit unmet: {failure_msg}"
+
+        sep = "=" * 80
+        report_lines = [
+            "",
+            sep,
+            "STORY FORGE REFILL OBSERVABILITY REPORT",
+            sep,
+            f"RUN START:                     {run_start}",
+            f"RUN END:                       {run_end}",
+            f"TRIGGER TYPE:                  {trig_type}",
+            f"READY BEFORE:                  {telemetry.initial_ready_stock}",
+            f"READY TARGET:                  {clamped_target}",
+            f"CALCULATED DEFICIT:            {req_deficit}",
+            f"PRODUCTION CEILING:            {ceiling}",
+            f"DISCOVERY TOPICS FOUND:        {telemetry.events_discovered}",
+            f"TOPICS REJECTED:               {telemetry.events_rejected}",
+            f"REJECTION REASONS:             {failure_msg}",
+            f"SHORTS GENERATED:              {telemetry.videos_rendered}",
+            f"SHORTS PASSED FINAL VERIFIER:  {telemetry.videos_qa_passed}",
+            f"SHORTS DEPOSITED TO 01_READY:  {telemetry.videos_deposited}",
+            f"SHORTS QUARANTINED:            {telemetry.videos_qa_failed}",
+            f"READY AFTER:                   {telemetry.final_ready_stock}",
+            f"FAILURE REASON:                {failure_msg}",
+            f"LOCK STATUS:                   {lock_st}",
+        ]
+        if zero_reason:
+            report_lines.append(f"ZERO GENERATED REASON:         {zero_reason}")
+        report_lines.append(sep)
+        report_lines.append("")
+        print("\n".join(report_lines))
+
         console.print(Panel.fit(
             f"[bold {outcome_color}]=== REFILL AUDIT: Buffer Maintenance Complete ===[/bold {outcome_color}]\n"
             f"• Target Reserve: [bold white]{clamped_target}[/bold white] Shorts (01_READY)\n"
@@ -1503,6 +1554,14 @@ class ShortsPipeline:
                 fresh_ready_files.append(candidate)
 
             all_eligible_candidates = fresh_ready_files + recovered_candidates
+
+            # Enforce DISCOVERY_ONLY mode: filter out any NOVEL_STORY candidates
+            is_disc_only = os.getenv("DISCOVERY_ONLY", "true").lower() in ("true", "1", "yes")
+            if is_disc_only:
+                all_eligible_candidates = [
+                    cand for cand in all_eligible_candidates
+                    if _detect_candidate_format(cand) != "NOVEL_STORY"
+                ]
 
             # Intra-batch deduplication: prevent scheduling two videos for the same story in the same run
             if len(all_eligible_candidates) > 1:

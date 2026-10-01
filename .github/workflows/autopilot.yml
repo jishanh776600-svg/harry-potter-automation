@@ -98,8 +98,11 @@ jobs:
           echo "HP_YOUTUBE_CHANNEL_ID=UCsghEXDa3EzxI4d93cjT-bQ" >> .env
           echo "HP_YOUTUBE_CHANNEL_NAME=STORY FORGE" >> .env
           echo "VISUAL_SOURCE_PRIORITY=movie_footage" >> .env
+          echo "DISCOVERY_ONLY=true" >> .env
           echo "TARGET_RESERVE_BUFFER=8" >> .env
           echo "SHORTS_PER_DAY=4" >> .env
+          echo "NOVEL_SHORTS_PER_DAY=0" >> .env
+          echo "DISCOVERY_SHORTS_PER_DAY=4" >> .env
           echo "SCHEDULING_HORIZON_HOURS=48" >> .env
           echo "PUBLISHING_ENABLED=true" >> .env
           echo "UPLOAD_ENABLED=true" >> .env

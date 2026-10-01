@@ -129,11 +129,12 @@ PART_MARKER_ENABLED = os.getenv("PART_MARKER_ENABLED", "true").lower() == "true"
 PART_MARKER_FORMAT = os.getenv("PART_MARKER_FORMAT", "PART {:02d}")
 
 # Channel & Content Configuration (Harry Potter)
+DISCOVERY_ONLY = os.getenv("DISCOVERY_ONLY", "true").lower() in ("true", "1", "yes")
 NICHE = os.getenv("NICHE", "Harry Potter")
 DEFAULT_LANGUAGE = os.getenv("DEFAULT_LANGUAGE", "en")
 SHORTS_PER_DAY = int(os.getenv("SHORTS_PER_DAY", "4"))
-NOVEL_SHORTS_PER_DAY = int(os.getenv("NOVEL_SHORTS_PER_DAY", "2"))
-DISCOVERY_SHORTS_PER_DAY = int(os.getenv("DISCOVERY_SHORTS_PER_DAY", "2"))
+NOVEL_SHORTS_PER_DAY = 0 if DISCOVERY_ONLY else int(os.getenv("NOVEL_SHORTS_PER_DAY", "2"))
+DISCOVERY_SHORTS_PER_DAY = SHORTS_PER_DAY if DISCOVERY_ONLY else int(os.getenv("DISCOVERY_SHORTS_PER_DAY", "2"))
 TARGET_RESERVE_BUFFER = int(os.getenv("TARGET_RESERVE_BUFFER", "8"))
 SCHEDULING_HORIZON_HOURS = int(os.getenv("SCHEDULING_HORIZON_HOURS", "48"))
 PUBLISHING_PLATFORMS = [
@@ -145,8 +146,14 @@ def get_content_mix_allocation(total_shorts: int | None = None) -> dict[str, int
     """
     Returns configurable daily content allocation between Novel Storytelling and Discovery.
     Ratio can be dynamically adjusted by analytics/learning feedback loops (e.g. 2+2, 3+1, 1+3, 4+0, 0+4).
+    Enforces DISCOVERY_ONLY mode when active.
     """
     total = total_shorts if total_shorts is not None else SHORTS_PER_DAY
+    if DISCOVERY_ONLY:
+        return {
+            "novel_story": 0,
+            "discovery": total
+        }
     novel_target = int(os.getenv("NOVEL_SHORTS_PER_DAY", str(min(2, total))))
     discovery_target = int(os.getenv("DISCOVERY_SHORTS_PER_DAY", str(max(0, total - novel_target))))
     if novel_target + discovery_target != total:

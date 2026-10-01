@@ -59,10 +59,15 @@ MAX_RUN_REFILL_CEILING = int(os.getenv("MAX_RUN_REFILL_CEILING", "4"))
 class RefillTelemetry:
     run_id: str = field(default_factory=lambda: f"refill_{uuid.uuid4().hex[:8]}")
     status: str = "PENDING"  # SUCCEEDED, PARTIAL, BLOCKED, FAILED, BUFFER_SATISFIED
+    start_time_iso: str = ""
+    end_time_iso: str = ""
+    lock_status: str = "NONE"
+    trigger_type: str = "SCHEDULED_CRON"
     initial_ready_stock: int = 0
     final_ready_stock: int = 0
     target_stock: int = TARGET_RESERVE_BUFFER
     requested_deficit: int = 0
+    production_ceiling: int = MAX_RUN_REFILL_CEILING
     videos_deposited: int = 0
     videos_qa_passed: int = 0
     videos_qa_failed: int = 0
@@ -416,7 +421,15 @@ class HPAutonomousRefillEngine:
         6. Performs technical QA, uploads to 01_READY, and releases locks in finally.
         """
         start_time = time.time()
-        telemetry = RefillTelemetry(is_dry_run=self.is_dry_run)
+        start_iso = datetime.now(timezone.utc).isoformat()
+        trig_type = os.environ.get("GITHUB_EVENT_NAME", "MANUAL").upper()
+        if trig_type == "SCHEDULE":
+            trig_type = "SCHEDULED_CRON"
+        telemetry = RefillTelemetry(
+            is_dry_run=self.is_dry_run,
+            start_time_iso=start_iso,
+            trigger_type=trig_type
+        )
 
         # 1. Isolation Guardrails Check
         try:
@@ -425,6 +438,7 @@ class HPAutonomousRefillEngine:
             logger.critical(f"[Refill:Isolation] Guardrail check failed: {e}")
             telemetry.status = "FAILED"
             telemetry.failure_reasons.append(str(e))
+            telemetry.end_time_iso = datetime.now(timezone.utc).isoformat()
             telemetry.duration_seconds = round(time.time() - start_time, 2)
             return telemetry
 
@@ -438,10 +452,13 @@ class HPAutonomousRefillEngine:
         raw_deficit = force_batch_count if force_batch_count > 0 else audit["deficit"]
         effective_deficit = min(raw_deficit, MAX_RUN_REFILL_CEILING)
         telemetry.requested_deficit = effective_deficit
+        telemetry.production_ceiling = MAX_RUN_REFILL_CEILING
 
         # If buffer already satisfied and no force batch, return immediately (<15s)
         if effective_deficit == 0:
             telemetry.status = "SUCCEEDED"
+            telemetry.lock_status = "NOT_REQUIRED"
+            telemetry.end_time_iso = datetime.now(timezone.utc).isoformat()
             telemetry.duration_seconds = round(time.time() - start_time, 2)
             logger.info(
                 f"[Refill] Buffer target already satisfied: {telemetry.initial_ready_stock}/{telemetry.target_stock} in 01_READY. "
@@ -459,7 +476,9 @@ class HPAutonomousRefillEngine:
         if not process_lock.acquire():
             logger.warning("[Refill] Local process lock active. Exiting run safely.")
             telemetry.status = "BLOCKED"
+            telemetry.lock_status = "LOCAL_PROCESS_LOCK_HELD"
             telemetry.failure_reasons.append("Local process lock active")
+            telemetry.end_time_iso = datetime.now(timezone.utc).isoformat()
             telemetry.duration_seconds = round(time.time() - start_time, 2)
             return telemetry
 
@@ -474,13 +493,18 @@ class HPAutonomousRefillEngine:
             if not lock_mgr.acquire():
                 logger.warning("[Refill] Could not acquire cloud production lock in Drive vault. Safely deferring run.")
                 telemetry.status = "BLOCKED"
+                telemetry.lock_status = "CLOUD_LOCK_HELD_IN_DRIVE"
                 telemetry.failure_reasons.append("Cloud production lock held in Drive vault (00_SYSTEM)")
+                telemetry.end_time_iso = datetime.now(timezone.utc).isoformat()
                 telemetry.duration_seconds = round(time.time() - start_time, 2)
                 return telemetry
+            telemetry.lock_status = "ACQUIRED"
         except CloudLockError as cle:
             logger.warning(f"[Refill] Cloud lock error: {cle}. Safely deferring run.")
             telemetry.status = "BLOCKED"
+            telemetry.lock_status = f"CLOUD_LOCK_ERROR: {cle}"
             telemetry.failure_reasons.append(str(cle))
+            telemetry.end_time_iso = datetime.now(timezone.utc).isoformat()
             telemetry.duration_seconds = round(time.time() - start_time, 2)
             return telemetry
         finally:
@@ -528,6 +552,7 @@ class HPAutonomousRefillEngine:
                 telemetry.discovery_short_produced = disc_short_needed
                 telemetry.final_ready_stock = telemetry.initial_ready_stock + effective_deficit
                 telemetry.status = "SUCCEEDED"
+                telemetry.end_time_iso = datetime.now(timezone.utc).isoformat()
                 telemetry.duration_seconds = round(time.time() - start_time, 2)
                 return telemetry
 
@@ -640,13 +665,16 @@ class HPAutonomousRefillEngine:
         finally:
             try:
                 lock_mgr.release()
+                telemetry.lock_status = "ACQUIRED_AND_RELEASED"
             except Exception as le:
                 logger.warning(f"[Refill] Error releasing cloud lock: {le}")
+                telemetry.lock_status = f"RELEASE_ERROR: {le}"
             try:
                 process_lock.release()
             except Exception as pe:
                 logger.warning(f"[Refill] Error releasing process lock: {pe}")
             session.close()
 
+        telemetry.end_time_iso = datetime.now(timezone.utc).isoformat()
         telemetry.duration_seconds = round(time.time() - start_time, 2)
         return telemetry

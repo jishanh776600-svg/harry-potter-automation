@@ -174,6 +174,17 @@ class HPLearningStrategy:
         if total_deficit <= 0:
             return {"novel_story": 0, "discovery": 0}
 
+        is_disc_only = os.getenv("DISCOVERY_ONLY", "true").lower() in ("true", "1", "yes")
+        if is_disc_only or int(os.getenv("NOVEL_SHORTS_PER_DAY", "0")) == 0:
+            disc_big = total_deficit // 2 + (total_deficit % 2)
+            disc_short = total_deficit - disc_big
+            return {
+                "novel_story": 0,
+                "discovery": total_deficit,
+                "discovery_big": disc_big,
+                "discovery_short": disc_short,
+            }
+
         cfg = self.load_strategy()
         novel_ratio = cfg["content_mix"]["novel_story_ratio"]
 
