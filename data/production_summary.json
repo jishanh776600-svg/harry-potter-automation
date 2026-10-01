@@ -1,12 +1,12 @@
 {
   "action": "MAINTAIN_BUFFER",
-  "outcome": "BLOCKED",
-  "block_reason": "Cloud production lock held in Drive vault (00_SYSTEM)",
+  "outcome": "SUCCEEDED",
+  "block_reason": null,
   "requested_deficit": 8,
-  "produced_count": 0,
+  "produced_count": 4,
   "initial_stock": 0,
-  "final_stock": 0,
+  "final_stock": 4,
   "target_stock": 8,
   "voice": "af_bella",
-  "timestamp": "2026-10-01T15:33:53.918679Z"
+  "timestamp": "2026-10-01T15:53:17.748324Z"
 }
