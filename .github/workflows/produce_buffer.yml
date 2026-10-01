@@ -33,6 +33,11 @@ on:
         required: false
         default: false
         type: boolean
+      dry_run:
+        description: 'Simulate workflow and verify pipeline without rendering or depositing'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -155,14 +160,18 @@ jobs:
           if [ "${{ inputs.force_unlock }}" = "true" ]; then
             UNLOCK_FLAG="--force-unlock"
           fi
+          DRY_RUN_FLAG=""
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            DRY_RUN_FLAG="--dry-run"
+          fi
 
           if [ -n "$BATCH_COUNT" ] && [ "$BATCH_COUNT" -gt 0 ] 2>/dev/null; then
             echo "[*] Running targeted batch production for $BATCH_COUNT Shorts (Voice: ${VOICE_INPUT:-default})..."
-            python main.py --produce-batch "$BATCH_COUNT" $VOICE_FLAG $UNLOCK_FLAG
+            python main.py --produce-batch "$BATCH_COUNT" $VOICE_FLAG $UNLOCK_FLAG $DRY_RUN_FLAG
           else
             TARGET=${TARGET_BUFFER:-8}
             echo "[*] Auditing and maintaining reserve buffer (Target: $TARGET Shorts in 01_READY, Voice: ${VOICE_INPUT:-default})..."
-            python main.py --maintain-buffer "$TARGET" $VOICE_FLAG $UNLOCK_FLAG
+            python main.py --maintain-buffer "$TARGET" $VOICE_FLAG $UNLOCK_FLAG $DRY_RUN_FLAG
           fi
 
       - name: Upload & Synchronize Database to Cloud Vault

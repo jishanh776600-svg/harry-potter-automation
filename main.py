@@ -877,13 +877,29 @@ class ShortsPipeline:
         outcome_color = "green" if telemetry.status == "SUCCEEDED" else ("yellow" if telemetry.status == "PARTIAL" else ("cyan" if telemetry.status == "BLOCKED" else "red"))
         reasons_str = "; ".join(telemetry.failure_reasons) if telemetry.failure_reasons else "None"
 
-        # Explicit Observability Report (PART D)
+        # Explicit Observability Report (PART 8 Spec)
+        import subprocess
         ceiling = getattr(telemetry, "production_ceiling", 4)
         run_start = getattr(telemetry, "start_time_iso", "") or (datetime.utcnow().isoformat() + "Z")
         run_end = getattr(telemetry, "end_time_iso", "") or (datetime.utcnow().isoformat() + "Z")
-        trig_type = getattr(telemetry, "trigger_type", "MANUAL")
+        trig_type = os.environ.get("GITHUB_EVENT_NAME", getattr(telemetry, "trigger_type", "MANUAL")).upper()
+        if trig_type == "SCHEDULE":
+            trig_type = "SCHEDULED_CRON"
+        branch_name = os.environ.get("GITHUB_REF_NAME") or ""
+        commit_sha = os.environ.get("GITHUB_SHA") or ""
+        workflow_name = os.environ.get("GITHUB_WORKFLOW") or "YouTube Shorts Cloud Buffer Producer"
+        if not branch_name:
+            try:
+                branch_name = subprocess.check_output(["git", "branch", "--show-current"], stderr=subprocess.DEVNULL).decode().strip()
+            except Exception:
+                branch_name = "main"
+        if not commit_sha:
+            try:
+                commit_sha = subprocess.check_output(["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL).decode().strip()
+            except Exception:
+                commit_sha = "unknown"
+
         lock_st = getattr(telemetry, "lock_status", "NONE")
-        
         failure_msg = "; ".join(telemetry.failure_reasons) if telemetry.failure_reasons else "NONE"
         zero_reason = ""
         if telemetry.videos_deposited == 0:
@@ -905,22 +921,23 @@ class ShortsPipeline:
             "STORY FORGE REFILL OBSERVABILITY REPORT",
             sep,
             f"RUN START:                     {run_start}",
-            f"RUN END:                       {run_end}",
-            f"TRIGGER TYPE:                  {trig_type}",
+            f"TRIGGER:                       {trig_type}",
+            f"COMMIT SHA:                    {commit_sha}",
+            f"BRANCH:                        {branch_name}",
+            f"WORKFLOW NAME:                 {workflow_name}",
             f"READY BEFORE:                  {telemetry.initial_ready_stock}",
             f"READY TARGET:                  {clamped_target}",
-            f"CALCULATED DEFICIT:            {req_deficit}",
+            f"DEFICIT:                       {req_deficit}",
             f"PRODUCTION CEILING:            {ceiling}",
-            f"DISCOVERY TOPICS FOUND:        {telemetry.events_discovered}",
-            f"TOPICS REJECTED:               {telemetry.events_rejected}",
-            f"REJECTION REASONS:             {failure_msg}",
+            f"LOCK STATUS:                   {lock_st}",
+            f"PRODUCER START:                {run_start}",
+            f"PRODUCER END:                  {run_end}",
             f"SHORTS GENERATED:              {telemetry.videos_rendered}",
-            f"SHORTS PASSED FINAL VERIFIER:  {telemetry.videos_qa_passed}",
-            f"SHORTS DEPOSITED TO 01_READY:  {telemetry.videos_deposited}",
-            f"SHORTS QUARANTINED:            {telemetry.videos_qa_failed}",
+            f"SHORTS PASSED:                 {telemetry.videos_qa_passed}",
+            f"SHORTS DEPOSITED:              {telemetry.videos_deposited}",
             f"READY AFTER:                   {telemetry.final_ready_stock}",
             f"FAILURE REASON:                {failure_msg}",
-            f"LOCK STATUS:                   {lock_st}",
+            f"RUN CONCLUSION:                {telemetry.status}",
         ]
         if zero_reason:
             report_lines.append(f"ZERO GENERATED REASON:         {zero_reason}")

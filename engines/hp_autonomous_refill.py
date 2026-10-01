@@ -215,7 +215,7 @@ class HPAutonomousRefillEngine:
                 session.commit()
                 return new_script
 
-        elif content_type == "discovery":
+        elif content_type.startswith("discovery"):
             cand_query = session.query(DiscoveryCandidate).filter(
                 DiscoveryCandidate.status == "ELIGIBLE",
                 ~DiscoveryCandidate.id.in_(existing_script_cand_ids)
@@ -456,13 +456,13 @@ class HPAutonomousRefillEngine:
 
         # If buffer already satisfied and no force batch, return immediately (<15s)
         if effective_deficit == 0:
-            telemetry.status = "SUCCEEDED"
+            telemetry.status = "BUFFER_SATISFIED"
             telemetry.lock_status = "NOT_REQUIRED"
             telemetry.end_time_iso = datetime.now(timezone.utc).isoformat()
             telemetry.duration_seconds = round(time.time() - start_time, 2)
             logger.info(
                 f"[Refill] Buffer target already satisfied: {telemetry.initial_ready_stock}/{telemetry.target_stock} in 01_READY. "
-                "Zero production required. Exiting cleanly."
+                "Zero production required. Exiting cleanly with BUFFER_SATISFIED."
             )
             return telemetry
 
