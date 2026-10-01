@@ -1,12 +1,12 @@
 {
   "action": "MAINTAIN_BUFFER",
-  "outcome": "SUCCEEDED",
-  "block_reason": null,
+  "outcome": "FAILED",
+  "block_reason": "Discovery Big candidate 'hps_disc_peeves_poltergeist_b1' failed: Rendering failed: BGM CONFIGURATION GATE HALT: Canonical BGM file not found at: /home/runner/work/harry-potter-automation/harry-potter-automation/assets/music/Exactly Who.wav. Cloud acquisition or user placement required before render.; Discovery Big candidate 'hps_disc_neville_hufflepuff_sorting_b1' failed: Rendering failed: BGM CONFIGURATION GATE HALT: Canonical BGM file not found at: /home/runner/work/harry-potter-automation/harry-potter-automation/assets/music/Exactly Who.wav. Cloud acquisition or user placement required before render.",
   "requested_deficit": 8,
-  "produced_count": 4,
+  "produced_count": 0,
   "initial_stock": 0,
-  "final_stock": 4,
+  "final_stock": 0,
   "target_stock": 8,
   "voice": "af_bella",
-  "timestamp": "2026-10-01T15:53:17.748324Z"
+  "timestamp": "2026-10-01T16:49:30.536180Z"
 }
