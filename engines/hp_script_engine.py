@@ -54,7 +54,10 @@ from core.multi_fact_types import (
     MultiFactTopicPack, MultiFactPayload, VisualProposition, FactType, MultiFactFormat
 )
 from core.gemini_client import get_gemini_client
-from engines.discovery_narrative_engine import DiscoveryNarrativeEngine, THROAT_CLEARING_PATTERNS
+from engines.discovery_narrative_engine import (
+    DiscoveryNarrativeEngine, THROAT_CLEARING_PATTERNS,
+    DiscoveryEditorialModel, DiscoveryEditorialEvaluationResult
+)
 
 logger = logging.getLogger(__name__)
 
@@ -202,12 +205,15 @@ class HarryPotterScriptEngine:
         self,
         script_text: str,
         visual_beats: List[Dict[str, Any]],
-        candidate_type: str = "novel_story"
+        candidate_type: str = "novel_story",
+        candidate_context: Optional[Dict[str, Any]] = None,
+        editorial_model: Optional[DiscoveryEditorialModel] = None,
     ) -> ScriptQAResult:
         """
         Rigorous programmatic QA gate verifying all Step 8 invariants.
         Fails closed if any rule is violated.
         Supports DEEP_DISCOVERY (220-300 words, 65-80.9s), MICRO_DISCOVERY (55-85 words, 20-35s),
+        enforces Discovery Editorial Value / Anti-Recap Gate,
         and strictly preserves NOVEL_STORY isolation (100-150 words, 45-60s).
         """
         words = script_text.strip().split()
@@ -350,6 +356,22 @@ class HarryPotterScriptEngine:
         if len(visual_beats) < 3:
             score -= 20.0
 
+        # 8. Discovery Editorial Value & Anti-Recap Gate (Discovery ONLY — Novel Story 100% Isolated)
+        editorial_res = None
+        is_novel = c_type_upper in ("NOVEL_STORY", "NOVEL_STORY_SHORT")
+        is_discovery = not is_novel
+        if is_discovery:
+            editorial_res = DiscoveryNarrativeEngine.evaluate_discovery_editorial_value(
+                script_text=script_text,
+                visual_beats=visual_beats,
+                candidate_context=candidate_context,
+                editorial_model=editorial_model,
+            )
+            if not editorial_res.passed:
+                score -= 40.0
+                for r in editorial_res.reasons:
+                    feedback.append(f"EDITORIAL VALUE FAILURE: {r}")
+
         score = max(0.0, score)
         passed = (
             score >= 80.0
@@ -360,6 +382,7 @@ class HarryPotterScriptEngine:
             and min_words <= word_count <= max_words
             and min_duration <= estimated_duration <= max_duration
             and len(visual_beats) >= 3
+            and (is_novel or (editorial_res is not None and editorial_res.passed))
         )
 
         return ScriptQAResult(
@@ -380,10 +403,12 @@ class HarryPotterScriptEngine:
         subtype: str,
         visual_beats: List[Dict[str, Any]],
         part_marker: Optional[str] = None,
-        discovery_tier: str = "DEEP_DISCOVERY"
+        discovery_tier: Optional[str] = None,
+        candidate_context: Optional[Dict[str, Any]] = None,
+        editorial_model: Optional[DiscoveryEditorialModel] = None,
     ) -> DiscoveryQAResult:
         """
-        11-Point Discovery Quality Gate (Checks A through K + L):
+        12-Point Discovery Quality Gate (Checks A through K + L + M):
         A. Can I identify the exact fact/difference in one sentence?
         B. Is that fact stated explicitly in the script?
         C. Does the first ~5 seconds communicate the actual subject?
@@ -396,12 +421,19 @@ class HarryPotterScriptEngine:
         J. Does it remain standalone?
         K. Does it avoid PART markers?
         L. Zero throat-clearing openings in Frame 0.
+        M. Editorial Value Check: anti-recap, viewer value, explanatory depth, no scene padding.
         """
         reasons = []
         text_lower = script_text.lower()
         hook_lower = hook.lower()
         words = script_text.split()
         word_count = len(words)
+
+        # Auto-resolve tier if not explicitly forced
+        if discovery_tier is None or str(discovery_tier).upper() == "AUTO":
+            effective_tier = "MICRO_DISCOVERY" if word_count < 120 else "DEEP_DISCOVERY"
+        else:
+            effective_tier = str(discovery_tier).upper()
 
         # Check K: PART markers strictly forbidden in Discovery
         no_part_markers = True
@@ -415,7 +447,7 @@ class HarryPotterScriptEngine:
 
         # Check L: Zero throat-clearing in Frame 0
         no_throat_clearing = True
-        if str(discovery_tier).upper() == "DEEP_DISCOVERY":
+        if effective_tier == "DEEP_DISCOVERY":
             for pat in THROAT_CLEARING_PATTERNS:
                 if re.search(pat, hook_lower):
                     no_throat_clearing = False
@@ -487,19 +519,53 @@ class HarryPotterScriptEngine:
         # Check tier bounds
         duration_within_tier_bounds = True
         word_count_within_tier_bounds = True
-        if str(discovery_tier).upper() == "DEEP_DISCOVERY":
+        if effective_tier == "DEEP_DISCOVERY":
             if word_count < 220 or word_count > 300:
                 word_count_within_tier_bounds = False
                 reasons.append(f"Check Word Count Failed: {word_count} words outside Deep Discovery target bounds (220-300)")
-        elif str(discovery_tier).upper() == "MICRO_DISCOVERY":
+        elif effective_tier == "MICRO_DISCOVERY":
             if word_count < 55 or word_count > 85:
                 word_count_within_tier_bounds = False
                 reasons.append(f"Check Word Count Failed: {word_count} words outside Micro Discovery bounds (55-85)")
 
+        # Check M: Discovery Editorial Value Gate (viewer value, anti-recap, explanatory depth)
+        editorial_res = DiscoveryNarrativeEngine.evaluate_discovery_editorial_value(
+            script_text=script_text,
+            hook=hook,
+            visual_beats=visual_beats,
+            candidate_context=candidate_context,
+            editorial_model=editorial_model,
+        )
+        if not editorial_res.passed:
+            reasons.extend([f"Check M Failed: {r}" for r in editorial_res.reasons])
+
+        # Check N: Visual Grounding & Movie Catalog Feasibility Guardrail
+        # Verifies that required characters and visual requirements do not rely on unfilmed book-only elements
+        unfilmed_elements = [
+            "peeves", "winky", "ludo bagman", "charlie weasley dragon breeding",
+            "deathday party", "spew", "s.p.e.w.", "kreacher leading house-elves with cleavers",
+            "voldemort gaunt ring flashback", "merope gaunt", "morfin gaunt", "marvolo gaunt",
+            "hephzibah smith cup", "tom riddle hepzibah", "neville parents st mungo",
+            "st mungo hospital ward", "lockhart autograph st mungo", "prime minister muggle portrait"
+        ]
+        visual_grounding_valid = True
+        for beat in visual_beats:
+            b_text = " ".join([
+                str(beat.get("visual_requirement", "")),
+                str(beat.get("action", "")),
+                str(beat.get("narration_text", "")),
+                " ".join(beat.get("characters", []))
+            ]).lower()
+            for unfilmed in unfilmed_elements:
+                if unfilmed in b_text:
+                    visual_grounding_valid = False
+                    reasons.append(f"Check N Failed: Beat '{beat.get('beat_id')}' requires unfilmed book-only element '{unfilmed}' not present in Warner Bros movie catalog.")
+
         passed = (
             no_part_markers and subject_in_first_5s and avoids_chronological_story
             and book_movie_both_stated and omission_explicitly_stated and production_fact_stated
-            and is_standalone and no_throat_clearing and len(reasons) == 0
+            and is_standalone and no_throat_clearing and editorial_res.passed
+            and visual_grounding_valid and len(reasons) == 0
         )
 
         return DiscoveryQAResult(
@@ -621,6 +687,12 @@ OUTPUT FORMAT: Return STRICTLY valid JSON with no markdown formatting:
 PURPOSE: Deliver a standalone piece of information. The viewer must immediately understand the contrast.
 Must NOT feel like a mini chapter or story. This is an INFORMATION DELIVERY format.
 
+CRITICAL EDITORIAL INVARIANT: DISCOVERY SCRIPT != MOVIE SCENE RECAP.
+The movie event is visual evidence, NOT the subject of the script.
+Do NOT write chronological scene narration ('First X happened, then Y happened, then Hermione punched him, then Malfoy ran away').
+Do NOT describe visible physical actions without explaining what they mean, why they matter, or what the audience doesn't know.
+Focus on delivering the novel-vs-movie difference, the creative rationale, and the canon insight.
+
 SUBTYPE: DISCOVERY_BOOK_MOVIE_DIFFERENCE
 TOPIC: {candidate.novel_fact_summary}
 BOOK EVIDENCE: {candidate.novel_evidence_text or ''}
@@ -675,6 +747,11 @@ OUTPUT STRICT JSON:
 PURPOSE: Information delivery. Viewer must understand what scene was omitted and why it was cut.
 Must NOT feel like a chapter retelling.
 
+CRITICAL EDITORIAL INVARIANT: DISCOVERY SCRIPT != MOVIE SCENE RECAP.
+The movie event is visual evidence, NOT the subject of the script.
+Do NOT merely narrate the sequence of events.
+Explain what was omitted, why it was cut, and why it matters to the lore or characters.
+
 SUBTYPE: DISCOVERY_OMITTED_SCENE
 TOPIC: {candidate.novel_fact_summary}
 BOOK CONTEXT: {candidate.novel_evidence_text or ''}
@@ -712,6 +789,10 @@ OUTPUT STRICT JSON:
 PURPOSE: The subject is the production fact itself (actors, filming, cut footage, directors).
 Do NOT narrate fictional story events as the primary fact. Use movie footage only as contextual support.
 
+CRITICAL EDITORIAL INVARIANT: DISCOVERY SCRIPT != MOVIE SCENE RECAP.
+The subject is the production craft, director decision, actor performance, or filming fact.
+Movie footage serves purely as contextual visual evidence.
+
 SUBTYPE: DISCOVERY_BEHIND_THE_SCENES
 TOPIC: {candidate.novel_fact_summary}
 PRODUCTION CONTEXT: {candidate.why_interesting or candidate.novel_evidence_text or ''}
@@ -746,6 +827,11 @@ OUTPUT STRICT JSON:
         return f"""You are a Harry Potter expert revealing a HIDDEN DETAIL or canon trivia fact.
 
 PURPOSE: Information delivery. Viewer must think: 'OH, I learned something!'
+
+CRITICAL EDITORIAL INVARIANT: DISCOVERY SCRIPT != MOVIE SCENE RECAP.
+The movie event is visual evidence, NOT the subject of the script.
+Do NOT describe physical actions without explaining the underlying hidden detail, lore mechanic, or character motivation.
+The audience must walk away having learned something new.
 
 SUBTYPE: {getattr(candidate, 'discovery_type', 'DISCOVERY_FACT')}
 TOPIC: {candidate.novel_fact_summary}

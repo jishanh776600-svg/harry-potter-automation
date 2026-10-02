@@ -14,6 +14,7 @@ from typing import List, Dict, Any, Optional, Tuple, Set
 
 from config.settings import PROJECT_ROOT
 from engines.movie_event.models import MovieEvent, MovieEventQuery
+from engines.movie_event.catalog import load_expanded_canonical_events
 
 logger = logging.getLogger("MovieEventIndex")
 
@@ -1542,6 +1543,11 @@ class MovieEventIndex:
         ]
 
         for evt in events:
+            self.add_event(evt)
+
+        # Ingest expanded canonical events and atmospheric shots from JSON catalog
+        expanded_events = load_expanded_canonical_events()
+        for evt in expanded_events:
             self.add_event(evt)
 
         logger.info(f"Initialized MovieEventIndex with {len(self._events)} canonical events.")

@@ -1,0 +1,4145 @@
+[
+  {
+    "event_id": "evt_atm_m1_hogwarts_night_exterior",
+    "movie_id": "hp_movie_1",
+    "movie_number": 1,
+    "scene_id": "m1_scene_arrival_black_lake",
+    "start_time": 2420.0,
+    "end_time": 2460.0,
+    "characters_present": [],
+    "primary_subject": "Hogwarts Castle",
+    "secondary_subjects": [
+      "Black Lake"
+    ],
+    "action": "illuminates night sky above Black Lake with glowing windows",
+    "target": "Hogwarts Castle",
+    "interaction_type": "establishing",
+    "location": "Hogwarts Castle exterior / Black Lake",
+    "visible_objects": [
+      "castle towers",
+      "illuminated windows",
+      "water reflection"
+    ],
+    "emotional_state": "majestic",
+    "camera_scale": "WIDE_SHOT",
+    "camera_motion": "slow_tracking",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": null,
+    "visual_description": "Cinematic wide night panorama of Hogwarts Castle across the reflective Black Lake.",
+    "observable_claims": [
+      "Castle visible on cliff",
+      "Glowing windows"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_atm_m2_hogwarts_express_viaduct",
+    "movie_id": "hp_movie_2",
+    "movie_number": 2,
+    "scene_id": "m2_scene_express_journey",
+    "start_time": 1350.0,
+    "end_time": 1380.0,
+    "characters_present": [],
+    "primary_subject": "Hogwarts Express",
+    "secondary_subjects": [
+      "Glenfinnan Viaduct"
+    ],
+    "action": "steams across curved stone viaduct through Scottish Highlands",
+    "target": "Glenfinnan Viaduct",
+    "interaction_type": "establishing",
+    "location": "Scottish Highlands / Glenfinnan Viaduct",
+    "visible_objects": [
+      "scarlet steam train",
+      "stone arches",
+      "green valley"
+    ],
+    "emotional_state": "scenic",
+    "camera_scale": "WIDE_SHOT",
+    "camera_motion": "aerial_pan",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": null,
+    "visual_description": "Aerial panorama of the scarlet Hogwarts Express billowing steam across the curved stone viaduct.",
+    "observable_claims": [
+      "Hogwarts Express on viaduct",
+      "Highlands scenery"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_atm_m3_hogwarts_courtyard_seasons",
+    "movie_id": "hp_movie_3",
+    "movie_number": 3,
+    "scene_id": "m3_scene_courtyard_clocktower",
+    "start_time": 3600.0,
+    "end_time": 3630.0,
+    "characters_present": [],
+    "primary_subject": "Hogwarts Courtyard",
+    "secondary_subjects": [
+      "Clock Tower"
+    ],
+    "action": "stands in quiet gothic grandeur with pendulum swinging in clock tower",
+    "target": "Clock Tower",
+    "interaction_type": "establishing",
+    "location": "Hogwarts Courtyard / Clock Tower",
+    "visible_objects": [
+      "stone arches",
+      "clock tower",
+      "pendulum",
+      "cloistered walkway"
+    ],
+    "emotional_state": "atmospheric",
+    "camera_scale": "WIDE_SHOT",
+    "camera_motion": "slow_pan",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": null,
+    "visual_description": "Establishing shot of the gothic courtyard with clock tower pendulum swinging.",
+    "observable_claims": [
+      "Courtyard architecture visible",
+      "Pendulum swinging"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_atm_m4_great_hall_floating_candles",
+    "movie_id": "hp_movie_4",
+    "movie_number": 4,
+    "scene_id": "m4_scene_great_hall_overhead",
+    "start_time": 1920.0,
+    "end_time": 1950.0,
+    "characters_present": [],
+    "primary_subject": "Great Hall",
+    "secondary_subjects": [
+      "floating candles"
+    ],
+    "action": "glimmers beneath hundreds of floating candles and enchanted starlit ceiling",
+    "target": "Great Hall ceiling",
+    "interaction_type": "establishing",
+    "location": "Great Hall",
+    "visible_objects": [
+      "floating wax candles",
+      "banquet tables",
+      "stained glass",
+      "arched beams"
+    ],
+    "emotional_state": "enchanting",
+    "camera_scale": "WIDE_SHOT",
+    "camera_motion": "crane_down",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": null,
+    "visual_description": "Overhead crane shot of the Great Hall illuminated by hundreds of floating candles.",
+    "observable_claims": [
+      "Floating candles illuminate hall",
+      "Banquet tables visible"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_atm_m6_astronomy_tower_twilight",
+    "movie_id": "hp_movie_6",
+    "movie_number": 6,
+    "scene_id": "m6_scene_astronomy_twilight",
+    "start_time": 5400.0,
+    "end_time": 5430.0,
+    "characters_present": [],
+    "primary_subject": "Astronomy Tower",
+    "secondary_subjects": [
+      "Hogwarts spires"
+    ],
+    "action": "rises above dark misty mountain peaks at dusk",
+    "target": "Astronomy Tower",
+    "interaction_type": "establishing",
+    "location": "Hogwarts Astronomy Tower exterior",
+    "visible_objects": [
+      "tall gothic spire",
+      "misty mountains",
+      "twilight clouds"
+    ],
+    "emotional_state": "somber_mysterious",
+    "camera_scale": "WIDE_SHOT",
+    "camera_motion": "slow_tracking",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": null,
+    "visual_description": "Panoramic twilight shot of the highest Hogwarts spires and Astronomy Tower in mountain mist.",
+    "observable_claims": [
+      "Astronomy tower visible against twilight",
+      "Mountain mist"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_atm_m8_hogwarts_shield_dome",
+    "movie_id": "hp_movie_8",
+    "movie_number": 8,
+    "scene_id": "m8_scene_shield_barrier",
+    "start_time": 3120.0,
+    "end_time": 3150.0,
+    "characters_present": [],
+    "primary_subject": "Protective Shield",
+    "secondary_subjects": [
+      "Hogwarts Castle"
+    ],
+    "action": "shimmers with blue magical energy enveloping entire castle perimeter",
+    "target": "Hogwarts Castle",
+    "interaction_type": "establishing",
+    "location": "Hogwarts Castle exterior / sky",
+    "visible_objects": [
+      "magical dome",
+      "blue energy ripples",
+      "night sky",
+      "silhouette"
+    ],
+    "emotional_state": "epic",
+    "camera_scale": "WIDE_SHOT",
+    "camera_motion": "crane_up",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": null,
+    "visual_description": "Panoramic shot of the translucent magical shield dome expanding and locking into place over Hogwarts.",
+    "observable_claims": [
+      "Magical shield over castle",
+      "Blue energy ripples"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m1_privet_letters_flood_fireplace",
+    "movie_id": "hp_movie_1",
+    "movie_number": 1,
+    "scene_id": "m1_scene_dursley_living_room",
+    "start_time": 660.0,
+    "end_time": 695.0,
+    "characters_present": [
+      "Harry Potter",
+      "Vernon Dursley",
+      "Petunia Dursley",
+      "Dudley Dursley"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Vernon Dursley"
+    ],
+    "action": "catches flying Hogwarts letter as hundreds shoot out of the fireplace",
+    "target": "Hogwarts letter",
+    "interaction_type": "frenzied_action",
+    "location": "4 Privet Drive living room",
+    "visible_objects": [
+      "parchment envelopes",
+      "flying letters",
+      "brick fireplace",
+      "soot"
+    ],
+    "emotional_state": "amazed_excited",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "tracking",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "No post on Sundays.",
+    "visual_description": "Hundreds of Hogwarts letters burst from the fireplace, fluttering through the air as Harry leaps to catch one.",
+    "observable_claims": [
+      "Hogwarts letters shooting from fireplace",
+      "Harry leaping to grab letter"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m1_gringotts_cart_vault_713",
+    "movie_id": "hp_movie_1",
+    "movie_number": 1,
+    "scene_id": "m1_scene_gringotts_underground",
+    "start_time": 1420.0,
+    "end_time": 1460.0,
+    "characters_present": [
+      "Harry Potter",
+      "Rubeus Hagrid",
+      "Griphook"
+    ],
+    "primary_subject": "Griphook",
+    "secondary_subjects": [
+      "Rubeus Hagrid",
+      "Harry Potter"
+    ],
+    "action": "strokes stone door of Vault 713 with finger causing it to unlock and open",
+    "target": "Vault 713 door",
+    "interaction_type": "inspection",
+    "location": "Gringotts underground cavern",
+    "visible_objects": [
+      "stone door",
+      "stalactites",
+      "cart tracks",
+      "small package wrapped in brown paper"
+    ],
+    "emotional_state": "mysterious",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "static",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Vault 713. Please stand back.",
+    "visual_description": "Griphook slides his long finger down the door of Vault 713; the stone dissolves open to reveal a tiny brown parcel on the pedestal.",
+    "observable_claims": [
+      "Griphook unlocking Vault 713",
+      "Small wrapped parcel inside"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m1_troll_girls_bathroom_wingardium",
+    "movie_id": "hp_movie_1",
+    "movie_number": 1,
+    "scene_id": "m1_scene_bathroom_troll",
+    "start_time": 3920.0,
+    "end_time": 3965.0,
+    "characters_present": [
+      "Harry Potter",
+      "Ron Weasley",
+      "Hermione Granger",
+      "Mountain Troll"
+    ],
+    "primary_subject": "Ron Weasley",
+    "secondary_subjects": [
+      "Mountain Troll",
+      "Harry Potter"
+    ],
+    "action": "casts Wingardium Leviosa levitating the wooden club above the troll head",
+    "target": "wooden club",
+    "interaction_type": "combat_spell",
+    "location": "Girls bathroom",
+    "visible_objects": [
+      "wooden club",
+      "shattered wooden cubicles",
+      "sinks",
+      "wand"
+    ],
+    "emotional_state": "determined",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "crane_up",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Wingardium Leviosa!",
+    "visual_description": "Ron swishes and flicks his wand; the heavy wooden club levitates high above the troll before dropping onto its head with a thud.",
+    "observable_claims": [
+      "Club levitates in mid-air",
+      "Club drops onto troll head"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m1_fluffy_harp_trapdoor",
+    "movie_id": "hp_movie_1",
+    "movie_number": 1,
+    "scene_id": "m1_scene_third_floor_corridor",
+    "start_time": 6120.0,
+    "end_time": 6155.0,
+    "characters_present": [
+      "Harry Potter",
+      "Ron Weasley",
+      "Hermione Granger",
+      "Fluffy"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Fluffy",
+      "Hermione Granger"
+    ],
+    "action": "pulls Fluffy paw off wooden trapdoor while enchanted harp plays",
+    "target": "wooden trapdoor",
+    "interaction_type": "stealth_action",
+    "location": "Third floor forbidden corridor",
+    "visible_objects": [
+      "three-headed dog",
+      "enchanted golden harp",
+      "wooden trapdoor",
+      "ring handle"
+    ],
+    "emotional_state": "tense_stealthy",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "slow_pan",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "It is sleeping. Snape has been here.",
+    "visual_description": "Harry gingerly lifts the massive sleeping dog paw off the wooden trapdoor ring while the self-playing harp strums.",
+    "observable_claims": [
+      "Three-headed dog sleeping",
+      "Trapdoor opened beneath dog paw"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m1_flying_keys_broom_dive",
+    "movie_id": "hp_movie_1",
+    "movie_number": 1,
+    "scene_id": "m1_scene_flying_keys_chamber",
+    "start_time": 6480.0,
+    "end_time": 6520.0,
+    "characters_present": [
+      "Harry Potter",
+      "Ron Weasley",
+      "Hermione Granger"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "old winged key"
+    ],
+    "action": "dives on wooden broomstick chasing bent silver winged key among swarm of keys",
+    "target": "old silver winged key",
+    "interaction_type": "aerial_action",
+    "location": "Underground vaulted stone chamber",
+    "visible_objects": [
+      "flying keys",
+      "broomstick",
+      "heavy wooden door",
+      "large lock"
+    ],
+    "emotional_state": "focused_aerial",
+    "camera_scale": "MEDIUM_WIDE",
+    "camera_motion": "fast_tracking",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "That one with the bent wing!",
+    "visual_description": "Harry dives at high speed on his broomstick through a shimmering cloud of flying winged keys, snatching the large old silver key.",
+    "observable_claims": [
+      "Harry diving on broomstick",
+      "Swarm of fluttering winged keys"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m1_chess_ron_knight_sacrifice",
+    "movie_id": "hp_movie_1",
+    "movie_number": 1,
+    "scene_id": "m1_scene_giant_chessboard",
+    "start_time": 6720.0,
+    "end_time": 6765.0,
+    "characters_present": [
+      "Harry Potter",
+      "Ron Weasley",
+      "Hermione Granger"
+    ],
+    "primary_subject": "Ron Weasley",
+    "secondary_subjects": [
+      "giant stone Queen"
+    ],
+    "action": "rides stone knight forward sacrificing himself to giant white queen",
+    "target": "giant white queen",
+    "interaction_type": "strategic_sacrifice",
+    "location": "Giant stone chessboard chamber",
+    "visible_objects": [
+      "giant stone chess pieces",
+      "stone sword",
+      "shattered rubble",
+      "black knight"
+    ],
+    "emotional_state": "solemn_heroic",
+    "camera_scale": "MEDIUM_WIDE",
+    "camera_motion": "dramatic_push",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "You understand right, Harry? Not me, not Hermione... you.",
+    "visual_description": "Ron directs his stone knight forward; the giant white Queen draws her stone sword and strikes the knight, throwing Ron to the ground.",
+    "observable_claims": [
+      "Giant stone queen strikes knight",
+      "Ron thrown from stone piece"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m1_quirrell_face_turns_to_stone_ash",
+    "movie_id": "hp_movie_1",
+    "movie_number": 1,
+    "scene_id": "m1_scene_mirror_chamber_climax",
+    "start_time": 7200.0,
+    "end_time": 7240.0,
+    "characters_present": [
+      "Harry Potter",
+      "Professor Quirrell"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Professor Quirrell"
+    ],
+    "action": "touches Quirrell face causing his flesh to burn and crumble into stone ash",
+    "target": "Professor Quirrell",
+    "interaction_type": "magical_defense",
+    "location": "Underground mirror chamber",
+    "visible_objects": [
+      "Mirror of Erised",
+      "Philosopher Stone",
+      "smoldering ash",
+      "turban"
+    ],
+    "emotional_state": "shocked_defensive",
+    "camera_scale": "CLOSE_UP",
+    "camera_motion": "handheld",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "What is this magic?!",
+    "visual_description": "Harry grabs Quirrell wrists and face; smoke sizzles from the skin as Quirrell hands and face turn into cracked stone and crumble into ash.",
+    "observable_claims": [
+      "Quirrell flesh smoking and turning to stone",
+      "Harry holding Quirrell hands"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m2_dursley_dobby_drops_pudding_cake",
+    "movie_id": "hp_movie_2",
+    "movie_number": 2,
+    "scene_id": "m2_scene_kitchen_pudding_levitation",
+    "start_time": 480.0,
+    "end_time": 520.0,
+    "characters_present": [
+      "Harry Potter",
+      "Dobby",
+      "Petunia Dursley",
+      "Vernon Dursley"
+    ],
+    "primary_subject": "Dobby",
+    "secondary_subjects": [
+      "Harry Potter"
+    ],
+    "action": "snaps fingers levitating and dropping violet pudding cake onto Mrs Mason",
+    "target": "pudding cake",
+    "interaction_type": "magical_mischief",
+    "location": "4 Privet Drive kitchen",
+    "visible_objects": [
+      "violet cream pudding cake",
+      "kitchen cabinets",
+      "floating cake"
+    ],
+    "emotional_state": "mischievous_conflicted",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "slow_pan",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Dobby must save Harry Potter's life. Harry Potter must not go back to Hogwarts.",
+    "visual_description": "Dobby snaps his fingers; Aunt Petunia's ornate cream cake levitates through the air and drops onto dinner guests.",
+    "observable_claims": [
+      "Cake levitates in kitchen",
+      "Dobby snaps fingers",
+      "Cake drops onto guest"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m2_willow_ford_anglia_crash",
+    "movie_id": "hp_movie_2",
+    "movie_number": 2,
+    "scene_id": "m2_scene_whomping_willow_crash",
+    "start_time": 1560.0,
+    "end_time": 1610.0,
+    "characters_present": [
+      "Harry Potter",
+      "Ron Weasley",
+      "Whomping Willow"
+    ],
+    "primary_subject": "Whomping Willow",
+    "secondary_subjects": [
+      "Ron Weasley",
+      "Harry Potter"
+    ],
+    "action": "smashes heavy wooden branches down into the blue flying Ford Anglia",
+    "target": "flying Ford Anglia",
+    "interaction_type": "physical_assault",
+    "location": "Hogwarts Grounds / Whomping Willow",
+    "visible_objects": [
+      "flying Ford Anglia",
+      "shattered glass",
+      "twisted willow branches",
+      "broken wand"
+    ],
+    "emotional_state": "terrified_chaotic",
+    "camera_scale": "WIDE_SHOT",
+    "camera_motion": "fast_tracking",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "My wand! Look at my wand!",
+    "visual_description": "The Whomping Willow flails its massive branches, crushing the roof and windshield of the blue flying car.",
+    "observable_claims": [
+      "Tree branches smash car roof",
+      "Ron holds snapped wand in two pieces"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m2_greenhouse_sprout_pulls_screaming_mandrake",
+    "movie_id": "hp_movie_2",
+    "movie_number": 2,
+    "scene_id": "m2_scene_herbology_mandrakes",
+    "start_time": 1820.0,
+    "end_time": 1860.0,
+    "characters_present": [
+      "Pomona Sprout",
+      "Neville Longbottom",
+      "Hermione Granger",
+      "Harry Potter"
+    ],
+    "primary_subject": "Pomona Sprout",
+    "secondary_subjects": [
+      "Neville Longbottom"
+    ],
+    "action": "pulls shrieking ugly Mandrake root baby out of terracotta flowerpot",
+    "target": "Mandrake plant",
+    "interaction_type": "instruction",
+    "location": "Herbology Greenhouse",
+    "visible_objects": [
+      "earmuffs",
+      "terracotta flowerpots",
+      "screaming Mandrake root",
+      "soil"
+    ],
+    "emotional_state": "professional",
+    "camera_scale": "MEDIUM_CLOSE_UP",
+    "camera_motion": "static",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "The cry of the Mandrake is fatal to anyone who hears it.",
+    "visual_description": "Professor Sprout yanks an ugly writhing Mandrake baby from the soil; it lets out an ear-piercing shriek causing Neville to faint.",
+    "observable_claims": [
+      "Sprout pulls screaming root from pot",
+      "Students wear earmuffs",
+      "Neville faints onto floor"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m2_defense_lockhart_releases_cornish_pixies",
+    "movie_id": "hp_movie_2",
+    "movie_number": 2,
+    "scene_id": "m2_scene_lockhart_pixies_chaos",
+    "start_time": 2180.0,
+    "end_time": 2225.0,
+    "characters_present": [
+      "Gilderoy Lockhart",
+      "Neville Longbottom",
+      "Harry Potter",
+      "Ron Weasley"
+    ],
+    "primary_subject": "Gilderoy Lockhart",
+    "secondary_subjects": [
+      "Neville Longbottom"
+    ],
+    "action": "unlatches iron cage door releasing swarm of destructive blue Cornish pixies",
+    "target": "pixie cage",
+    "interaction_type": "reckless_action",
+    "location": "Defense Against the Dark Arts classroom",
+    "visible_objects": [
+      "iron cage",
+      "blue winged pixies",
+      "flying books",
+      "chandelier"
+    ],
+    "emotional_state": "flustered_panicked",
+    "camera_scale": "MEDIUM_WIDE",
+    "camera_motion": "handheld_whip",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Freshly caught Cornish pixies! Let us see what you make of them!",
+    "visual_description": "Lockhart lifts the velvet cover and opens the cage; swarms of blue pixies ravage the classroom, hoisting Neville by his ears to the ceiling chandelier.",
+    "observable_claims": [
+      "Blue pixies swarm out of cage",
+      "Neville hanging from chandelier by ears"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m2_dueling_club_snape_expelliarmus_lockhart",
+    "movie_id": "hp_movie_2",
+    "movie_number": 2,
+    "scene_id": "m2_scene_dueling_club_expelliarmus",
+    "start_time": 3340.0,
+    "end_time": 3380.0,
+    "characters_present": [
+      "Severus Snape",
+      "Gilderoy Lockhart"
+    ],
+    "primary_subject": "Severus Snape",
+    "secondary_subjects": [
+      "Gilderoy Lockhart"
+    ],
+    "action": "casts Expelliarmus blasting Lockhart flying backward through the air",
+    "target": "Gilderoy Lockhart",
+    "interaction_type": "combat_spell",
+    "location": "Great Hall Dueling Platform",
+    "visible_objects": [
+      "dueling stage",
+      "wands",
+      "blue spell burst"
+    ],
+    "emotional_state": "smug_contemptuous",
+    "camera_scale": "WIDE_SHOT",
+    "camera_motion": "tracking",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Expelliarmus! An excellent idea to show that, Professor Snape...",
+    "visual_description": "Snape flicks his wand uttering Expelliarmus; a blast of light catapults Lockhart backward through the air onto the dueling stage.",
+    "observable_claims": [
+      "Snape casts spell",
+      "Lockhart blasted backward landing on stage"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m2_dueling_club_malfoy_conjures_serpensortia",
+    "movie_id": "hp_movie_2",
+    "movie_number": 2,
+    "scene_id": "m2_scene_dueling_malfoy_snake",
+    "start_time": 3440.0,
+    "end_time": 3475.0,
+    "characters_present": [
+      "Draco Malfoy",
+      "Harry Potter",
+      "Severus Snape"
+    ],
+    "primary_subject": "Draco Malfoy",
+    "secondary_subjects": [
+      "Harry Potter"
+    ],
+    "action": "casts Serpensortia conjuring a venomous black cobra onto the platform",
+    "target": "dueling stage",
+    "interaction_type": "combat_spell",
+    "location": "Great Hall Dueling Platform",
+    "visible_objects": [
+      "wand",
+      "black cobra serpent",
+      "smoke burst"
+    ],
+    "emotional_state": "sneering_aggressive",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "tracking",
+    "preceding_event": null,
+    "following_event": "evt_m2_dueling_club_harry_speaks_parseltongue_to_snake",
+    "dialogue_ref": "Serpensortia!",
+    "visual_description": "Malfoy whips his wand forward; smoke bursts from the tip and a long black cobra lands on the stage hissing aggressively.",
+    "observable_claims": [
+      "Malfoy casts Serpensortia",
+      "Cobra appears on platform"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m2_dueling_club_harry_speaks_parseltongue_to_snake",
+    "movie_id": "hp_movie_2",
+    "movie_number": 2,
+    "scene_id": "m2_scene_dueling_parseltongue_revelation",
+    "start_time": 3480.0,
+    "end_time": 3525.0,
+    "characters_present": [
+      "Harry Potter",
+      "Justin Finch-Fletchley",
+      "Severus Snape"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Justin Finch-Fletchley"
+    ],
+    "action": "speaks Parseltongue hissing at the cobra commanding it not to attack",
+    "target": "black cobra",
+    "interaction_type": "parseltongue_speech",
+    "location": "Great Hall Dueling Platform",
+    "visible_objects": [
+      "cobra snake",
+      "wand",
+      "terrified student"
+    ],
+    "emotional_state": "intense_protective",
+    "camera_scale": "CLOSE_UP",
+    "camera_motion": "slow_push",
+    "preceding_event": "evt_m2_dueling_club_malfoy_conjures_serpensortia",
+    "following_event": null,
+    "dialogue_ref": "Sssss-ha-shey... Leave him!",
+    "visual_description": "Harry stares directly into the cobra's eyes and speaks Parseltongue; the serpent calms and lowers its hood while the students look on in horror.",
+    "observable_claims": [
+      "Harry hisses Parseltongue at serpent",
+      "Cobra lowers hood"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m2_girls_bathroom_polyjuice_transformation",
+    "movie_id": "hp_movie_2",
+    "movie_number": 2,
+    "scene_id": "m2_scene_bathroom_polyjuice_drink",
+    "start_time": 4620.0,
+    "end_time": 4665.0,
+    "characters_present": [
+      "Harry Potter",
+      "Ron Weasley",
+      "Hermione Granger"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Ron Weasley"
+    ],
+    "action": "drinks thick steaming Polyjuice Potion and convulses in bathroom stall",
+    "target": "Polyjuice Potion goblet",
+    "interaction_type": "consumption",
+    "location": "Moaning Myrtle girls bathroom",
+    "visible_objects": [
+      "steaming bubbling cauldron",
+      "metal cups",
+      "bathroom cubicles",
+      "cracked mirror"
+    ],
+    "emotional_state": "disgusted_painful",
+    "camera_scale": "CLOSE_UP",
+    "camera_motion": "handheld",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Cheers. Ugh! I think I'm gonna be sick!",
+    "visual_description": "Harry drinks the foul smoking potion, drops into a stall, and watches his face stretch and warp into Gregory Goyle in the mirror.",
+    "observable_claims": [
+      "Harry drinks thick bubbling liquid",
+      "Face stretches and changes in mirror"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m2_forbidden_forest_aragog_confronts_harry_ron",
+    "movie_id": "hp_movie_2",
+    "movie_number": 2,
+    "scene_id": "m2_scene_aragog_hollow",
+    "start_time": 5820.0,
+    "end_time": 5870.0,
+    "characters_present": [
+      "Harry Potter",
+      "Ron Weasley",
+      "Aragog"
+    ],
+    "primary_subject": "Aragog",
+    "secondary_subjects": [
+      "Harry Potter",
+      "Ron Weasley"
+    ],
+    "action": "crawls out of dark cavern hollow confronting Harry and Ron with clicking pincers",
+    "target": "Harry Potter",
+    "interaction_type": "confrontation",
+    "location": "Forbidden Forest spider hollow",
+    "visible_objects": [
+      "giant Acromantula",
+      "webs",
+      "clicking pincers",
+      "lantern"
+    ],
+    "emotional_state": "terrified_shivering",
+    "camera_scale": "MEDIUM_WIDE",
+    "camera_motion": "slow_pan",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Hagrid has never sent men into our hollow before. My sons and daughters do not harm Hagrid...",
+    "visual_description": "The massive blind Acromantula Aragog descends from the misty webbed hollow, clicking his giant hairy fangs before Harry and trembling Ron.",
+    "observable_claims": [
+      "Giant spider crawls from cavern",
+      "Ron and Harry surrounded by webs"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m2_chamber_fawkes_blinds_basilisk",
+    "movie_id": "hp_movie_2",
+    "movie_number": 2,
+    "scene_id": "m2_scene_chamber_fawkes_arrival",
+    "start_time": 7180.0,
+    "end_time": 7220.0,
+    "characters_present": [
+      "Harry Potter",
+      "Fawkes",
+      "Basilisk",
+      "Tom Riddle"
+    ],
+    "primary_subject": "Fawkes",
+    "secondary_subjects": [
+      "Basilisk"
+    ],
+    "action": "dives through the air clawing and gouging out the yellow eyes of the Basilisk",
+    "target": "Basilisk eyes",
+    "interaction_type": "aerial_combat",
+    "location": "Chamber of Secrets",
+    "visible_objects": [
+      "crimson and gold phoenix",
+      "giant serpent",
+      "claws",
+      "bleeding eyes"
+    ],
+    "emotional_state": "triumphant_heroic",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "dynamic_tracking",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "No! Your bird may have blinded the Basilisk, but it can still hear you!",
+    "visual_description": "Fawkes the phoenix screeches, swooping down with fiery wings to rake his sharp golden talons across the eyes of the giant Basilisk.",
+    "observable_claims": [
+      "Phoenix claws serpent eyes",
+      "Basilisk thrashes in pain"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m2_corridor_harry_hands_lucius_sock_frees_dobby",
+    "movie_id": "hp_movie_2",
+    "movie_number": 2,
+    "scene_id": "m2_scene_corridor_dobby_freed",
+    "start_time": 7860.0,
+    "end_time": 7910.0,
+    "characters_present": [
+      "Harry Potter",
+      "Lucius Malfoy",
+      "Dobby"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Lucius Malfoy",
+      "Dobby"
+    ],
+    "action": "tricks Lucius into tossing diary with slimy sock to Dobby freeing him",
+    "target": "Dobby",
+    "interaction_type": "liberation",
+    "location": "Hogwarts Corridor outside Headmaster office",
+    "visible_objects": [
+      "pierced black diary",
+      "grey sock",
+      "snake-headed walking cane"
+    ],
+    "emotional_state": "jubilant_rebellious",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "tracking",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Master has given Dobby a sock. Dobby is free!",
+    "visual_description": "Lucius tosses the dirty sock aside after opening the diary; Dobby catches it with tears of joy declaring himself a free elf.",
+    "observable_claims": [
+      "Dobby catches dirty sock",
+      "Lucius Malfoy scowls in anger",
+      "Dobby holds sock up"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m3_night_bus_shrinking_head_squeeze",
+    "movie_id": "hp_movie_3",
+    "movie_number": 3,
+    "scene_id": "m3_scene_knight_bus_london",
+    "start_time": 920.0,
+    "end_time": 965.0,
+    "characters_present": [
+      "Harry Potter",
+      "Stan Shunpike",
+      "Ernie Prang"
+    ],
+    "primary_subject": "Knight Bus",
+    "secondary_subjects": [
+      "Harry Potter"
+    ],
+    "action": "violently compresses thin squeezing between two red double-decker buses",
+    "target": "London street traffic",
+    "interaction_type": "magical_vehicle_maneuver",
+    "location": "London city street at night",
+    "visible_objects": [
+      "triple-decker purple bus",
+      "brass beds",
+      "shrunken Jamaican head",
+      "red double decker buses"
+    ],
+    "emotional_state": "frantic_slapstick",
+    "camera_scale": "WIDE_SHOT",
+    "camera_motion": "fast_tracking",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Take it away, Ern! It's gonna be a bumpy ride!",
+    "visual_description": "The triple-decker purple Knight Bus squashes into an ultra-narrow sliver, zooming between two standard red London buses.",
+    "observable_claims": [
+      "Purple bus squashes narrow between two buses",
+      "Interior beds slide back and forth"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m3_train_dementor_freezes_window_lupin_chocolate",
+    "movie_id": "hp_movie_3",
+    "movie_number": 3,
+    "scene_id": "m3_scene_express_dementor_attack",
+    "start_time": 1820.0,
+    "end_time": 1870.0,
+    "characters_present": [
+      "Harry Potter",
+      "Remus Lupin",
+      "Hermione Granger",
+      "Ron Weasley"
+    ],
+    "primary_subject": "Remus Lupin",
+    "secondary_subjects": [
+      "Harry Potter"
+    ],
+    "action": "breaks off a slab of chocolate handing it to recovering Harry after Dementor attack",
+    "target": "Harry Potter",
+    "interaction_type": "caregiving",
+    "location": "Hogwarts Express train compartment",
+    "visible_objects": [
+      "frosted glass window",
+      "slab of chocolate",
+      "wand",
+      "steaming breath"
+    ],
+    "emotional_state": "soothing_protective",
+    "camera_scale": "MEDIUM_CLOSE_UP",
+    "camera_motion": "static",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Eat it. It'll help. It's all right, it's chocolate.",
+    "visual_description": "Lupin snaps a piece of dark chocolate from a bar, handing it gently to a pale, trembling Harry on the compartment seat.",
+    "observable_claims": [
+      "Lupin hands chocolate bar piece to Harry",
+      "Window glass thawing from frost"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m3_flight_harry_rides_buckbeak_over_lake",
+    "movie_id": "hp_movie_3",
+    "movie_number": 3,
+    "scene_id": "m3_scene_buckbeak_flight_lake",
+    "start_time": 2520.0,
+    "end_time": 2570.0,
+    "characters_present": [
+      "Harry Potter",
+      "Buckbeak"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Buckbeak"
+    ],
+    "action": "spreads both arms wide yelling in joy as Buckbeak skims the surface of Black Lake",
+    "target": "Black Lake",
+    "interaction_type": "aerial_joyride",
+    "location": "Black Lake / Hogwarts exterior",
+    "visible_objects": [
+      "Buckbeak feathers",
+      "water spray",
+      "Hogwarts castle",
+      "talons"
+    ],
+    "emotional_state": "euphoric_exhilarated",
+    "camera_scale": "WIDE_SHOT",
+    "camera_motion": "sweeping_aerial",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Whoo-hoo!",
+    "visual_description": "Buckbeak glides low over the water dipping a talon into the lake; Harry lets go of the feathers and spreads his arms roaring with joy.",
+    "observable_claims": [
+      "Harry rides Buckbeak",
+      "Buckbeak skims lake surface",
+      "Harry spreads arms wide"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m3_defense_lupin_boggart_snape_grandma_clothes",
+    "movie_id": "hp_movie_3",
+    "movie_number": 3,
+    "scene_id": "m3_scene_boggart_wardrobe_class",
+    "start_time": 3080.0,
+    "end_time": 3125.0,
+    "characters_present": [
+      "Neville Longbottom",
+      "Remus Lupin",
+      "Boggart Snape"
+    ],
+    "primary_subject": "Neville Longbottom",
+    "secondary_subjects": [
+      "Boggart Snape"
+    ],
+    "action": "casts Riddikulus transforming Boggart Snape into green dress with vulture hat",
+    "target": "Boggart Snape",
+    "interaction_type": "combat_spell",
+    "location": "Staff Room / DADA classroom",
+    "visible_objects": [
+      "rattling mirror wardrobe",
+      "vulture stuffed hat",
+      "green dress",
+      "red handbag",
+      "wand"
+    ],
+    "emotional_state": "triumphant_amused",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "slow_push",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Riddikulus!",
+    "visual_description": "Neville brandishes his wand shouting Riddikulus; Snape's black robes snap into a bright green dress, fox fur, and a towering vulture hat.",
+    "observable_claims": [
+      "Snape dressed in grandmother dress and vulture hat",
+      "Class laughs"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m3_shrieking_shack_scabbers_turns_into_peter_pettigrew",
+    "movie_id": "hp_movie_3",
+    "movie_number": 3,
+    "scene_id": "m3_scene_shack_animagus_reveal",
+    "start_time": 5640.0,
+    "end_time": 5690.0,
+    "characters_present": [
+      "Remus Lupin",
+      "Sirius Black",
+      "Peter Pettigrew",
+      "Harry Potter",
+      "Ron Weasley"
+    ],
+    "primary_subject": "Peter Pettigrew",
+    "secondary_subjects": [
+      "Sirius Black",
+      "Remus Lupin"
+    ],
+    "action": "transforms from shrieking rat Scabbers into balding Peter Pettigrew on the floor",
+    "target": "Scabbers",
+    "interaction_type": "animagus_reversion",
+    "location": "Shrieking Shack",
+    "visible_objects": [
+      "rat Scabbers",
+      "blue spell beams",
+      "decayed wallpaper",
+      "wands"
+    ],
+    "emotional_state": "desperate_cringing",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "tracking",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Together. One, two, three! Sirius... Remus... My old friends!",
+    "visual_description": "Blue sparks from Lupin and Sirius's wands force the rat to writhe and morph into the cowering human form of Peter Pettigrew.",
+    "observable_claims": [
+      "Rat transforms into human Peter Pettigrew",
+      "Pettigrew cowers on dirty wooden floor"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m3_grounds_full_moon_lupin_transforms_werewolf",
+    "movie_id": "hp_movie_3",
+    "movie_number": 3,
+    "scene_id": "m3_scene_grounds_werewolf_transformation",
+    "start_time": 5980.0,
+    "end_time": 6030.0,
+    "characters_present": [
+      "Remus Lupin",
+      "Sirius Black",
+      "Harry Potter",
+      "Hermione Granger"
+    ],
+    "primary_subject": "Remus Lupin",
+    "secondary_subjects": [
+      "Sirius Black"
+    ],
+    "action": "stares up at full moon clouds clearing and morphs agonizingly into a Werewolf",
+    "target": "full moon",
+    "interaction_type": "werewolf_transformation",
+    "location": "Whomping Willow grounds exterior",
+    "visible_objects": [
+      "glowing full moon",
+      "claws",
+      "elongated snout",
+      "shredded clothes"
+    ],
+    "emotional_state": "feral_agonizing",
+    "camera_scale": "CLOSE_UP",
+    "camera_motion": "handheld_orbit",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Remus, old friend, did you take your potion tonight?",
+    "visual_description": "Clouds drift past the full moon; Lupin's eyes dilate, his spine arches back, and his bones crack as he transforms into a snarling werewolf.",
+    "observable_claims": [
+      "Full moon in sky",
+      "Lupin transforms into werewolf",
+      "Sirius tries to hold Lupin back"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m3_hospital_wing_hermione_turns_time_turner",
+    "movie_id": "hp_movie_3",
+    "movie_number": 3,
+    "scene_id": "m3_scene_hospital_time_turner_spin",
+    "start_time": 6620.0,
+    "end_time": 6660.0,
+    "characters_present": [
+      "Hermione Granger",
+      "Harry Potter"
+    ],
+    "primary_subject": "Hermione Granger",
+    "secondary_subjects": [
+      "Harry Potter"
+    ],
+    "action": "loops golden chain around Harry and spins hourglass ring three times",
+    "target": "Time-Turner",
+    "interaction_type": "time_travel_activation",
+    "location": "Hospital Wing",
+    "visible_objects": [
+      "golden Time-Turner",
+      "spinning hourglass rings",
+      "golden chain",
+      "hospital beds"
+    ],
+    "emotional_state": "purposeful_tense",
+    "camera_scale": "CLOSE_UP",
+    "camera_motion": "slow_push",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Mysterious thing, time. Powerful, and when meddled with, dangerous. Three turns should do it.",
+    "visual_description": "Hermione slips the long gold chain over Harry's head and turns the tiny hourglass ring three times; the world spins around them in blurred reverse.",
+    "observable_claims": [
+      "Hermione loops gold chain around Harry",
+      "Hermione spins hourglass on Time-Turner"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m3_tower_harry_hermione_rescue_sirius_on_buckbeak",
+    "movie_id": "hp_movie_3",
+    "movie_number": 3,
+    "scene_id": "m3_scene_dark_tower_sirius_escape",
+    "start_time": 7380.0,
+    "end_time": 7430.0,
+    "characters_present": [
+      "Harry Potter",
+      "Hermione Granger",
+      "Sirius Black",
+      "Buckbeak"
+    ],
+    "primary_subject": "Sirius Black",
+    "secondary_subjects": [
+      "Harry Potter",
+      "Buckbeak"
+    ],
+    "action": "mounts Buckbeak beside Harry and Hermione flying away from high tower prison",
+    "target": "Buckbeak",
+    "interaction_type": "aerial_rescue",
+    "location": "Dark Tower cell window / Hogwarts sky",
+    "visible_objects": [
+      "iron window bars",
+      "wand Bombarda",
+      "Buckbeak wings",
+      "full moon sky"
+    ],
+    "emotional_state": "relieved_ecstatic",
+    "camera_scale": "MEDIUM_WIDE",
+    "camera_motion": "tracking_pullback",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "You really are your father's son, Harry. Truly.",
+    "visual_description": "Sirius leaps onto Buckbeak's back behind Harry and Hermione after the cell bars are blasted off, taking off into the moonlight.",
+    "observable_claims": [
+      "Sirius climbs onto Buckbeak",
+      "Buckbeak flies away from stone tower"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m4_quidditch_camp_barty_casts_morsmordre_dark_mark",
+    "movie_id": "hp_movie_4",
+    "movie_number": 4,
+    "scene_id": "m4_scene_campground_dark_mark",
+    "start_time": 560.0,
+    "end_time": 605.0,
+    "characters_present": [
+      "Barty Crouch Jr",
+      "Harry Potter"
+    ],
+    "primary_subject": "Barty Crouch Jr",
+    "secondary_subjects": [],
+    "action": "raises wand pointing at the sky casting Morsmordre to summon the Dark Mark",
+    "target": "night sky",
+    "interaction_type": "dark_spell_casting",
+    "location": "World Cup Campground ruins",
+    "visible_objects": [
+      "wand",
+      "green spell stream",
+      "glowing skull and serpent",
+      "burning tents"
+    ],
+    "emotional_state": "sinister_fanatical",
+    "camera_scale": "WIDE_SHOT",
+    "camera_motion": "tilt_up",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Morsmordre!",
+    "visual_description": "A masked hooded figure shouts Morsmordre; a green flare erupts from his wand into the smoke clouds forming a colossal emerald skull with a snake tongue.",
+    "observable_claims": [
+      "Wand fires green beam into sky",
+      "Giant green skull and serpent appears in clouds"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m4_great_hall_beauxbatons_entrance_butterflies",
+    "movie_id": "hp_movie_4",
+    "movie_number": 4,
+    "scene_id": "m4_scene_great_hall_beauxbatons_arrival",
+    "start_time": 1560.0,
+    "end_time": 1605.0,
+    "characters_present": [
+      "Fleur Delacour",
+      "Madame Maxime",
+      "Albus Dumbledore"
+    ],
+    "primary_subject": "Fleur Delacour",
+    "secondary_subjects": [
+      "Madame Maxime"
+    ],
+    "action": "walks down aisle in powder blue silk uniform sighing and releasing blue butterflies",
+    "target": "Great Hall aisle",
+    "interaction_type": "processional_entrance",
+    "location": "Great Hall",
+    "visible_objects": [
+      "silk blue dresses",
+      "pointed blue hats",
+      "shimmering blue butterflies",
+      "banquet tables"
+    ],
+    "emotional_state": "graceful_alluring",
+    "camera_scale": "MEDIUM_WIDE",
+    "camera_motion": "tracking_forward",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "And now, please welcome the lovely ladies of the Beauxbatons Academy of Magic!",
+    "visual_description": "The Beauxbatons students glide down the center aisle in synchronized steps, sighing softly as glowing blue butterflies flutter through the air.",
+    "observable_claims": [
+      "Beauxbatons girls march in blue uniforms",
+      "Butterflies flutter around hall"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m4_great_hall_durmstrang_entrance_fire_staffs",
+    "movie_id": "hp_movie_4",
+    "movie_number": 4,
+    "scene_id": "m4_scene_great_hall_durmstrang_arrival",
+    "start_time": 1620.0,
+    "end_time": 1665.0,
+    "characters_present": [
+      "Viktor Krum",
+      "Igor Karkaroff",
+      "Albus Dumbledore"
+    ],
+    "primary_subject": "Viktor Krum",
+    "secondary_subjects": [
+      "Igor Karkaroff"
+    ],
+    "action": "marches down aisle striking wooden staffs against stone floor igniting sparks and fire",
+    "target": "stone floor",
+    "interaction_type": "processional_entrance",
+    "location": "Great Hall",
+    "visible_objects": [
+      "fur cloaks",
+      "wooden quarterstaffs",
+      "fire dragon spark",
+      "crimson robes"
+    ],
+    "emotional_state": "fierce_military",
+    "camera_scale": "MEDIUM_WIDE",
+    "camera_motion": "tracking_forward",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "And our friends from the north, please greet the proud sons of Durmstrang!",
+    "visual_description": "Durmstrang boys march vigorously, slamming carved wooden poles into the flagstones with rhythmic thuds and conjuring a roaring fire-bird.",
+    "observable_claims": [
+      "Students slam staffs onto stone floor",
+      "Fire spark dragon conjured",
+      "Fur-cloaked students march"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m4_great_hall_goblet_spews_harry_potter_parchment",
+    "movie_id": "hp_movie_4",
+    "movie_number": 4,
+    "scene_id": "m4_scene_goblet_fourth_champion",
+    "start_time": 2180.0,
+    "end_time": 2235.0,
+    "characters_present": [
+      "Albus Dumbledore",
+      "Harry Potter",
+      "Minerva McGonagall",
+      "Severus Snape"
+    ],
+    "primary_subject": "Albus Dumbledore",
+    "secondary_subjects": [
+      "Harry Potter"
+    ],
+    "action": "catches charred parchment ejected from the red flame reading Harry Potter",
+    "target": "charred parchment",
+    "interaction_type": "inspection",
+    "location": "Great Hall Goblet dais",
+    "visible_objects": [
+      "Goblet of Fire",
+      "red fire flame",
+      "burnt parchment slip",
+      "wooden cup"
+    ],
+    "emotional_state": "stunned_ominous",
+    "camera_scale": "CLOSE_UP",
+    "camera_motion": "slow_push",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Harry Potter. Harry Potter! Harry, did you put your name in the Goblet of Fire?!",
+    "visual_description": "The blue flame of the wooden Goblet turns furious red and coughs out a burning scrap of parchment; Dumbledore snatches it reading 'Harry Potter'.",
+    "observable_claims": [
+      "Goblet flame turns red",
+      "Dumbledore holds smoking paper scrap",
+      "Harry stands shocked"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m4_yule_ball_hermione_pink_dress_grand_staircase",
+    "movie_id": "hp_movie_4",
+    "movie_number": 4,
+    "scene_id": "m4_scene_yule_ball_staircase_entrance",
+    "start_time": 4620.0,
+    "end_time": 4665.0,
+    "characters_present": [
+      "Hermione Granger",
+      "Viktor Krum",
+      "Harry Potter",
+      "Ron Weasley"
+    ],
+    "primary_subject": "Hermione Granger",
+    "secondary_subjects": [
+      "Viktor Krum",
+      "Ron Weasley"
+    ],
+    "action": "descends marble staircase in elegant pink chiffon dress smiling at Viktor Krum",
+    "target": "Viktor Krum",
+    "interaction_type": "ceremonial_arrival",
+    "location": "Entrance Hall marble grand staircase",
+    "visible_objects": [
+      "pink chiffon layered gown",
+      "curled hair updo",
+      "ice sculptures",
+      "marble stairs"
+    ],
+    "emotional_state": "radiant_poised",
+    "camera_scale": "MEDIUM_WIDE",
+    "camera_motion": "crane_down",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Hermione Granger... with Viktor Krum?!",
+    "visual_description": "Hermione glides down the grand marble staircase in a cascading pink dress; Harry and a stunned Ron gape in disbelief.",
+    "observable_claims": [
+      "Hermione wears pink ruffled dress on staircase",
+      "Ron stares with mouth open"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m4_second_task_harry_eats_gillyweed_grows_gills",
+    "movie_id": "hp_movie_4",
+    "movie_number": 4,
+    "scene_id": "m4_scene_second_task_lake_start",
+    "start_time": 5080.0,
+    "end_time": 5125.0,
+    "characters_present": [
+      "Harry Potter",
+      "Neville Longbottom"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Neville Longbottom"
+    ],
+    "action": "chews and swallows slimy green Gillyweed clutching neck as gills rip open",
+    "target": "Gillyweed",
+    "interaction_type": "consumption",
+    "location": "Black Lake floating spectator platform",
+    "visible_objects": [
+      "slimy green Gillyweed bundle",
+      "neck gills",
+      "webbed toes and fingers",
+      "lake water"
+    ],
+    "emotional_state": "choking_astonished",
+    "camera_scale": "CLOSE_UP",
+    "camera_motion": "handheld",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Neville, I don't feel like breathing! Harry! Cannon fire!",
+    "visual_description": "Harry swallows the rubbery green weed, gags and falls into the water; gills form along his neck and webs grow between his fingers.",
+    "observable_claims": [
+      "Harry eats green weed",
+      "Gills form on Harry's neck",
+      "Webbing appears between fingers"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m4_graveyard_wormtail_drops_baby_voldemort_into_cauldron",
+    "movie_id": "hp_movie_4",
+    "movie_number": 4,
+    "scene_id": "m4_scene_graveyard_cauldron_ritual",
+    "start_time": 6820.0,
+    "end_time": 6870.0,
+    "characters_present": [
+      "Peter Pettigrew",
+      "Lord Voldemort",
+      "Harry Potter"
+    ],
+    "primary_subject": "Peter Pettigrew",
+    "secondary_subjects": [
+      "Harry Potter"
+    ],
+    "action": "drops bundle containing shriveled infant Voldemort into giant boiling cauldron",
+    "target": "iron cauldron",
+    "interaction_type": "ritual_sacrifice",
+    "location": "Little Hangleton graveyard",
+    "visible_objects": [
+      "steaming iron cauldron",
+      "swaddling bundle",
+      "angel of death statue",
+      "bone dust",
+      "dagger"
+    ],
+    "emotional_state": "grim_subservient",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "tilt_down",
+    "preceding_event": null,
+    "following_event": "evt_m4_graveyard_voldemort_rises_from_cauldron",
+    "dialogue_ref": "Bone of the father, unknowingly given. Flesh of the servant, willingly sacrificed. Blood of the enemy, forcibly taken.",
+    "visual_description": "Wormtail drops the ugly infant bundle into the bubbling liquid, cuts off his own right hand, and cuts Harry's arm with a silver dagger.",
+    "observable_claims": [
+      "Wormtail drops bundle into cauldron",
+      "Wormtail slices Harry's arm for blood"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m4_graveyard_voldemort_rises_from_cauldron",
+    "movie_id": "hp_movie_4",
+    "movie_number": 4,
+    "scene_id": "m4_scene_voldemort_rebirth",
+    "start_time": 6880.0,
+    "end_time": 6930.0,
+    "characters_present": [
+      "Lord Voldemort",
+      "Peter Pettigrew",
+      "Harry Potter"
+    ],
+    "primary_subject": "Lord Voldemort",
+    "secondary_subjects": [
+      "Peter Pettigrew"
+    ],
+    "action": "steps out of collapsing cauldron smoke draping black silk robe over pale body",
+    "target": "cauldron",
+    "interaction_type": "resurrection",
+    "location": "Little Hangleton graveyard",
+    "visible_objects": [
+      "black silk robe",
+      "steaming cauldron",
+      "pale serpentine face",
+      "slitted red nostrils"
+    ],
+    "emotional_state": "chilling_triumphant",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "crane_up",
+    "preceding_event": "evt_m4_graveyard_wormtail_drops_baby_voldemort_into_cauldron",
+    "following_event": null,
+    "dialogue_ref": "Robe me. Wormtail, your arm. The other arm, Wormtail!",
+    "visual_description": "The cauldron erupts into black fog; Lord Voldemort materializes in adult form, sliding his pale hands over his bald serpentine face.",
+    "observable_claims": [
+      "Tall pale Voldemort steps from smoke",
+      "Voldemort rubs face and fingers"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m4_graveyard_priori_incantatem_ghosts_emerge",
+    "movie_id": "hp_movie_4",
+    "movie_number": 4,
+    "scene_id": "m4_scene_priori_incantatem_duel",
+    "start_time": 7320.0,
+    "end_time": 7370.0,
+    "characters_present": [
+      "Harry Potter",
+      "Lord Voldemort",
+      "Cedric Diggory",
+      "James Potter",
+      "Lily Potter"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Lord Voldemort"
+    ],
+    "action": "struggles against spell clash as golden cage erupts and ghostly echoes emerge",
+    "target": "Lord Voldemort",
+    "interaction_type": "wand_core_connection",
+    "location": "Little Hangleton graveyard",
+    "visible_objects": [
+      "golden light cage",
+      "beaded energy core",
+      "wand beams",
+      "ghostly apparitions"
+    ],
+    "emotional_state": "agonizing_determined",
+    "camera_scale": "WIDE_SHOT",
+    "camera_motion": "circular_orbit",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Harry, when the connection is broken, you must get to the Portkey! We can delay him for a moment!",
+    "visual_description": "A dome of golden light webs between Harry's and Voldemort's wands; glowing spirit figures of Cedric, James, and Lily Potter step from the beam.",
+    "observable_claims": [
+      "Golden cage of light surrounds duelists",
+      "Ghostly figures emerge from wand beam"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m4_defense_barty_crouch_jr_polyjuice_revealed",
+    "movie_id": "hp_movie_4",
+    "movie_number": 4,
+    "scene_id": "m4_scene_moody_office_unmasking",
+    "start_time": 7760.0,
+    "end_time": 7810.0,
+    "characters_present": [
+      "Albus Dumbledore",
+      "Severus Snape",
+      "Barty Crouch Jr",
+      "Harry Potter"
+    ],
+    "primary_subject": "Barty Crouch Jr",
+    "secondary_subjects": [
+      "Albus Dumbledore"
+    ],
+    "action": "twitches tongue licking lip as Mad-Eye Moody body morphs back into Barty Crouch Jr",
+    "target": "Albus Dumbledore",
+    "interaction_type": "interrogation",
+    "location": "Defense Against the Dark Arts office",
+    "visible_objects": [
+      "hip flask",
+      "wooden trunk with locks",
+      "brass magical eye",
+      "wand"
+    ],
+    "emotional_state": "deranged_mocking",
+    "camera_scale": "CLOSE_UP",
+    "camera_motion": "slow_push",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "I'll show you mine if you show me yours. The Dark Lord has returned!",
+    "visual_description": "Moody's fake magical eye pops out; his facial scars melt away as he repeatedly flicks his snake-like tongue, revealing Barty Crouch Jr.",
+    "observable_claims": [
+      "Moody face transforms into Barty Crouch Jr",
+      "Tongue flicks like snake"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m5_whinging_underpass_harry_casts_patronus_at_dementor",
+    "movie_id": "hp_movie_5",
+    "movie_number": 5,
+    "scene_id": "m5_scene_underpass_dementors",
+    "start_time": 240.0,
+    "end_time": 285.0,
+    "characters_present": [
+      "Harry Potter",
+      "Dudley Dursley"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Dudley Dursley"
+    ],
+    "action": "casts Expecto Patronum blasting glowing silver shield against pinning Dementor",
+    "target": "Dementor",
+    "interaction_type": "combat_spell",
+    "location": "Little Whinging concrete pedestrian underpass",
+    "visible_objects": [
+      "wand",
+      "silver patronus beam",
+      "black cloaked Dementor",
+      "freezing puddle"
+    ],
+    "emotional_state": "panicked_defiant",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "handheld_shaky",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Expecto Patronum!",
+    "visual_description": "Harry searches for his dropped wand in the freezing tunnel and casts Expecto Patronum; silver energy blasts the decaying Dementor backward.",
+    "observable_claims": [
+      "Harry casts Expecto Patronum",
+      "Silver beam pushes Dementor off Dudley"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m5_grimmauld_sirius_shows_harry_black_family_tapestry",
+    "movie_id": "hp_movie_5",
+    "movie_number": 5,
+    "scene_id": "m5_scene_black_tapestry_room",
+    "start_time": 1380.0,
+    "end_time": 1425.0,
+    "characters_present": [
+      "Sirius Black",
+      "Harry Potter"
+    ],
+    "primary_subject": "Sirius Black",
+    "secondary_subjects": [
+      "Harry Potter"
+    ],
+    "action": "points wand tip illuminating singed hole where his face was burned off tapestry",
+    "target": "Black family tree tapestry",
+    "interaction_type": "explanation",
+    "location": "12 Grimmauld Place drawing room",
+    "visible_objects": [
+      "green velvet tapestry",
+      "gold woven names",
+      "scorch marks",
+      "wand light"
+    ],
+    "emotional_state": "bitter_cynical",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "slow_pan",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "My mother did that after I ran away. Charming woman. We've all got both light and dark inside us.",
+    "visual_description": "Sirius shines his wand over the vast ancient family tapestry, touching the black scorched burn mark where his mother blasted off his name.",
+    "observable_claims": [
+      "Sirius touches charred hole on tapestry",
+      "Names woven in gold thread"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m5_detention_umbridge_blood_quill_i_must_not_tell_lies",
+    "movie_id": "hp_movie_5",
+    "movie_number": 5,
+    "scene_id": "m5_scene_umbridge_office_blood_quill",
+    "start_time": 2340.0,
+    "end_time": 2390.0,
+    "characters_present": [
+      "Harry Potter",
+      "Dolores Umbridge"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Dolores Umbridge"
+    ],
+    "action": "writes lines with black blood quill as red words cut into the back of his hand",
+    "target": "parchment and hand",
+    "interaction_type": "torture_detention",
+    "location": "Defense Against the Dark Arts office (pink decorated)",
+    "visible_objects": [
+      "black pointed quill",
+      "pink teacups",
+      "kitten decorative plates",
+      "carved bleeding hand"
+    ],
+    "emotional_state": "grim_defiant",
+    "camera_scale": "CLOSE_UP",
+    "camera_motion": "static",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "You know, deep down, that you deserve to be punished. Don't you, Mr. Potter?",
+    "visual_description": "Harry writes 'I must not tell lies'; with every stroke, the exact letters carve painfully into the flesh on the back of his right hand in blood.",
+    "observable_claims": [
+      "Words carve into back of Harry's hand",
+      "Umbridge watches smiling with pink teacup"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m5_great_hall_fred_george_firework_dragon_chases_umbridge",
+    "movie_id": "hp_movie_5",
+    "movie_number": 5,
+    "scene_id": "m5_scene_owl_exam_fireworks",
+    "start_time": 5420.0,
+    "end_time": 5475.0,
+    "characters_present": [
+      "Fred Weasley",
+      "George Weasley",
+      "Dolores Umbridge"
+    ],
+    "primary_subject": "Fred Weasley",
+    "secondary_subjects": [
+      "George Weasley",
+      "Dolores Umbridge"
+    ],
+    "action": "flies broomstick hurling sparkling firework dragon that bites and chases Umbridge",
+    "target": "Dolores Umbridge",
+    "interaction_type": "disruptive_prank",
+    "location": "Great Hall examination room",
+    "visible_objects": [
+      "flying broomsticks",
+      "whizzing fireworks",
+      "glowing fire dragon",
+      "fluttering exam papers"
+    ],
+    "emotional_state": "joyous_exultant",
+    "camera_scale": "WIDE_SHOT",
+    "camera_motion": "dynamic_flythrough",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Ready, Fred? Ready, George!",
+    "visual_description": "Fred and George zoom through the Great Hall on brooms blasting colorful fireworks that fuse into a massive roaring dragon snapping at Umbridge.",
+    "observable_claims": [
+      "Twins ride brooms dropping fireworks",
+      "Firework dragon chases Umbridge out door"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m5_dom_hall_of_prophecy_glass_orbs_shatter",
+    "movie_id": "hp_movie_5",
+    "movie_number": 5,
+    "scene_id": "m5_scene_prophecy_shelves_collapse",
+    "start_time": 6240.0,
+    "end_time": 6285.0,
+    "characters_present": [
+      "Harry Potter",
+      "Hermione Granger",
+      "Ron Weasley",
+      "Ginny Weasley",
+      "Lucius Malfoy"
+    ],
+    "primary_subject": "Ginny Weasley",
+    "secondary_subjects": [
+      "Harry Potter"
+    ],
+    "action": "casts Reducto shattering towering glass prophecy shelves in cascading domino wave",
+    "target": "prophecy shelves",
+    "interaction_type": "destructive_spell",
+    "location": "Department of Mysteries Hall of Prophecy",
+    "visible_objects": [
+      "towering black shelves",
+      "glowing glass prophecy orbs",
+      "whispering smoke figures",
+      "shattering glass"
+    ],
+    "emotional_state": "frantic_escaping",
+    "camera_scale": "WIDE_SHOT",
+    "camera_motion": "fast_reverse_tracking",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Reducto!",
+    "visual_description": "Ginny casts Reducto; the shockwave collapses towering black shelf rows as hundreds of glass prophecy spheres explode in a cascading avalanche.",
+    "observable_claims": [
+      "Towering shelves collapse like dominoes",
+      "Glass prophecy orbs shatter into mist"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m5_dom_bellatrix_casts_killing_curse_at_sirius",
+    "movie_id": "hp_movie_5",
+    "movie_number": 5,
+    "scene_id": "m5_scene_death_chamber_sirius_death",
+    "start_time": 6860.0,
+    "end_time": 6905.0,
+    "characters_present": [
+      "Bellatrix Lestrange",
+      "Sirius Black",
+      "Harry Potter",
+      "Remus Lupin"
+    ],
+    "primary_subject": "Bellatrix Lestrange",
+    "secondary_subjects": [
+      "Sirius Black",
+      "Harry Potter"
+    ],
+    "action": "casts Avada Kedavra hitting Sirius Black in chest knocking him into the Veil",
+    "target": "Sirius Black",
+    "interaction_type": "killing_curse",
+    "location": "Department of Mysteries Death Chamber",
+    "visible_objects": [
+      "stone archway",
+      "rippling black veil",
+      "green spell bolt",
+      "dais steps"
+    ],
+    "emotional_state": "gleeful_murderous",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "slow_motion_snap",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Avada Kedavra! I killed Sirius Black! Ha ha ha!",
+    "visual_description": "Bellatrix sneers and fires the green curse; Sirius smiles faintly at Harry as the spell hits his chest and he falls backward through the rippling veil.",
+    "observable_claims": [
+      "Sirius hit by spell",
+      "Sirius drifts backward through rippling stone veil",
+      "Harry screams held by Lupin"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m5_atrium_voldemort_shatters_glass_dumbledore_shields",
+    "movie_id": "hp_movie_5",
+    "movie_number": 5,
+    "scene_id": "m5_scene_atrium_glass_storm",
+    "start_time": 7240.0,
+    "end_time": 7285.0,
+    "characters_present": [
+      "Lord Voldemort",
+      "Albus Dumbledore",
+      "Harry Potter"
+    ],
+    "primary_subject": "Lord Voldemort",
+    "secondary_subjects": [
+      "Albus Dumbledore"
+    ],
+    "action": "screams unleashing shockwave shattering thousands of glass windows into lethal rain",
+    "target": "Ministry Atrium windows",
+    "interaction_type": "destructive_clash",
+    "location": "Ministry of Magic Atrium",
+    "visible_objects": [
+      "green floor tiles",
+      "shattering glass shards",
+      "wand shield",
+      "sand wave"
+    ],
+    "emotional_state": "furious_apocalyptic",
+    "camera_scale": "WIDE_SHOT",
+    "camera_motion": "sweeping_circular",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "You will lose everything!",
+    "visual_description": "Voldemort throws back his head roaring; every window in the towering Ministry atrium shatters inward into a blizzard of deadly glass flying at Dumbledore.",
+    "observable_claims": [
+      "Thousands of glass panes shatter simultaneously",
+      "Glass shards fly toward Dumbledore and Harry"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m6_budleigh_dumbledore_pokes_slughorn_armchair",
+    "movie_id": "hp_movie_6",
+    "movie_number": 6,
+    "scene_id": "m6_scene_slughorn_house_armchair",
+    "start_time": 460.0,
+    "end_time": 505.0,
+    "characters_present": [
+      "Albus Dumbledore",
+      "Horace Slughorn",
+      "Harry Potter"
+    ],
+    "primary_subject": "Albus Dumbledore",
+    "secondary_subjects": [
+      "Horace Slughorn"
+    ],
+    "action": "pokes plush fabric armchair with wand causing Horace Slughorn to pop out",
+    "target": "plush armchair",
+    "interaction_type": "investigation",
+    "location": "Muggle house in Budleigh Babberton",
+    "visible_objects": [
+      "plush striped armchair",
+      "dragon blood splatter",
+      "wand",
+      "shattered furniture"
+    ],
+    "emotional_state": "amused_gentle",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "slow_push",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Ouch! Dumbledore. Horace. You didn't need to disembowel me.",
+    "visual_description": "Dumbledore inspects the wrecked living room and pokes a cushioned armchair with his wand tip; the chair groans and pops into a portly Slughorn.",
+    "observable_claims": [
+      "Dumbledore pokes armchair with wand",
+      "Armchair transforms into Horace Slughorn"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m6_potions_slughorn_inspects_draught_of_living_death",
+    "movie_id": "hp_movie_6",
+    "movie_number": 6,
+    "scene_id": "m6_scene_potions_living_death_test",
+    "start_time": 1940.0,
+    "end_time": 1985.0,
+    "characters_present": [
+      "Horace Slughorn",
+      "Harry Potter",
+      "Hermione Granger"
+    ],
+    "primary_subject": "Horace Slughorn",
+    "secondary_subjects": [
+      "Harry Potter"
+    ],
+    "action": "drops purple leaf into Harry's cauldron watching it burn instantly into ash",
+    "target": "Harry's cauldron",
+    "interaction_type": "inspection",
+    "location": "Potions dungeon classroom",
+    "visible_objects": [
+      "pewter cauldron",
+      "Half-Blood Prince textbook",
+      "silver stirring rod",
+      "sopophorous bean"
+    ],
+    "emotional_state": "delighted_astonished",
+    "camera_scale": "MEDIUM_CLOSE_UP",
+    "camera_motion": "static",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "By the gods! One drop would kill us all! It's so perfect!",
+    "visual_description": "Slughorn drops a single leaf into Harry's clear shimmering potion; it burns instantly to ashes, proving perfection while Hermione fumes.",
+    "observable_claims": [
+      "Slughorn inspects Harry's clear cauldron",
+      "Leaf disintegrates in potion"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m6_three_broomsticks_katie_bell_touches_cursed_opal_necklace",
+    "movie_id": "hp_movie_6",
+    "movie_number": 6,
+    "scene_id": "m6_scene_snow_cursed_necklace",
+    "start_time": 2840.0,
+    "end_time": 2885.0,
+    "characters_present": [
+      "Katie Bell",
+      "Leanne",
+      "Harry Potter",
+      "Ron Weasley",
+      "Hermione Granger"
+    ],
+    "primary_subject": "Katie Bell",
+    "secondary_subjects": [
+      "Leanne"
+    ],
+    "action": "touches torn parcel of cursed opal necklace levitating screaming into the sky",
+    "target": "cursed opal necklace",
+    "interaction_type": "curse_affliction",
+    "location": "Snowy path from Hogsmeade to Hogwarts",
+    "visible_objects": [
+      "brown paper parcel",
+      "opal necklace",
+      "snowdrifts",
+      "winter coats"
+    ],
+    "emotional_state": "terrifying_painful",
+    "camera_scale": "WIDE_SHOT",
+    "camera_motion": "tilt_up",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Katie! I told her not to touch it! Do not touch that, except by the wrappings!",
+    "visual_description": "The paper parcel tears in the snow; Katie touches the glowing opals and shoots high into the winter sky, thrashing and screaming silently.",
+    "observable_claims": [
+      "Katie Bell levitates into winter air screaming",
+      "Necklace lies in snow wrapped in brown paper"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m6_slughorn_office_ron_drinks_poisoned_mead_harry_bezoar",
+    "movie_id": "hp_movie_6",
+    "movie_number": 6,
+    "scene_id": "m6_scene_slughorn_mead_poisoning",
+    "start_time": 4620.0,
+    "end_time": 4670.0,
+    "characters_present": [
+      "Ron Weasley",
+      "Harry Potter",
+      "Horace Slughorn"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Ron Weasley",
+      "Horace Slughorn"
+    ],
+    "action": "jams shriveled bezoar stone into choking Ron's mouth saving his life",
+    "target": "Ron Weasley",
+    "interaction_type": "medical_emergency",
+    "location": "Horace Slughorn office",
+    "visible_objects": [
+      "crystal mead decanter",
+      "shriveled bezoar stone",
+      "foaming mouth",
+      "green velvet sofa"
+    ],
+    "emotional_state": "desperate_frantic",
+    "camera_scale": "CLOSE_UP",
+    "camera_motion": "handheld_shaky",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Ron! Professor, what is it?! Quick, get a bezoar! Come on, Ron, swallow it!",
+    "visual_description": "Ron sips the mead, foams at the mouth and collapses convulsing; Harry dashes to the ingredient cabinet and forces a bezoar down his throat.",
+    "observable_claims": [
+      "Ron choking on floor foaming at mouth",
+      "Harry shoves bezoar stone into Ron's throat"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m6_bathroom_harry_casts_sectumsempra_slashes_malfoy",
+    "movie_id": "hp_movie_6",
+    "movie_number": 6,
+    "scene_id": "m6_scene_bathroom_sectumsempra_duel",
+    "start_time": 5120.0,
+    "end_time": 5165.0,
+    "characters_present": [
+      "Harry Potter",
+      "Draco Malfoy"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Draco Malfoy"
+    ],
+    "action": "shouts Sectumsempra slashing deep bleeding gashes across Draco's chest",
+    "target": "Draco Malfoy",
+    "interaction_type": "combat_spell",
+    "location": "Moaning Myrtle flooded bathroom",
+    "visible_objects": [
+      "flooded floor",
+      "shattered mirrors",
+      "white shirt soaked in crimson blood",
+      "wands"
+    ],
+    "emotional_state": "horrified_shocked",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "tracking_push",
+    "preceding_event": null,
+    "following_event": "evt_m6_bathroom_snape_heals_draco_wounds_vulnera_sanentur",
+    "dialogue_ref": "Sectumsempra!",
+    "visual_description": "Harry fires Sectumsempra; invisible blades slice through Draco's white shirt, spraying blood onto the flooded tiles as Draco collapses.",
+    "observable_claims": [
+      "Draco falls back into puddle with bloody chest",
+      "Harry stares at wand horrified"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m6_bathroom_snape_heals_draco_wounds_vulnera_sanentur",
+    "movie_id": "hp_movie_6",
+    "movie_number": 6,
+    "scene_id": "m6_scene_bathroom_snape_healing",
+    "start_time": 5170.0,
+    "end_time": 5215.0,
+    "characters_present": [
+      "Severus Snape",
+      "Draco Malfoy",
+      "Harry Potter"
+    ],
+    "primary_subject": "Severus Snape",
+    "secondary_subjects": [
+      "Draco Malfoy"
+    ],
+    "action": "traces wand over Draco's lacerated chest chanting Vulnera Sanentur closing wounds",
+    "target": "Draco Malfoy",
+    "interaction_type": "healing_incantation",
+    "location": "Moaning Myrtle flooded bathroom",
+    "visible_objects": [
+      "blood pool",
+      "wand tip",
+      "knitted skin cuts",
+      "black cloak in water"
+    ],
+    "emotional_state": "solemn_intense",
+    "camera_scale": "MEDIUM_CLOSE_UP",
+    "camera_motion": "slow_pan",
+    "preceding_event": "evt_m6_bathroom_harry_casts_sectumsempra_slashes_malfoy",
+    "following_event": null,
+    "dialogue_ref": "Vulnera Sanentur... Vulnera Sanentur...",
+    "visual_description": "Snape kneels into the bloody water, rhythmically waving his wand like a song as the gashes on Draco's chest seal and the blood flows back.",
+    "observable_claims": [
+      "Snape waves wand over Draco's chest",
+      "Deep wounds knit together and heal"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m6_cave_harry_forces_dumbledore_drink_despair_potion",
+    "movie_id": "hp_movie_6",
+    "movie_number": 6,
+    "scene_id": "m6_scene_cave_basin_drinking",
+    "start_time": 6620.0,
+    "end_time": 6670.0,
+    "characters_present": [
+      "Harry Potter",
+      "Albus Dumbledore"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Albus Dumbledore"
+    ],
+    "action": "holds crystal goblet forcing weeping Dumbledore to drink green emerald potion",
+    "target": "Albus Dumbledore",
+    "interaction_type": "forced_nourishment",
+    "location": "Crystal Cave island basin",
+    "visible_objects": [
+      "glowing green stone basin",
+      "crystal goblet",
+      "emerald potion",
+      "black lake water"
+    ],
+    "emotional_state": "heartbroken_agonized",
+    "camera_scale": "CLOSE_UP",
+    "camera_motion": "handheld",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Kill me... Harry, please... Just one more, Professor. Drink it, please.",
+    "visual_description": "Harry holds the sobbing, pleading Dumbledore's head, pressing the crystal cup to his lips to empty the green potion from the basin.",
+    "observable_claims": [
+      "Harry forces goblet to Dumbledore's lips",
+      "Dumbledore weeps and begs to stop"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m6_astronomy_tower_courtyard_students_raise_wands_for_dumbledore",
+    "movie_id": "hp_movie_6",
+    "movie_number": 6,
+    "scene_id": "m6_scene_dumbledore_mourning_wands",
+    "start_time": 7680.0,
+    "end_time": 7730.0,
+    "characters_present": [
+      "Minerva McGonagall",
+      "Harry Potter",
+      "Ginny Weasley",
+      "Hermione Granger",
+      "Ron Weasley"
+    ],
+    "primary_subject": "Minerva McGonagall",
+    "secondary_subjects": [
+      "Harry Potter",
+      "Students"
+    ],
+    "action": "raises glowing wand tip silently toward the sky joined by all students",
+    "target": "sky / Dark Mark",
+    "interaction_type": "memorial_salute",
+    "location": "Astronomy Tower base courtyard",
+    "visible_objects": [
+      "Dumbledore body on cobblestones",
+      "glowing wand tips",
+      "Dark Mark smoke in clouds",
+      "tears"
+    ],
+    "emotional_state": "solemn_mournful",
+    "camera_scale": "WIDE_SHOT",
+    "camera_motion": "slow_crane_up",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Lumox wands dispel the darkness.",
+    "visual_description": "Professor McGonagall lifts her illuminated wand tip; one by one every teacher and student raises their wand, erasing the green Dark Mark from the sky.",
+    "observable_claims": [
+      "McGonagall raises glowing wand",
+      "Sea of glowing wands dispels green skull in sky"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m7_privet_drive_fleur_george_drink_polyjuice_seven_potters",
+    "movie_id": "hp_movie_7",
+    "movie_number": 7,
+    "scene_id": "m7_scene_privet_seven_potters_transformation",
+    "start_time": 540.0,
+    "end_time": 590.0,
+    "characters_present": [
+      "Alastor Moody",
+      "Harry Potter",
+      "Ron Weasley",
+      "Hermione Granger",
+      "Fred Weasley",
+      "George Weasley",
+      "Fleur Delacour"
+    ],
+    "primary_subject": "Fred Weasley",
+    "secondary_subjects": [
+      "George Weasley",
+      "Harry Potter"
+    ],
+    "action": "drinks muddy flask transforming simultaneously into seven identical Harry Potters",
+    "target": "Polyjuice flask",
+    "interaction_type": "polyjuice_drinking",
+    "location": "4 Privet Drive hallway",
+    "visible_objects": [
+      "silver flasks",
+      "identical flannel shirts and round glasses",
+      "muddy potion"
+    ],
+    "emotional_state": "playful_chaotic",
+    "camera_scale": "MEDIUM_WIDE",
+    "camera_motion": "pan",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Right. Who's first? Wow, we're identical! Not yet, you're not.",
+    "visual_description": "Six allies drink the flask together, grimace, and simultaneously morph into exact copies of Harry Potter wearing matching flannel shirts and glasses.",
+    "observable_claims": [
+      "Multiple people morph into Harry Potter",
+      "Seven identical Harrys stand in room wearing glasses"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m7_aerial_hedwig_intercepts_killing_curse_sacrifice",
+    "movie_id": "hp_movie_7",
+    "movie_number": 7,
+    "scene_id": "m7_scene_seven_potters_flight_clouds",
+    "start_time": 820.0,
+    "end_time": 860.0,
+    "characters_present": [
+      "Harry Potter",
+      "Rubeus Hagrid",
+      "Hedwig"
+    ],
+    "primary_subject": "Hedwig",
+    "secondary_subjects": [
+      "Harry Potter"
+    ],
+    "action": "swoops in front of flying Death Eater intercepting green Killing Curse for Harry",
+    "target": "Death Eater",
+    "interaction_type": "heroic_sacrifice",
+    "location": "Stormy night sky above London",
+    "visible_objects": [
+      "flying motorbike with sidecar",
+      "white snowy owl",
+      "green curse flash",
+      "feathers"
+    ],
+    "emotional_state": "tragic_heartbreaking",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "fast_tracking",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Hedwig! No, no!",
+    "visual_description": "Hedwig claws at a pursuing Death Eater's mask, takes an Avada Kedavra curse meant for Harry, and spirals lifeless down through the clouds.",
+    "observable_claims": [
+      "Hedwig hit by green spell in mid-air",
+      "White owl falls from sidecar"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m7_burrow_scrimgeour_reads_dumbledores_will",
+    "movie_id": "hp_movie_7",
+    "movie_number": 7,
+    "scene_id": "m7_scene_burrow_will_reading",
+    "start_time": 1380.0,
+    "end_time": 1430.0,
+    "characters_present": [
+      "Rufus Scrimgeour",
+      "Harry Potter",
+      "Ron Weasley",
+      "Hermione Granger"
+    ],
+    "primary_subject": "Rufus Scrimgeour",
+    "secondary_subjects": [
+      "Harry Potter",
+      "Ron Weasley",
+      "Hermione Granger"
+    ],
+    "action": "reads parchment will distributing Deluminator, book, and Snitch across wooden table",
+    "target": "Dumbledore's bequests",
+    "interaction_type": "official_reading",
+    "location": "The Burrow living room",
+    "visible_objects": [
+      "silver Deluminator",
+      "Tales of Beedle the Bard rune book",
+      "Golden Snitch",
+      "Ministry parchment"
+    ],
+    "emotional_state": "suspicious_interrogative",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "static",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Herein is set forth the last will and testament of Albus Percival Wulfric Brian Dumbledore.",
+    "visual_description": "Minister Scrimgeour reads from the parchment, placing the Deluminator before Ron, the ancient rune book before Hermione, and the Snitch before Harry.",
+    "observable_claims": [
+      "Scrimgeour sets Deluminator on table",
+      "Harry holds Golden Snitch"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m7_burrow_wedding_patronus_message_ministry_has_fallen",
+    "movie_id": "hp_movie_7",
+    "movie_number": 7,
+    "scene_id": "m7_scene_wedding_attack",
+    "start_time": 1820.0,
+    "end_time": 1865.0,
+    "characters_present": [
+      "Harry Potter",
+      "Hermione Granger",
+      "Ron Weasley",
+      "Arthur Weasley"
+    ],
+    "primary_subject": "Arthur Weasley",
+    "secondary_subjects": [
+      "Harry Potter"
+    ],
+    "action": "stares as silver lynx Patronus drops into marquee speaking Kingsley's grave voice",
+    "target": "lynx patronus",
+    "interaction_type": "emergency_broadcast",
+    "location": "The Burrow wedding marquee tent",
+    "visible_objects": [
+      "silver lynx Patronus",
+      "champagne glasses",
+      "white marquee curtains",
+      "black smoke apparitions"
+    ],
+    "emotional_state": "terrified_pandemonium",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "fast_push",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "The Ministry has fallen. The Minister of Magic is dead. They are coming. They are coming.",
+    "visual_description": "A glowing silver lynx Patronus lands on a wedding table, speaks Kingsley's warning, and dissipates as Death Eaters rip through the tent fabric.",
+    "observable_claims": [
+      "Silver lynx Patronus speaks on table",
+      "Guests scream as Death Eaters attack tent"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m7_tent_ron_argues_with_harry_abandons_hunt",
+    "movie_id": "hp_movie_7",
+    "movie_number": 7,
+    "scene_id": "m7_scene_tent_argument_departure",
+    "start_time": 4220.0,
+    "end_time": 4270.0,
+    "characters_present": [
+      "Ron Weasley",
+      "Harry Potter",
+      "Hermione Granger"
+    ],
+    "primary_subject": "Ron Weasley",
+    "secondary_subjects": [
+      "Harry Potter",
+      "Hermione Granger"
+    ],
+    "action": "yanks Horcrux locket off neck throws it on bunk and walks out into pouring rain",
+    "target": "Harry Potter",
+    "interaction_type": "confrontation",
+    "location": "Magical tent interior and stormy cliffside exterior",
+    "visible_objects": [
+      "gold Slytherin Locket Horcrux",
+      "canvas tent flap",
+      "knitted radio",
+      "backpack"
+    ],
+    "emotional_state": "bitter_furious",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "tracking",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "You don't know what you're doing, do you?! None of us do! Then leave!",
+    "visual_description": "Ron rips off the heavy gold Horcrux chain, hurls it onto the cot, and packs his bag, disappearing into the dark misty rain despite Hermione's pleas.",
+    "observable_claims": [
+      "Ron tears locket off neck and throws it",
+      "Ron walks out into rain holding backpack"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m7_godrics_hollow_harry_hermione_visit_potter_graves",
+    "movie_id": "hp_movie_7",
+    "movie_number": 7,
+    "scene_id": "m7_scene_godrics_graveyard_potters",
+    "start_time": 4720.0,
+    "end_time": 4770.0,
+    "characters_present": [
+      "Harry Potter",
+      "Hermione Granger"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Hermione Granger"
+    ],
+    "action": "kneels in snow brushing frost off James and Lily Potter's tombstone in silence",
+    "target": "Potter tombstone",
+    "interaction_type": "mourning",
+    "location": "Godric's Hollow church graveyard in winter snow",
+    "visible_objects": [
+      "carved stone tombstone",
+      "snowdrifts",
+      "wreath of Christmas roses",
+      "wand tip light"
+    ],
+    "emotional_state": "sorrowful_reverent",
+    "camera_scale": "MEDIUM_CLOSE_UP",
+    "camera_motion": "slow_pan",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Merry Christmas, Hermione. Merry Christmas, Harry.",
+    "visual_description": "Harry wipes snow from the marble headstone engraved with 'The last enemy that shall be destroyed is death'; Hermione conjures a wreath of roses with her wand.",
+    "observable_claims": [
+      "Harry brushes snow off headstone",
+      "Hermione conjures flowers onto grave"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m7_lovegood_house_xenophilius_draws_deathly_hallows_symbol",
+    "movie_id": "hp_movie_7",
+    "movie_number": 7,
+    "scene_id": "m7_scene_lovegood_hallows_drawing",
+    "start_time": 6420.0,
+    "end_time": 6465.0,
+    "characters_present": [
+      "Xenophilius Lovegood",
+      "Hermione Granger",
+      "Harry Potter",
+      "Ron Weasley"
+    ],
+    "primary_subject": "Xenophilius Lovegood",
+    "secondary_subjects": [
+      "Hermione Granger"
+    ],
+    "action": "draws vertical line circle and triangle with quill explaining the Deathly Hallows",
+    "target": "parchment paper",
+    "interaction_type": "diagrammatic_explanation",
+    "location": "Lovegood Rook tower kitchen",
+    "visible_objects": [
+      "parchment",
+      "black ink quill",
+      "triangle circle line symbol",
+      "printing press"
+    ],
+    "emotional_state": "obsessive_frantic",
+    "camera_scale": "CLOSE_UP",
+    "camera_motion": "top_down",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "The Elder Wand. The Resurrection Stone. The Cloak of Invisibility. Together, they make the Deathly Hallows.",
+    "visual_description": "Xenophilius draws a straight line for the wand, a circle for the stone, and an enclosing triangle for the cloak, revealing the Hallows symbol.",
+    "observable_claims": [
+      "Hand draws triangle circle and line on paper",
+      "Deathly Hallows symbol formed in ink"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m7_malfoy_manor_bellatrix_carves_mudblood_hermione_arm",
+    "movie_id": "hp_movie_7",
+    "movie_number": 7,
+    "scene_id": "m7_scene_manor_drawing_room_torture",
+    "start_time": 7180.0,
+    "end_time": 7225.0,
+    "characters_present": [
+      "Bellatrix Lestrange",
+      "Hermione Granger"
+    ],
+    "primary_subject": "Bellatrix Lestrange",
+    "secondary_subjects": [
+      "Hermione Granger"
+    ],
+    "action": "pins Hermione to marble floor carving Mudblood into her forearm with silver knife",
+    "target": "Hermione Granger",
+    "interaction_type": "torture",
+    "location": "Malfoy Manor drawing room",
+    "visible_objects": [
+      "silver goblin-made dagger",
+      "bleeding forearm cut",
+      "marble floor tiles",
+      "crystal chandelier overhead"
+    ],
+    "emotional_state": "sadistic_manic",
+    "camera_scale": "CLOSE_UP",
+    "camera_motion": "handheld",
+    "preceding_event": null,
+    "following_event": "evt_m7_malfoy_manor_dobby_drops_crystal_chandelier",
+    "dialogue_ref": "What else did you take from my vault?! Tell me the truth, or I swear I'll cut you!",
+    "visual_description": "Bellatrix straddles Hermione on the floor, using her small curved silver dagger to scratch the word 'Mudblood' into Hermione's bleeding skin.",
+    "observable_claims": [
+      "Bellatrix holds knife over Hermione",
+      "Letters carved into Hermione's forearm"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m7_malfoy_manor_dobby_drops_crystal_chandelier",
+    "movie_id": "hp_movie_7",
+    "movie_number": 7,
+    "scene_id": "m7_scene_manor_chandelier_drop",
+    "start_time": 7380.0,
+    "end_time": 7425.0,
+    "characters_present": [
+      "Dobby",
+      "Bellatrix Lestrange",
+      "Harry Potter",
+      "Ron Weasley"
+    ],
+    "primary_subject": "Dobby",
+    "secondary_subjects": [
+      "Bellatrix Lestrange"
+    ],
+    "action": "unscrews ceiling bolts dropping colossal crystal chandelier onto drawing room floor",
+    "target": "crystal chandelier",
+    "interaction_type": "tactical_sabotage",
+    "location": "Malfoy Manor drawing room ceiling",
+    "visible_objects": [
+      "crystal chandelier",
+      "shattering glass crystals",
+      "ceiling beams",
+      "silver knife"
+    ],
+    "emotional_state": "courageous_defiant",
+    "camera_scale": "WIDE_SHOT",
+    "camera_motion": "crane_down",
+    "preceding_event": "evt_m7_malfoy_manor_bellatrix_carves_mudblood_hermione_arm",
+    "following_event": null,
+    "dialogue_ref": "You could have killed me! Dobby never meant to kill. Dobby only meant to maim, or seriously injure!",
+    "visual_description": "Dobby stands on the high wooden beams turning the bolt; the massive sparkling crystal chandelier plummets to the floor, shattering in an explosion of glass.",
+    "observable_claims": [
+      "Giant chandelier crashes onto floor",
+      "Dobby stands on rafters looking down"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m7_beach_dobby_dies_in_harrys_arms",
+    "movie_id": "hp_movie_7",
+    "movie_number": 7,
+    "scene_id": "m7_scene_shell_cottage_beach_dobby_death",
+    "start_time": 7560.0,
+    "end_time": 7610.0,
+    "characters_present": [
+      "Harry Potter",
+      "Dobby",
+      "Hermione Granger",
+      "Ron Weasley"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Dobby"
+    ],
+    "action": "holds dying Dobby cradled in his lap on sandy beach as silver knife is pulled out",
+    "target": "Dobby",
+    "interaction_type": "dying_embrace",
+    "location": "Shell Cottage sandy beach dunes",
+    "visible_objects": [
+      "silver throwing dagger",
+      "sand dunes",
+      "ocean waves",
+      "ragged pillowcase tunic"
+    ],
+    "emotional_state": "devastated_weeping",
+    "camera_scale": "CLOSE_UP",
+    "camera_motion": "slow_push",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Such a beautiful place... to be with friends. Dobby is happy to be with his friend... Harry Potter.",
+    "visual_description": "Harry kneels in the cold sand cradling Dobby; Dobby touches Harry's hand, speaks his final words, and closes his eyes as his head falls limp.",
+    "observable_claims": [
+      "Harry cradles wounded Dobby on sand",
+      "Silver knife hilt in Dobby's chest"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m7_island_tomb_voldemort_steals_elder_wand_from_dumbledore",
+    "movie_id": "hp_movie_7",
+    "movie_number": 7,
+    "scene_id": "m7_scene_island_white_tomb_desecration",
+    "start_time": 7780.0,
+    "end_time": 7830.0,
+    "characters_present": [
+      "Lord Voldemort",
+      "Albus Dumbledore"
+    ],
+    "primary_subject": "Lord Voldemort",
+    "secondary_subjects": [],
+    "action": "slides open white marble tomb lid taking Elder Wand from Dumbledore's dead hands",
+    "target": "Elder Wand",
+    "interaction_type": "grave_desecration",
+    "location": "Hogwarts Black Lake island White Tomb",
+    "visible_objects": [
+      "white marble tomb",
+      "Elder Wand",
+      "Dumbledore's corpse",
+      "lightning flash"
+    ],
+    "emotional_state": "triumphant_malevolent",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "tilt_up",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "The Elder Wand is mine.",
+    "visual_description": "Voldemort slides the heavy marble slab off Dumbledore's island tomb, plucks the beaded Elder Wand from the corpse's hands, and fires a lightning bolt into the sky.",
+    "observable_claims": [
+      "Voldemort slides marble tomb open",
+      "Voldemort lifts wand from corpse hands",
+      "Lightning shoots into night sky"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m8_gringotts_ironbelly_dragon_breaks_chains_escapes",
+    "movie_id": "hp_movie_8",
+    "movie_number": 8,
+    "scene_id": "m8_scene_gringotts_dragon_flight",
+    "start_time": 1420.0,
+    "end_time": 1475.0,
+    "characters_present": [
+      "Harry Potter",
+      "Ron Weasley",
+      "Hermione Granger"
+    ],
+    "primary_subject": "Hermione Granger",
+    "secondary_subjects": [
+      "Harry Potter",
+      "Ron Weasley"
+    ],
+    "action": "drops onto dragon's scaly back leaping through shattered marble lobby dome",
+    "target": "Ukrainian Ironbelly dragon",
+    "interaction_type": "aerial_escape",
+    "location": "Gringotts main bank lobby and London sky",
+    "visible_objects": [
+      "Ukrainian Ironbelly dragon",
+      "iron chains",
+      "shattering glass dome",
+      "gold pillar debris"
+    ],
+    "emotional_state": "thrilling_triumphant",
+    "camera_scale": "WIDE_SHOT",
+    "camera_motion": "dynamic_crane_up",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Relashio! Hold on!",
+    "visual_description": "Hermione severs the dragon's shackles with Relashio; the trio mounts its spiked back as it crawls up the cavern, bursts through the glass dome, and flies into clouds.",
+    "observable_claims": [
+      "Trio rides dragon's back",
+      "Dragon bursts through Gringotts roof into sky"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m8_great_hall_harry_reveals_himself_mcgonagall_duels_snape",
+    "movie_id": "hp_movie_8",
+    "movie_number": 8,
+    "scene_id": "m8_scene_great_hall_confrontation_snape",
+    "start_time": 2320.0,
+    "end_time": 2375.0,
+    "characters_present": [
+      "Severus Snape",
+      "Harry Potter",
+      "Minerva McGonagall"
+    ],
+    "primary_subject": "Minerva McGonagall",
+    "secondary_subjects": [
+      "Severus Snape",
+      "Harry Potter"
+    ],
+    "action": "steps in front of Harry raising wand casting bursts of fire dueling Snape",
+    "target": "Severus Snape",
+    "interaction_type": "magical_duel",
+    "location": "Great Hall central aisle",
+    "visible_objects": [
+      "wands",
+      "fire spell waves",
+      "Carrow siblings",
+      "black smoke burst"
+    ],
+    "emotional_state": "furious_protective",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "tracking_whip",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "How dare you stand where he stood?! Tell them how it happened that night! Coward!",
+    "visual_description": "McGonagall steps between Harry and Snape, whipping her wand to lash flames at Snape; Snape deflects her strikes, knocks out the Carrows, and flees through the window as black mist.",
+    "observable_claims": [
+      "McGonagall steps between Harry and Snape",
+      "Flames lash between McGonagall and Snape",
+      "Snape flies out window"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m8_viaduct_mcgonagall_piertotum_locomotor_statues_march",
+    "movie_id": "hp_movie_8",
+    "movie_number": 8,
+    "scene_id": "m8_scene_courtyard_statues_awakened",
+    "start_time": 2720.0,
+    "end_time": 2770.0,
+    "characters_present": [
+      "Minerva McGonagall",
+      "Molly Weasley",
+      "Filius Flitwick"
+    ],
+    "primary_subject": "Minerva McGonagall",
+    "secondary_subjects": [
+      "Molly Weasley"
+    ],
+    "action": "casts Piertotum Locomotor bringing stone knights leaping down from high battlements",
+    "target": "stone knight statues",
+    "interaction_type": "animating_enchantment",
+    "location": "Hogwarts Viaduct Courtyard parapets",
+    "visible_objects": [
+      "giant stone knights",
+      "stone shields and halberds",
+      "parapet walls",
+      "courtyard flagstones"
+    ],
+    "emotional_state": "exultant_commanding",
+    "camera_scale": "WIDE_SHOT",
+    "camera_motion": "crane_down",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Piertotum Locomotor! Hogwarts is threatened! Man the boundaries! Protect us! I've always wanted to use that spell!",
+    "visual_description": "McGonagall casts Piertotum Locomotor; dozens of massive stone knight statues break free from castle walls and march in ranks to defend the perimeter.",
+    "observable_claims": [
+      "Stone statues leap down from castle walls",
+      "Stone knights march in formation across bridge"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m8_viaduct_seamus_neville_blow_up_wooden_bridge",
+    "movie_id": "hp_movie_8",
+    "movie_number": 8,
+    "scene_id": "m8_scene_bridge_detonation",
+    "start_time": 3480.0,
+    "end_time": 3530.0,
+    "characters_present": [
+      "Neville Longbottom",
+      "Scabior"
+    ],
+    "primary_subject": "Neville Longbottom",
+    "secondary_subjects": [
+      "Scabior"
+    ],
+    "action": "sprints across wooden viaduct as magical charges detonate dropping bridge into chasm",
+    "target": "wooden viaduct bridge",
+    "interaction_type": "tactical_demolition",
+    "location": "Covered wooden bridge across ravine",
+    "visible_objects": [
+      "wooden bridge timbers",
+      "blue magical fire explosions",
+      "ravine abyss",
+      "snatchers army"
+    ],
+    "emotional_state": "defiant_reckless",
+    "camera_scale": "WIDE_SHOT",
+    "camera_motion": "tracking_forward",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Yeah! You and whose army?! Neville, run! Ha ha!",
+    "visual_description": "Neville taunts the approaching Snatchers, then dashes as charges blast the bridge beams apart beneath them, plunging the invaders into the canyon.",
+    "observable_claims": [
+      "Wooden bridge collapses in blue explosion",
+      "Neville hangs from broken plank edge"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m8_boundary_voldemort_and_death_eaters_bombard_shield",
+    "movie_id": "hp_movie_8",
+    "movie_number": 8,
+    "scene_id": "m8_scene_shield_bombardment",
+    "start_time": 3280.0,
+    "end_time": 3330.0,
+    "characters_present": [
+      "Lord Voldemort",
+      "Death Eaters"
+    ],
+    "primary_subject": "Lord Voldemort",
+    "secondary_subjects": [
+      "Death Eaters"
+    ],
+    "action": "points Elder Wand unleashing torrent of white lightning fracturing the magical barrier",
+    "target": "Hogwarts magical shield dome",
+    "interaction_type": "siege_bombardment",
+    "location": "Mountain ridge overlooking Hogwarts",
+    "visible_objects": [
+      "Elder Wand",
+      "magical shield dome",
+      "fracturing energy cracks",
+      "lightning bolts"
+    ],
+    "emotional_state": "frenzied_malevolent",
+    "camera_scale": "WIDE_SHOT",
+    "camera_motion": "pan_up",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Begin!",
+    "visual_description": "Thousands of Death Eaters fire spells into the dome; Voldemort unleashes a searing lightning beam from the Elder Wand, shattering the dome into falling embers.",
+    "observable_claims": [
+      "Voldemort fires continuous beam at dome",
+      "Blue protective dome cracks and dissolves"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m8_chamber_ron_hermione_destroy_hufflepuff_cup_basilisk_fang",
+    "movie_id": "hp_movie_8",
+    "movie_number": 8,
+    "scene_id": "m8_scene_chamber_cup_destruction",
+    "start_time": 3720.0,
+    "end_time": 3770.0,
+    "characters_present": [
+      "Hermione Granger",
+      "Ron Weasley"
+    ],
+    "primary_subject": "Hermione Granger",
+    "secondary_subjects": [
+      "Ron Weasley"
+    ],
+    "action": "drives curved Basilisk fang down through golden Hufflepuff Cup Horcrux",
+    "target": "Hufflepuff Cup",
+    "interaction_type": "horcrux_destruction",
+    "location": "Chamber of Secrets",
+    "visible_objects": [
+      "curved Basilisk tooth fang",
+      "golden two-handled cup",
+      "black Horcrux smoke",
+      "tidal wave of water"
+    ],
+    "emotional_state": "tense_victorious",
+    "camera_scale": "CLOSE_UP",
+    "camera_motion": "slow_motion_plunge",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "You do it, Hermione. You can do it.",
+    "visual_description": "Hermione strikes the golden badger cup with the venomous fang; black mist screams from the puncture and a colossal tsunami wave surges over them.",
+    "observable_claims": [
+      "Hermione plunges fang into gold cup",
+      "Voldemort face screams in black smoke",
+      "Tidal wave surges over them"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m8_ror_crabbe_unleashes_fiendfyre_inferno",
+    "movie_id": "hp_movie_8",
+    "movie_number": 8,
+    "scene_id": "m8_scene_ror_fiendfyre_climax",
+    "start_time": 4220.0,
+    "end_time": 4270.0,
+    "characters_present": [
+      "Gregory Goyle",
+      "Draco Malfoy",
+      "Blaise Zabini",
+      "Harry Potter",
+      "Ron Weasley",
+      "Hermione Granger"
+    ],
+    "primary_subject": "Gregory Goyle",
+    "secondary_subjects": [
+      "Draco Malfoy"
+    ],
+    "action": "casts Fiendfyre unleashing uncontrollable serpent firestorm consuming junk piles",
+    "target": "Room of Requirement",
+    "interaction_type": "destructive_curse",
+    "location": "Room of Requirement towering junk towers",
+    "visible_objects": [
+      "Fiendfyre flaming dragons and beasts",
+      "burning junk towers",
+      "flying broomsticks"
+    ],
+    "emotional_state": "panicked_destructive",
+    "camera_scale": "WIDE_SHOT",
+    "camera_motion": "sweeping_aerial",
+    "preceding_event": null,
+    "following_event": "evt_m8_ror_harry_rescues_draco_on_flying_broomstick",
+    "dialogue_ref": "Run! Run! It's Fiendfyre!",
+    "visual_description": "Cursed fire erupts into roaring dragon and chimera beasts of flame, chasing the students through towering piles of burning furniture and books.",
+    "observable_claims": [
+      "Cursed fire forms roaring dragon faces",
+      "Mountains of junk collapse into flames"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m8_ror_harry_rescues_draco_on_flying_broomstick",
+    "movie_id": "hp_movie_8",
+    "movie_number": 8,
+    "scene_id": "m8_scene_ror_broom_rescue",
+    "start_time": 4280.0,
+    "end_time": 4325.0,
+    "characters_present": [
+      "Harry Potter",
+      "Draco Malfoy",
+      "Ron Weasley",
+      "Hermione Granger"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Draco Malfoy"
+    ],
+    "action": "turns broomstick around diving into wall of flames hauling Draco up to safety",
+    "target": "Draco Malfoy",
+    "interaction_type": "aerial_rescue",
+    "location": "Room of Requirement firestorm",
+    "visible_objects": [
+      "wooden broomstick",
+      "flaming inferno",
+      "extended reaching hand",
+      "burning junk pyramid"
+    ],
+    "emotional_state": "heroic_urgent",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "fast_dive_tracking",
+    "preceding_event": "evt_m8_ror_crabbe_unleashes_fiendfyre_inferno",
+    "following_event": null,
+    "dialogue_ref": "We can't just leave them! If we die for them, Harry, I'm gonna kill you!",
+    "visual_description": "Harry swoops his broom through the fire wall, grips Draco Malfoy's outstretched hand from the summit of a burning pile, and flies through the exit.",
+    "observable_claims": [
+      "Harry grabs Draco's hand pulling him onto broom",
+      "Broom flies out through closing doors"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m8_boathouse_voldemort_commands_nagini_strike_snape",
+    "movie_id": "hp_movie_8",
+    "movie_number": 8,
+    "scene_id": "m8_scene_boathouse_snape_assassination",
+    "start_time": 4820.0,
+    "end_time": 4870.0,
+    "characters_present": [
+      "Lord Voldemort",
+      "Severus Snape",
+      "Nagini",
+      "Harry Potter"
+    ],
+    "primary_subject": "Nagini",
+    "secondary_subjects": [
+      "Severus Snape",
+      "Lord Voldemort"
+    ],
+    "action": "repeatedly lunges and strikes Severus Snape through the protective magical sphere",
+    "target": "Severus Snape",
+    "interaction_type": "lethal_assault",
+    "location": "Hogwarts Boathouse interior",
+    "visible_objects": [
+      "giant serpent Nagini",
+      "foggy boathouse glass",
+      "blood stains",
+      "Elder Wand"
+    ],
+    "emotional_state": "ruthless_cold",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "static_outside_glass",
+    "preceding_event": null,
+    "following_event": "evt_m8_boathouse_harry_catches_dying_snape_tears",
+    "dialogue_ref": "The Elder Wand cannot serve me properly because I am not its true master. Nagini... kill.",
+    "visual_description": "Voldemort whispers to Nagini; through the frosted window, the serpent strikes repeatedly into Snape, slamming him against the bloody glass.",
+    "observable_claims": [
+      "Nagini repeatedly strikes Snape against glass",
+      "Harry watches through outside window"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m8_boathouse_harry_catches_dying_snape_tears",
+    "movie_id": "hp_movie_8",
+    "movie_number": 8,
+    "scene_id": "m8_scene_boathouse_snape_memories",
+    "start_time": 4880.0,
+    "end_time": 4930.0,
+    "characters_present": [
+      "Harry Potter",
+      "Severus Snape",
+      "Hermione Granger",
+      "Ron Weasley"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Severus Snape"
+    ],
+    "action": "catches glowing silver memory tears leaking from dying Snape's cheek into glass phial",
+    "target": "Severus Snape",
+    "interaction_type": "memory_collection",
+    "location": "Hogwarts Boathouse interior",
+    "visible_objects": [
+      "glass phial vial",
+      "glowing silver tear memory",
+      "bloody throat wound",
+      "black cloak"
+    ],
+    "emotional_state": "tragic_revelatory",
+    "camera_scale": "CLOSE_UP",
+    "camera_motion": "slow_push",
+    "preceding_event": "evt_m8_boathouse_voldemort_commands_nagini_strike_snape",
+    "following_event": "evt_m8_headmaster_pensieve_snape_memories_patronus_always",
+    "dialogue_ref": "Take them... take them to the Pensieve... Look at me. You have your mother's eyes.",
+    "visual_description": "Harry presses a glass flask to Snape's cheek catching the glowing silvery tears; Snape gazes up into Harry's green eyes and exhales his last breath.",
+    "observable_claims": [
+      "Silver tears collected in glass phial",
+      "Snape touches Harry's cheek whispered final words"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m8_headmaster_pensieve_snape_memories_patronus_always",
+    "movie_id": "hp_movie_8",
+    "movie_number": 8,
+    "scene_id": "m8_scene_pensieve_princes_tale",
+    "start_time": 5120.0,
+    "end_time": 5175.0,
+    "characters_present": [
+      "Severus Snape",
+      "Albus Dumbledore",
+      "Harry Potter"
+    ],
+    "primary_subject": "Severus Snape",
+    "secondary_subjects": [
+      "Albus Dumbledore"
+    ],
+    "action": "casts silver doe Patronus out office window whispering Always to Dumbledore",
+    "target": "silver doe Patronus",
+    "interaction_type": "emotional_revelation",
+    "location": "Headmaster Office (Pensieve memory flashback)",
+    "visible_objects": [
+      "stone Pensieve basin",
+      "glowing silver doe",
+      "wand",
+      "Dumbledore blackened hand"
+    ],
+    "emotional_state": "devoted_sorrowful",
+    "camera_scale": "MEDIUM_CLOSE_UP",
+    "camera_motion": "slow_pan",
+    "preceding_event": "evt_m8_boathouse_harry_catches_dying_snape_tears",
+    "following_event": null,
+    "dialogue_ref": "Expecto Patronum! After all this time? Always.",
+    "visual_description": "In the Pensieve, Snape casts Expecto Patronum; a silver doe leaps from his wand through the arched window while Snape whispers 'Always'.",
+    "observable_claims": [
+      "Snape casts silver doe Patronus",
+      "Silver doe flies out office window",
+      "Dumbledore looks on moved"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m8_forbidden_forest_harry_uses_resurrection_stone_parents",
+    "movie_id": "hp_movie_8",
+    "movie_number": 8,
+    "scene_id": "m8_scene_forest_resurrection_stone",
+    "start_time": 5460.0,
+    "end_time": 5510.0,
+    "characters_present": [
+      "Harry Potter",
+      "James Potter",
+      "Lily Potter",
+      "Sirius Black",
+      "Remus Lupin"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Lily Potter",
+      "James Potter"
+    ],
+    "action": "opens Golden Snitch kissing stone three times calling forth spirit apparitions of parents",
+    "target": "Resurrection Stone",
+    "interaction_type": "necromantic_communion",
+    "location": "Forbidden Forest misty clearing",
+    "visible_objects": [
+      "Golden Snitch with inscription",
+      "black Resurrection Stone",
+      "luminous spirit figures",
+      "misty pines"
+    ],
+    "emotional_state": "peaceful_sorrowful",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "slow_circular",
+    "preceding_event": null,
+    "following_event": "evt_m8_forbidden_forest_voldemort_casts_killing_curse_at_harry",
+    "dialogue_ref": "You've been so brave, sweetheart. Are you with me? Always. Until the very end.",
+    "visual_description": "Harry drops the Snitch, rolling the Resurrection Stone in his palm; glowing translucent spirits of Lily, James, Sirius, and Lupin surround him with gentle smiles.",
+    "observable_claims": [
+      "Harry holds Resurrection Stone",
+      "Translucent figures of Lily and James surround Harry"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m8_forbidden_forest_voldemort_casts_killing_curse_at_harry",
+    "movie_id": "hp_movie_8",
+    "movie_number": 8,
+    "scene_id": "m8_scene_forest_voldemort_killing_curse",
+    "start_time": 5580.0,
+    "end_time": 5630.0,
+    "characters_present": [
+      "Lord Voldemort",
+      "Harry Potter",
+      "Bellatrix Lestrange",
+      "Hagrid"
+    ],
+    "primary_subject": "Lord Voldemort",
+    "secondary_subjects": [
+      "Harry Potter"
+    ],
+    "action": "screams Avada Kedavra blasting Harry Potter to the forest ground",
+    "target": "Harry Potter",
+    "interaction_type": "killing_curse",
+    "location": "Forbidden Forest clearing / Death Eater circle",
+    "visible_objects": [
+      "Elder Wand",
+      "green flash",
+      "falling body",
+      "Hagrid tied in chains"
+    ],
+    "emotional_state": "triumphant_murderous",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "snap_zoom",
+    "preceding_event": "evt_m8_forbidden_forest_harry_uses_resurrection_stone_parents",
+    "following_event": null,
+    "dialogue_ref": "Harry Potter. The Boy Who Lived... come to die. Avada Kedavra!",
+    "visual_description": "Voldemort raises the Elder Wand shouting Avada Kedavra; green light illuminates the trees and Harry collapses backwards motionless into the fallen leaves.",
+    "observable_claims": [
+      "Green curse strikes Harry",
+      "Harry falls backward onto forest ground"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m8_courtyard_hagrid_carries_harry_dead_body",
+    "movie_id": "hp_movie_8",
+    "movie_number": 8,
+    "scene_id": "m8_scene_courtyard_voldemort_march_harry_dead",
+    "start_time": 5860.0,
+    "end_time": 5910.0,
+    "characters_present": [
+      "Rubeus Hagrid",
+      "Lord Voldemort",
+      "Ginny Weasley",
+      "Minerva McGonagall",
+      "Harry Potter"
+    ],
+    "primary_subject": "Rubeus Hagrid",
+    "secondary_subjects": [
+      "Lord Voldemort",
+      "Ginny Weasley"
+    ],
+    "action": "weeps carrying Harry's limp body across ruined viaduct into courtyard",
+    "target": "Harry Potter",
+    "interaction_type": "processional_mourning",
+    "location": "Hogwarts Ruined Courtyard",
+    "visible_objects": [
+      "Harry's limp body and round glasses",
+      "Hagrid tears",
+      "Death Eater ranks",
+      "ruined stone pillars"
+    ],
+    "emotional_state": "shattered_grief",
+    "camera_scale": "WIDE_SHOT",
+    "camera_motion": "tracking_pullback",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Harry Potter is dead! Heh-heh-heh! From this day forth, you put your faith in me!",
+    "visual_description": "Hagrid walks sobbing with Harry cradled limp in his arms; Voldemort leads the Death Eater army into the courtyard gloating 'Harry Potter is dead!'.",
+    "observable_claims": [
+      "Hagrid carries Harry's limp body",
+      "Voldemort addresses shocked crowd shouting Harry Potter is dead"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m8_courtyard_molly_weasley_duels_and_kills_bellatrix",
+    "movie_id": "hp_movie_8",
+    "movie_number": 8,
+    "scene_id": "m8_scene_courtyard_molly_bellatrix_duel",
+    "start_time": 6280.0,
+    "end_time": 6325.0,
+    "characters_present": [
+      "Molly Weasley",
+      "Bellatrix Lestrange",
+      "Ginny Weasley"
+    ],
+    "primary_subject": "Molly Weasley",
+    "secondary_subjects": [
+      "Bellatrix Lestrange"
+    ],
+    "action": "shouts Not my daughter you bitch blasting Bellatrix until she turns to stone and explodes",
+    "target": "Bellatrix Lestrange",
+    "interaction_type": "lethal_magical_duel",
+    "location": "Great Hall ruined threshold / Courtyard",
+    "visible_objects": [
+      "wands",
+      "blue and red spell bursts",
+      "shattering stone fragments",
+      "black corseted dress"
+    ],
+    "emotional_state": "ferocious_protective",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "handheld_whip",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Not my daughter, you bitch!",
+    "visual_description": "Molly pushes Ginny back, firing a furious barrage of hexes that petrifies Bellatrix's chest and blasts her body into a cloud of disintegrating stone fragments.",
+    "observable_claims": [
+      "Molly steps in front of Ginny firing spells",
+      "Bellatrix freezes and shatters into pieces"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m1_ollivanders_wand_chooses_harry_glow",
+    "movie_id": "hp_movie_1",
+    "movie_number": 1,
+    "scene_id": "m1_scene_ollivanders_wand_shop",
+    "start_time": 1820.0,
+    "end_time": 1860.0,
+    "characters_present": [
+      "Harry Potter",
+      "Garrick Ollivander"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Garrick Ollivander"
+    ],
+    "action": "holds holly and phoenix feather wand as golden light radiates around him",
+    "target": "wand",
+    "interaction_type": "magical_attunement",
+    "location": "Ollivanders Wand Shop",
+    "visible_objects": [
+      "wand boxes",
+      "holly wand",
+      "golden light glow",
+      "wind breeze"
+    ],
+    "emotional_state": "awed",
+    "camera_scale": "MEDIUM_CLOSE_UP",
+    "camera_motion": "slow_push",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Curious... very curious... the wand chooses the wizard, Mr. Potter.",
+    "visual_description": "Harry grips the 11-inch holly wand; a warm golden glow illuminates his face as wind blows through his hair.",
+    "observable_claims": [
+      "Harry holds wand",
+      "Golden light and wind swirl around Harry"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m1_kings_cross_running_through_brick_wall_barrier",
+    "movie_id": "hp_movie_1",
+    "movie_number": 1,
+    "scene_id": "m1_scene_platform_nine_and_three_quarters",
+    "start_time": 2180.0,
+    "end_time": 2220.0,
+    "characters_present": [
+      "Harry Potter",
+      "Molly Weasley",
+      "Ron Weasley"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Molly Weasley"
+    ],
+    "action": "sprints pushing luggage trolley directly through solid brick barrier between platforms 9 and 10",
+    "target": "brick barrier",
+    "interaction_type": "dimensional_crossing",
+    "location": "King's Cross Station platform 9 and 10",
+    "visible_objects": [
+      "brass luggage trolley",
+      "Hedwig cage",
+      "brick pillar barrier",
+      "Hogwarts Express sign"
+    ],
+    "emotional_state": "nervous_determined",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "tracking_forward",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Best do it at a bit of a run if you're nervous.",
+    "visual_description": "Harry braces himself and sprints at the solid brick pillar; instead of crashing, he glides seamlessly through into Platform 9 3/4.",
+    "observable_claims": [
+      "Harry runs at brick pillar with trolley",
+      "Harry passes through solid wall"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m1_flying_lesson_neville_remembrall_malfoy_throw",
+    "movie_id": "hp_movie_1",
+    "movie_number": 1,
+    "scene_id": "m1_scene_flying_lesson_remembrall",
+    "start_time": 3480.0,
+    "end_time": 3520.0,
+    "characters_present": [
+      "Harry Potter",
+      "Draco Malfoy"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Draco Malfoy"
+    ],
+    "action": "dives horizontally on broomstick catching glass Remembrall inches from stone window",
+    "target": "Remembrall",
+    "interaction_type": "aerial_acrobatics",
+    "location": "Hogwarts Flying Grounds / Castle wall",
+    "visible_objects": [
+      "broomstick",
+      "glass Remembrall with red smoke",
+      "castle window"
+    ],
+    "emotional_state": "daring_focused",
+    "camera_scale": "MEDIUM_WIDE",
+    "camera_motion": "fast_tracking",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Give it here, Malfoy, or I'll knock you off your broom!",
+    "visual_description": "Harry dives at high speed along the castle wall, reaching out his right hand to cleanly snatch the glass ball before it hits the glass.",
+    "observable_claims": [
+      "Harry dives on broomstick",
+      "Harry catches glass ball in flight"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m1_devils_snare_hermione_lumos_solem",
+    "movie_id": "hp_movie_1",
+    "movie_number": 1,
+    "scene_id": "m1_scene_devils_snare_plant",
+    "start_time": 6240.0,
+    "end_time": 6280.0,
+    "characters_present": [
+      "Hermione Granger",
+      "Ron Weasley",
+      "Harry Potter"
+    ],
+    "primary_subject": "Hermione Granger",
+    "secondary_subjects": [
+      "Ron Weasley"
+    ],
+    "action": "casts Lumos Solem conjuring blast of blinding sunlight recoiling Devil Snare tendrils",
+    "target": "Devil's Snare",
+    "interaction_type": "combat_spell",
+    "location": "Underground chamber beneath trapdoor",
+    "visible_objects": [
+      "writhing green vine tendrils",
+      "wand",
+      "beam of sunlight",
+      "stone floor"
+    ],
+    "emotional_state": "panicked_resourceful",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "tilt_up",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Devil's Snare, Devil's Snare... it hates sunlight! Lumos Solem!",
+    "visual_description": "Hermione points her wand upward shouting Lumos Solem; a beam of bright solar light bursts forth, causing the choking vines to shrink and drop Ron.",
+    "observable_claims": [
+      "Vines wrap around Ron",
+      "Hermione casts beam of light",
+      "Vines retract freeing Ron"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m2_quidditch_bludger_chases_harry_broken_arm",
+    "movie_id": "hp_movie_2",
+    "movie_number": 2,
+    "scene_id": "m2_scene_quidditch_rogue_bludger",
+    "start_time": 3020.0,
+    "end_time": 3065.0,
+    "characters_present": [
+      "Harry Potter",
+      "Draco Malfoy"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Draco Malfoy"
+    ],
+    "action": "catches Golden Snitch with left hand while right arm hangs broken from rogue Bludger strike",
+    "target": "Golden Snitch",
+    "interaction_type": "quidditch_triumph",
+    "location": "Quidditch Pitch trench",
+    "visible_objects": [
+      "rogue iron Bludger",
+      "Golden Snitch",
+      "Nimbus 2000",
+      "broken arm"
+    ],
+    "emotional_state": "agonized_victorious",
+    "camera_scale": "CLOSE_UP",
+    "camera_motion": "tracking",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Harry Potter has caught the Snitch! Gryffindor wins!",
+    "visual_description": "The heavy iron Bludger snaps Harry's right arm; Harry dives into the sand rolling and holds up the fluttering Golden Snitch in his left hand.",
+    "observable_claims": [
+      "Harry rolls in sand",
+      "Harry holds Golden Snitch in hand",
+      "Right arm limp"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m2_hospital_wing_lockhart_removes_harry_arm_bones",
+    "movie_id": "hp_movie_2",
+    "movie_number": 2,
+    "scene_id": "m2_scene_quidditch_pitch_lockhart_spell",
+    "start_time": 3120.0,
+    "end_time": 3160.0,
+    "characters_present": [
+      "Gilderoy Lockhart",
+      "Harry Potter",
+      "Colin Creevey"
+    ],
+    "primary_subject": "Gilderoy Lockhart",
+    "secondary_subjects": [
+      "Harry Potter"
+    ],
+    "action": "casts Brackium Emendo vanishing all bones from Harry's right arm leaving it a rubbery sleeve",
+    "target": "Harry's arm",
+    "interaction_type": "botched_healing",
+    "location": "Quidditch Pitch spectator grass",
+    "visible_objects": [
+      "boneless rubber arm",
+      "wand",
+      "Lockhart fancy robes"
+    ],
+    "emotional_state": "baffled_horrified",
+    "camera_scale": "CLOSE_UP",
+    "camera_motion": "static",
+    "preceding_event": "evt_m2_quidditch_bludger_chases_harry_broken_arm",
+    "following_event": null,
+    "dialogue_ref": "Brackium Emendo! Ah, yes, well, that can sometimes happen. But the point is, the bones are no longer broken!",
+    "visual_description": "Lockhart twirls his wand over Harry's broken arm; the arm instantly deflates like a rubber glove, bending floppily in all directions without bones.",
+    "observable_claims": [
+      "Lockhart wiggles Harry's completely limp boneless arm",
+      "Harry looks horrified"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m3_privet_drive_aunt_marge_inflates_floats_away",
+    "movie_id": "hp_movie_3",
+    "movie_number": 3,
+    "scene_id": "m3_scene_dursley_dining_room_inflation",
+    "start_time": 420.0,
+    "end_time": 465.0,
+    "characters_present": [
+      "Harry Potter",
+      "Marge Dursley",
+      "Vernon Dursley"
+    ],
+    "primary_subject": "Marge Dursley",
+    "secondary_subjects": [
+      "Harry Potter"
+    ],
+    "action": "swells like giant round balloon floating through French doors into night sky",
+    "target": "Marge Dursley",
+    "interaction_type": "accidental_magic",
+    "location": "4 Privet Drive dining room and backyard sky",
+    "visible_objects": [
+      "inflated balloon body",
+      "shattering wine glass",
+      "tweed coat buttons popping",
+      "French doors"
+    ],
+    "emotional_state": "hysterical_furious",
+    "camera_scale": "WIDE_SHOT",
+    "camera_motion": "tilt_up",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Vernon! Vernon, do something! Marge!",
+    "visual_description": "Aunt Marge's buttons pop as her body expands into a massive sphere; she floats across the ceiling and out the glass doors into the night sky.",
+    "observable_claims": [
+      "Woman expands like a balloon",
+      "Woman floats into open sky"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m3_divination_trewlawney_sees_grim_in_teacup",
+    "movie_id": "hp_movie_3",
+    "movie_number": 3,
+    "scene_id": "m3_scene_divination_classroom_teacup",
+    "start_time": 2120.0,
+    "end_time": 2160.0,
+    "characters_present": [
+      "Sybill Trelawney",
+      "Harry Potter",
+      "Ron Weasley"
+    ],
+    "primary_subject": "Sybill Trelawney",
+    "secondary_subjects": [
+      "Harry Potter"
+    ],
+    "action": "gasps and drops porcelain teacup trembling as she spots the black Grim dog omen",
+    "target": "tea leaves",
+    "interaction_type": "prophetic_vision",
+    "location": "Divination tower classroom",
+    "visible_objects": [
+      "porcelain teacup",
+      "black soggy tea leaves shaped like dog",
+      "shawls",
+      "magnifying glasses"
+    ],
+    "emotional_state": "terrified_dramatic",
+    "camera_scale": "CLOSE_UP",
+    "camera_motion": "dramatic_push",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "My dear... you have... the Grim! The Grim! Taking the form of a giant spectral dog!",
+    "visual_description": "Professor Trelawney peers through her giant spectacles into Harry's teacup, screams, and drops it onto the saucer gasping that he has the Grim.",
+    "observable_claims": [
+      "Trelawney looks into cup and gasps",
+      "Tea dregs show black dog silhouette"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m4_portkey_boot_spinning_hillside_landing",
+    "movie_id": "hp_movie_4",
+    "movie_number": 4,
+    "scene_id": "m4_scene_portkey_arrival_hill",
+    "start_time": 420.0,
+    "end_time": 460.0,
+    "characters_present": [
+      "Harry Potter",
+      "Arthur Weasley",
+      "Amos Diggory",
+      "Cedric Diggory"
+    ],
+    "primary_subject": "Arthur Weasley",
+    "secondary_subjects": [
+      "Harry Potter",
+      "Cedric Diggory"
+    ],
+    "action": "touches scruffy old work boot portkey spinning through vortex and landing on grassy hillside",
+    "target": "old boot portkey",
+    "interaction_type": "portkey_travel",
+    "location": "Misty hillside meadow",
+    "visible_objects": [
+      "old leather boot",
+      "blue swirling sky portal",
+      "backpacks",
+      "green hills"
+    ],
+    "emotional_state": "exhilarated_tumbled",
+    "camera_scale": "WIDE_SHOT",
+    "camera_motion": "spinning_spiral",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Three, two, one... Let go! I bet that cleared your sinuses!",
+    "visual_description": "The group holds onto the dirty boot, gets sucked into a kaleidoscopic sky vortex, and crashes tumbling onto the grass while Arthur and Cedric float gracefully down.",
+    "observable_claims": [
+      "Group touches old boot",
+      "Travelers tumble out of sky onto grass"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m4_dada_moody_demonstrates_unforgivable_curses_spider",
+    "movie_id": "hp_movie_4",
+    "movie_number": 4,
+    "scene_id": "m4_scene_moody_dada_curses",
+    "start_time": 1880.0,
+    "end_time": 1930.0,
+    "characters_present": [
+      "Alastor Moody",
+      "Neville Longbottom",
+      "Hermione Granger",
+      "Ron Weasley"
+    ],
+    "primary_subject": "Alastor Moody",
+    "secondary_subjects": [
+      "Neville Longbottom"
+    ],
+    "action": "points wand at enlarged spider on desk casting Crucio causing it to writhe in agony",
+    "target": "giant spider",
+    "interaction_type": "forbidden_spell_demonstration",
+    "location": "Defense Against the Dark Arts classroom",
+    "visible_objects": [
+      "enlarged tailless whip spider",
+      "wand",
+      "wooden student desk",
+      "blackboard"
+    ],
+    "emotional_state": "intense_fanatical",
+    "camera_scale": "CLOSE_UP",
+    "camera_motion": "slow_pan",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Crucio! Stop it! Can't you see it's bothering him?! Stop it!",
+    "visual_description": "Moody points his wand at the spider; it squeals and contorts violently in pain as Neville grips his desk white-knuckled in horror.",
+    "observable_claims": [
+      "Spider contorts in pain on desk",
+      "Neville stares traumatized"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m4_great_hall_ron_lace_dress_robes_disaster",
+    "movie_id": "hp_movie_4",
+    "movie_number": 4,
+    "scene_id": "m4_scene_great_hall_post_parcel",
+    "start_time": 3980.0,
+    "end_time": 4020.0,
+    "characters_present": [
+      "Ron Weasley",
+      "Harry Potter",
+      "Hermione Granger"
+    ],
+    "primary_subject": "Ron Weasley",
+    "secondary_subjects": [
+      "Harry Potter"
+    ],
+    "action": "pulls hideous maroon dress robes with frilly lace collar from parcel holding against body",
+    "target": "maroon dress robes",
+    "interaction_type": "comedic_dismay",
+    "location": "Great Hall Gryffindor table",
+    "visible_objects": [
+      "maroon velvet dress robes",
+      "frilly white lace cuffs and collar",
+      "owl parcel packaging"
+    ],
+    "emotional_state": "mortified_disgusted",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "static",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Mum sent me a dress?! Well, it does match your eyes. Is there a bonnet? Aha!",
+    "visual_description": "Ron pulls the musty velvet robes from the box, holding the ruffled lace collar up to his chin while Harry and the twins burst out laughing.",
+    "observable_claims": [
+      "Ron holds up frilly velvet robes",
+      "Harry and twins laugh"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m5_forest_thestrals_raw_meat_luna_lovegood",
+    "movie_id": "hp_movie_5",
+    "movie_number": 5,
+    "scene_id": "m5_scene_forest_thestrals_luna",
+    "start_time": 3020.0,
+    "end_time": 3065.0,
+    "characters_present": [
+      "Luna Lovegood",
+      "Harry Potter"
+    ],
+    "primary_subject": "Luna Lovegood",
+    "secondary_subjects": [
+      "Harry Potter"
+    ],
+    "action": "tosses slab of raw meat to winged skeletal black Thestral in snowy forest",
+    "target": "Thestral",
+    "interaction_type": "creature_feeding",
+    "location": "Forbidden Forest snow clearing",
+    "visible_objects": [
+      "winged skeletal black Thestral",
+      "slab of raw red meat",
+      "bare feet in snow",
+      "pine trees"
+    ],
+    "emotional_state": "serene_mystical",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "slow_pan",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "They're called Thestrals. You're not going mad. I can see them too. You're just as sane as I am.",
+    "visual_description": "Luna stands barefoot in the snow, tossing a piece of raw meat to a gaunt black winged Thestral, smiling gently at Harry.",
+    "observable_claims": [
+      "Luna feeds raw meat to black winged beast",
+      "Luna stands barefoot in snow"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m5_ror_cho_chang_kisses_harry_potter",
+    "movie_id": "hp_movie_5",
+    "movie_number": 5,
+    "scene_id": "m5_scene_ror_mistletoe_kiss",
+    "start_time": 4120.0,
+    "end_time": 4165.0,
+    "characters_present": [
+      "Harry Potter",
+      "Cho Chang"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Cho Chang"
+    ],
+    "action": "kisses Cho Chang beneath floating mistletoe in empty Room of Requirement",
+    "target": "Cho Chang",
+    "interaction_type": "romantic_kiss",
+    "location": "Room of Requirement mirror wall",
+    "visible_objects": [
+      "floating green mistletoe with white berries",
+      "mirrors",
+      "DA practice mats"
+    ],
+    "emotional_state": "tender_nervous",
+    "camera_scale": "CLOSE_UP",
+    "camera_motion": "slow_push",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Mistletoe. Probably full of Nargles. What are Nargles? No idea.",
+    "visual_description": "Harry and tearful Cho look up at the magical mistletoe sprouting from the ceiling; they lean in and share a tender first kiss.",
+    "observable_claims": [
+      "Mistletoe hangs above them",
+      "Harry and Cho kiss"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m6_astronomy_tower_draco_shows_dark_mark_to_dumbledore",
+    "movie_id": "hp_movie_6",
+    "movie_number": 6,
+    "scene_id": "m6_scene_tower_draco_dark_mark_reveal",
+    "start_time": 7120.0,
+    "end_time": 7160.0,
+    "characters_present": [
+      "Draco Malfoy",
+      "Albus Dumbledore"
+    ],
+    "primary_subject": "Draco Malfoy",
+    "secondary_subjects": [
+      "Albus Dumbledore"
+    ],
+    "action": "yanks back black suit sleeve revealing snake and skull Dark Mark tattooed on pale arm",
+    "target": "Dark Mark tattoo",
+    "interaction_type": "confrontation",
+    "location": "Astronomy Tower platform",
+    "visible_objects": [
+      "Dark Mark black tattoo",
+      "black suit jacket",
+      "wand",
+      "stone ramparts"
+    ],
+    "emotional_state": "desperate_defiant",
+    "camera_scale": "CLOSE_UP",
+    "camera_motion": "slow_push",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "I have to do this! He's gonna kill me! He'll kill my whole family!",
+    "visual_description": "Draco aggressively rolls back his left cuff, shoving his pale forearm forward to show the faded black skull and snake Dark Mark.",
+    "observable_claims": [
+      "Draco bares forearm",
+      "Dark Mark tattoo visible on pale skin"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m6_greenhouse_harry_convinces_slughorn_memory_lily_fish",
+    "movie_id": "hp_movie_6",
+    "movie_number": 6,
+    "scene_id": "m6_scene_hagrid_hut_slughorn_memory",
+    "start_time": 6240.0,
+    "end_time": 6290.0,
+    "characters_present": [
+      "Harry Potter",
+      "Horace Slughorn"
+    ],
+    "primary_subject": "Horace Slughorn",
+    "secondary_subjects": [
+      "Harry Potter"
+    ],
+    "action": "extracts silvery memory thread from temple with wand tip into glass flask",
+    "target": "Horcrux memory",
+    "interaction_type": "confession_and_memory_extraction",
+    "location": "Hagrid's hut table by firelight",
+    "visible_objects": [
+      "wand tip",
+      "glowing silver memory thread",
+      "glass phial",
+      "mead bottles"
+    ],
+    "emotional_state": "weeping_remorseful",
+    "camera_scale": "CLOSE_UP",
+    "camera_motion": "slow_push",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Please don't think badly of me when you see it. You have no idea what he was like, even then.",
+    "visual_description": "Tearful Slughorn presses his wand to his temple and slowly draws out the thick glowing silver strand of memory, dropping it into Harry's glass vial.",
+    "observable_claims": [
+      "Slughorn pulls silver memory strand from temple",
+      "Memory strand placed into glass bottle"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m7_kitchen_kreacher_returns_mundungus_fletcher",
+    "movie_id": "hp_movie_7",
+    "movie_number": 7,
+    "scene_id": "m7_scene_grimmauld_kitchen_mundungus",
+    "start_time": 2520.0,
+    "end_time": 2565.0,
+    "characters_present": [
+      "Kreacher",
+      "Dobby",
+      "Mundungus Fletcher",
+      "Harry Potter",
+      "Ron Weasley"
+    ],
+    "primary_subject": "Kreacher",
+    "secondary_subjects": [
+      "Mundungus Fletcher"
+    ],
+    "action": "apparates into kitchen tackling thief Mundungus Fletcher to flagstone floor",
+    "target": "Mundungus Fletcher",
+    "interaction_type": "physical_apprehension",
+    "location": "12 Grimmauld Place basement kitchen",
+    "visible_objects": [
+      "copper pots",
+      "wooden table",
+      "stolen cauldrons",
+      "ragged tunic"
+    ],
+    "emotional_state": "vindictive_loyal",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "handheld",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Kreacher has returned with the thief Fletcher! Get off me, you bleeding parasite!",
+    "visual_description": "With a loud crack, Kreacher and Dobby appear wrestling the swearing Mundungus Fletcher onto the stone kitchen floor.",
+    "observable_claims": [
+      "House-elves wrestle man onto floor",
+      "Harry and Ron draw wands"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m7_forest_snatchers_greyback_captures_swollen_harry",
+    "movie_id": "hp_movie_7",
+    "movie_number": 7,
+    "scene_id": "m7_scene_forest_snatchers_sting",
+    "start_time": 6820.0,
+    "end_time": 6865.0,
+    "characters_present": [
+      "Scabior",
+      "Fenrir Greyback",
+      "Harry Potter",
+      "Hermione Granger"
+    ],
+    "primary_subject": "Scabior",
+    "secondary_subjects": [
+      "Harry Potter"
+    ],
+    "action": "shines lantern inspecting Harry's grotesquely swollen stung face in forest",
+    "target": "Harry Potter",
+    "interaction_type": "capture_interrogation",
+    "location": "Dark pine forest clearing",
+    "visible_objects": [
+      "brass lantern",
+      "swollen disfigured face",
+      "leather coats",
+      "ropes"
+    ],
+    "emotional_state": "sinister_predatory",
+    "camera_scale": "CLOSE_UP",
+    "camera_motion": "slow_pan",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "What happened to you, ugly? The sting will wear off, won't it? Don't look at me!",
+    "visual_description": "Scabior thrusts his lantern into Harry's swollen, puffy face following Hermione's Stinging Jinx, sneering as Snatchers tie up the trio.",
+    "observable_claims": [
+      "Harry's face swollen beyond recognition",
+      "Snatchers surround captured trio with lantern"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m8_boathouse_harry_ron_hermione_peer_through_window",
+    "movie_id": "hp_movie_8",
+    "movie_number": 8,
+    "scene_id": "m8_scene_boathouse_exterior_peering",
+    "start_time": 4780.0,
+    "end_time": 4815.0,
+    "characters_present": [
+      "Harry Potter",
+      "Ron Weasley",
+      "Hermione Granger"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Ron Weasley",
+      "Hermione Granger"
+    ],
+    "action": "presses faces against wet exterior glass window of boathouse whispering",
+    "target": "boathouse window",
+    "interaction_type": "covert_surveillance",
+    "location": "Hogwarts Boathouse exterior rocks",
+    "visible_objects": [
+      "wet foggy glass pane",
+      "mist",
+      "stone boathouse wall",
+      "water lapping"
+    ],
+    "emotional_state": "tense_covert",
+    "camera_scale": "CLOSE_UP",
+    "camera_motion": "static",
+    "preceding_event": null,
+    "following_event": "evt_m8_boathouse_voldemort_commands_nagini_strike_snape",
+    "dialogue_ref": "Shh! Look, he's in there with him.",
+    "visual_description": "Harry, Ron, and Hermione crouch on the wet rocky bank, peering through the frosted window into the dimly lit boathouse interior.",
+    "observable_claims": [
+      "Trio presses faces against glass pane",
+      "Interior shadows visible inside"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m8_kings_cross_limbo_harry_talks_to_dumbledore_bench",
+    "movie_id": "hp_movie_8",
+    "movie_number": 8,
+    "scene_id": "m8_scene_limbo_station_dumbledore",
+    "start_time": 5680.0,
+    "end_time": 5730.0,
+    "characters_present": [
+      "Harry Potter",
+      "Albus Dumbledore"
+    ],
+    "primary_subject": "Albus Dumbledore",
+    "secondary_subjects": [
+      "Harry Potter"
+    ],
+    "action": "sits on pure white bench speaking warmly to Harry in celestial King's Cross",
+    "target": "Harry Potter",
+    "interaction_type": "philosophical_dialogue",
+    "location": "Blinding white ethereal King's Cross station limbo",
+    "visible_objects": [
+      "pure white benches",
+      "arched glass station ceiling in mist",
+      "white robes",
+      "curled infant Voldemort soul fragment"
+    ],
+    "emotional_state": "peaceful_profound",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "slow_pan",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Of course it is happening inside your head, Harry, but why on earth should that mean that it is not real?",
+    "visual_description": "Dumbledore, wearing pristine white robes, strolls beside Harry along the mist-filled white platforms of a dreamlike King's Cross station.",
+    "observable_claims": [
+      "Dumbledore and Harry in all-white station",
+      "Ethereal white mist throughout station"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m8_epilogue_nineteen_years_later_platform_nine_and_three_quarters",
+    "movie_id": "hp_movie_8",
+    "movie_number": 8,
+    "scene_id": "m8_scene_epilogue_nineteen_years",
+    "start_time": 7680.0,
+    "end_time": 7740.0,
+    "characters_present": [
+      "Harry Potter",
+      "Albus Severus Potter",
+      "Ginny Weasley"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Albus Severus Potter"
+    ],
+    "action": "kneels beside son Albus Severus on crowded platform reassuring him about Slytherin",
+    "target": "Albus Severus Potter",
+    "interaction_type": "paternal_counsel",
+    "location": "Platform 9 3/4 / Hogwarts Express",
+    "visible_objects": [
+      "scarlet Hogwarts Express steam engine",
+      "steam clouds",
+      "trolley trunk",
+      "owl cage"
+    ],
+    "emotional_state": "warm_loving",
+    "camera_scale": "MEDIUM_CLOSE_UP",
+    "camera_motion": "slow_pan",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": "Albus Severus Potter. You were named for two headmasters of Hogwarts. One of them was a Slytherin, and he was probably the bravest man I ever knew.",
+    "visual_description": "An adult Harry kneels by his anxious young son Albus on the bustling platform, looking him in the eyes as steam curls around the red train.",
+    "observable_claims": [
+      "Adult Harry kneels talking to young son",
+      "Hogwarts Express steams on platform"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  }
+]

@@ -165,9 +165,12 @@ def test_vertical_resolution_output():
 
 # 8. Idempotency & no duplicate clip records
 def test_idempotency_and_no_duplicates(engine):
-    """Verifies that running process_launch_batch repeatedly updates records without duplicating primary keys."""
+    """Verifies that running process_script_shots repeatedly updates records without duplicating primary keys."""
     engine_sa = create_engine(f"sqlite:///{DB_PATH}")
     Session = sessionmaker(bind=engine_sa)
+
+    # Initial run for script
+    engine.process_script_shots("hps_disc_neville_hufflepuff_sorting_b1", allow_download=False)
 
     with Session() as session:
         initial_count = session.query(HPMovieClip).count()
