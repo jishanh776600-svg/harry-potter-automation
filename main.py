@@ -2178,7 +2178,7 @@ def main():
     elif args.canary:
         console.print("[bold cyan]Starting controlled live-cloud canary refill for Harry Potter...[/bold cyan]")
         from engines.hp_autonomous_refill import HPAutonomousRefillEngine
-        refill = HPAutonomousRefillEngine(drive_engine=pipeline.drive_engine, voice_id="af_bella", force_unlock=args.force_unlock or args.force)
+        refill = HPAutonomousRefillEngine(drive_engine=pipeline.drive_engine, voice_id="f5_cloned_narrator_v1", force_unlock=args.force_unlock or args.force)
         telemetry = refill.run_refill_cycle(force_batch_count=1)
         if telemetry.status in ("SUCCEEDED", "PARTIAL", "BUFFER_SATISFIED"):
             console.print(f"[bold green][+] Canary Succeeded: Verified in 01_READY (Reserve: {telemetry.final_ready_stock}/{TARGET_RESERVE_BUFFER})[/bold green]")
@@ -2190,7 +2190,7 @@ def main():
         orchestrator = HPAutonomousRefillEngine(
             drive_engine=pipeline.drive_engine,
             is_dry_run=args.dry_run,
-            voice_id="af_bella",
+            voice_id="f5_cloned_narrator_v1",
             force_unlock=args.force_unlock or args.force
         )
         telemetry = orchestrator.run_refill_cycle(

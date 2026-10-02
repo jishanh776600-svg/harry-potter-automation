@@ -92,12 +92,12 @@ class HPAutonomousRefillEngine:
     def __init__(
         self,
         drive_engine: Optional[DriveVaultEngine] = None,
-        voice_id: str = "af_bella",
+        voice_id: str = "f5_cloned_narrator_v1",
         is_dry_run: bool = False,
         force_unlock: bool = False
     ):
         self.drive_engine = drive_engine or DriveVaultEngine()
-        self.voice_id = voice_id or "af_bella"
+        self.voice_id = voice_id or "f5_cloned_narrator_v1"
         self.is_dry_run = is_dry_run
         self.force_unlock = force_unlock
         self.strategy_engine = HPLearningStrategy()
