@@ -883,46 +883,48 @@ class MovieRetrievalEngine:
                     used_intervals.append((m_num, clip_start, clip_end))
                 shot_idx += 1
 
-        # Strategy B: If only 1 distinct scene candidate was valid/selected, decompose into 2 rapid cuts
+        # Strategy B: If fewer shots than target_shots_per_beat, decompose valid candidates into additional rapid cuts
         if len(shots) < target_shots_per_beat and valid_candidates:
-            primary = valid_candidates[0]
-            m_num = int(primary["movie_number"])
-            src_start = float(primary["start_seconds"])
-            src_end = float(primary["end_seconds"])
-            total_dur = src_end - src_start
+            for cand in valid_candidates:
+                if len(shots) >= target_shots_per_beat:
+                    break
+                m_num = int(cand["movie_number"])
+                src_start = float(cand["start_seconds"])
+                src_end = float(cand["end_seconds"])
 
-            if not shots:
-                dur_1 = min(2.5, max(MIN_SHOT_DURATION, total_dur / 2.0))
-                shots.append({
-                    "shot_id": "shot_1",
-                    "shot_index": 1,
-                    "candidate": primary,
-                    "source_start_seconds": round(src_start, 3),
-                    "source_end_seconds": round(src_end, 3),
-                    "clip_start_seconds": round(src_start, 3),
-                    "clip_end_seconds": round(src_start + dur_1, 3),
-                    "duration_seconds": round(dur_1, 3),
-                    "sub_role": "ESTABLISHING_OR_ACTION"
-                })
-                if used_intervals is not None:
-                    used_intervals.append((m_num, src_start, src_start + dur_1))
+                # Determine starting position within candidate interval
+                cand_shots = [s for s in shots if s["candidate"].get("chunk_id") == cand.get("chunk_id")]
+                last_end = max([s["clip_end_seconds"] for s in cand_shots], default=src_start)
 
-            if len(shots) == 1 and total_dur >= (MIN_SHOT_DURATION * 2):
-                c1_end = shots[0]["clip_end_seconds"]
-                dur_2 = min(MAX_SHOT_DURATION, max(MIN_SHOT_DURATION, src_end - c1_end))
-                shots.append({
-                    "shot_id": "shot_2",
-                    "shot_index": 2,
-                    "candidate": primary,
-                    "source_start_seconds": round(src_start, 3),
-                    "source_end_seconds": round(src_end, 3),
-                    "clip_start_seconds": round(c1_end, 3),
-                    "clip_end_seconds": round(c1_end + dur_2, 3),
-                    "duration_seconds": round(dur_2, 3),
-                    "sub_role": "DIALOGUE_OR_REACTION_PAYOFF"
-                })
-                if used_intervals is not None:
-                    used_intervals.append((m_num, c1_end, c1_end + dur_2))
+                while len(shots) < target_shots_per_beat and (src_end - last_end) >= MIN_SHOT_DURATION:
+                    rem = src_end - last_end
+                    shot_dur = min(MAX_SHOT_DURATION, max(MIN_SHOT_DURATION, min(DEFAULT_TARGET_SHOT_DURATION, rem)))
+                    c_start = last_end
+                    c_end = c_start + shot_dur
+
+                    # Verify no overlap with used_intervals
+                    if used_intervals and any(
+                        u_m == m_num and max(c_start, u_s) < min(c_end, u_e) - 0.5
+                        for (u_m, u_s, u_e) in used_intervals
+                    ):
+                        last_end += shot_dur
+                        continue
+
+                    s_idx = len(shots) + 1
+                    shots.append({
+                        "shot_id": f"shot_{s_idx}",
+                        "shot_index": s_idx,
+                        "candidate": cand,
+                        "source_start_seconds": round(src_start, 3),
+                        "source_end_seconds": round(src_end, 3),
+                        "clip_start_seconds": round(c_start, 3),
+                        "clip_end_seconds": round(c_end, 3),
+                        "duration_seconds": round(shot_dur, 3),
+                        "sub_role": "RAPID_CUT_PAYOFF"
+                    })
+                    if used_intervals is not None:
+                        used_intervals.append((m_num, c_start, c_end))
+                    last_end = c_end
 
         return shots
 
@@ -1201,11 +1203,16 @@ class MovieRetrievalEngine:
         Executes Step 9 for all visual beats of a given script,
         resolving each beat into 2–3 rapid-fire shot units.
         """
+        import math
         with self.Session() as session:
             script = session.query(HarryPotterScript).filter_by(id=script_id).first()
             if not script:
                 raise ValueError(f"Script not found: {script_id}")
             beats = json.loads(script.visual_beats_json)
+            est_duration = getattr(script, "estimated_duration_sec", 0.0) or 0.0
+            if est_duration <= 0.0:
+                word_cnt = getattr(script, "word_count", 0) or len(getattr(script, "full_text", "").split())
+                est_duration = (word_cnt / 2.5) if word_cnt > 0 else 28.0
             # Ensure idempotency: remove prior clip records for this script before inserting fresh ones
             session.query(HPMovieClip).filter_by(script_id=script_id).delete()
             session.commit()
@@ -1220,6 +1227,10 @@ class MovieRetrievalEngine:
 
         used_intervals = []
         script_shots = []
+
+        num_beats = max(1, len(beats))
+        total_needed_shots = max(num_beats * 2, int(math.ceil(est_duration / 2.2)))
+        shots_per_beat = max(2, int(math.ceil(total_needed_shots / num_beats)))
 
         for beat in beats:
             beat_id = beat.get("beat_id", "beat_1")
@@ -1236,7 +1247,7 @@ class MovieRetrievalEngine:
             ranked = self.rerank_candidates(beat, candidates, canonical_event=canonical_event, used_intervals=used_intervals)
 
             # 4. Decompose beat into rapid-fire shots (1.5s - 3.0s each) with anti-loop intervals
-            shots = self.resolve_beat_to_shots(beat, ranked, target_shots_per_beat=2, canonical_event=canonical_event, used_intervals=used_intervals)
+            shots = self.resolve_beat_to_shots(beat, ranked, target_shots_per_beat=shots_per_beat, canonical_event=canonical_event, used_intervals=used_intervals)
 
             if not shots:
                 # Check truthful fan-art / official artwork before marking as rejected

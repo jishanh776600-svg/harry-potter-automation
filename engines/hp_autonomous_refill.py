@@ -214,8 +214,13 @@ class HPAutonomousRefillEngine:
             HarryPotterScript.status.in_(terminal_statuses)
         )
 
+        if content_type.startswith("discovery"):
+            type_filter = HarryPotterScript.content_type.in_(["discovery", "discovery_big", "discovery_short"])
+        else:
+            type_filter = (HarryPotterScript.content_type == content_type)
+
         existing_query = session.query(HarryPotterScript).filter(
-            HarryPotterScript.content_type == content_type,
+            type_filter,
             HarryPotterScript.qa_status.in_(["APPROVED", "PASSED"]),
             ~HarryPotterScript.id.in_(deposited_scripts)
         )
@@ -230,7 +235,8 @@ class HPAutonomousRefillEngine:
                 v_beats = json.loads(script.visual_beats_json or "[]")
             except Exception:
                 pass
-            if not v_beats and content_type.startswith("discovery"):
+            has_content = any(b.get("visual_requirement") or b.get("narration_text") for b in v_beats) if v_beats else False
+            if (not v_beats or not has_content) and content_type.startswith("discovery"):
                 logger.warning(f"[Refill:Pool] Script {script.id} has empty visual beats. Quarantining...")
                 script.qa_status = "FAILED"
                 script.status = "QUARANTINED"
