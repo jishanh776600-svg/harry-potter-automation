@@ -164,13 +164,14 @@ def get_content_mix_allocation(total_shorts: int | None = None) -> dict[str, int
     }
 
 
-# TTS Settings — Male 18 (Fenrir Onyx - Dark Baritone) — Permanent Production Voice
-# Kokoro-82M ONNX blended acoustic style (0.6 am_fenrir + 0.4 am_onyx, speed=1.05)
-TTS_PROVIDER = os.getenv("TTS_PROVIDER", "kokoro")
-KOKORO_VOICE = os.getenv("KOKORO_VOICE", "male_18")
+# TTS Settings — Approved Cloned Storyteller (f5_cloned_narrator_v1) — Permanent Production Voice
+# F5-TTS reference speaker conditioning on canonical 24k reference audio
+TTS_PROVIDER = os.getenv("TTS_PROVIDER", "f5_tts")
+KOKORO_VOICE = os.getenv("KOKORO_VOICE", "f5_cloned_narrator_v1")
+LOCKED_VOICE_ID = os.getenv("LOCKED_VOICE_ID", "f5_cloned_narrator_v1")
 ACTIVE_VOICE_PITCH = os.getenv("ACTIVE_VOICE_PITCH", "+0Hz")
 ACTIVE_VOICE_RATE = os.getenv("ACTIVE_VOICE_RATE", "+0%")
-APPROVED_PRODUCTION_VOICES = ["male_18", "MALE_18_FenrirOnyx_DarkBaritone", "af_bella"]
+APPROVED_PRODUCTION_VOICES = ["f5_cloned_narrator_v1", "male_18", "MALE_18_FenrirOnyx_DarkBaritone", "af_bella"]
 KOKORO_MODEL_PATH = DATA_DIR / "kokoro-v1.0.onnx"
 KOKORO_VOICES_PATH = DATA_DIR / "voices-v1.0.bin"
 

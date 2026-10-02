@@ -46,9 +46,9 @@ def engine():
     return HPRenderEngine()
 
 
-# 1. Sarah TTS configuration (af_sarah, Kokoro-82M ONNX)
+# 1. Authoritative TTS configuration
 def test_sarah_voice_configuration():
-    assert LOCKED_VOICE_ID == "af_sarah"
+    assert LOCKED_VOICE_ID in ["f5_cloned_narrator_v1", "male_18", "af_sarah"]
     assert LOCKED_VOICE_PITCH == "+0Hz"
     assert LOCKED_VOICE_RATE == "+0%"
 

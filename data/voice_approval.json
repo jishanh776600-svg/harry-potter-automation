@@ -1,8 +1,10 @@
 {
   "approved": true,
-  "voice_id": "af_bella",
+  "voice_id": "f5_cloned_narrator_v1",
   "metadata": {
     "auditioned": true,
-    "style": "BELLA_CANON_EXPERT"
+    "style": "F5_CLONED_REFERENCE_STORYTELLER",
+    "reference_speaker": "barty_cand_07",
+    "model": "F5TTS_v1_Base"
   }
 }

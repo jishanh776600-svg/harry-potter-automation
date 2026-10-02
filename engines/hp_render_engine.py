@@ -54,8 +54,8 @@ RENDERS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 CAPTIONS_DIR.mkdir(parents=True, exist_ok=True)
 CLIPS_DIR.mkdir(parents=True, exist_ok=True)
 
-# Locked Voice Parameters — Male 18 (Fenrir Onyx - Dark Baritone) — Permanent Production Voice
-LOCKED_VOICE_ID = "male_18"
+# Locked Voice Parameters — Approved Cloned Storyteller (f5_cloned_narrator_v1) — Permanent Production Voice
+LOCKED_VOICE_ID = "f5_cloned_narrator_v1"
 LOCKED_VOICE_PITCH = "+0Hz"
 LOCKED_VOICE_RATE = "+0%"
 
@@ -195,58 +195,124 @@ class HPRenderEngine:
         out_wav = VOICE_DIR / f"tts_{script_id}.wav"
         words = []
 
-        chosen_voice = "af_bella"
+        # Authoritative voice resolution: explicit param -> persistent approval -> env/default
+        chosen_voice = voice_id
+        if not chosen_voice:
+            try:
+                from engines.editorial.voice_selection_gate import VoiceSelectionGate
+                if VoiceSelectionGate.load_saved_approval() and VoiceSelectionGate._selected_voice:
+                    chosen_voice = VoiceSelectionGate._selected_voice
+            except Exception:
+                pass
+        if not chosen_voice:
+            chosen_voice = os.getenv("KOKORO_VOICE", LOCKED_VOICE_ID)
 
-        if chosen_voice.startswith("af_") or os.getenv("TTS_PROVIDER", "kokoro") == "kokoro":
-            from engines.tts_engine import TTSEngine
-            tts_engine = TTSEngine()
-            
-            # Bella: Permanent Production Voice (expressive, cinematic pace at 1.05x)
-            speed = 1.05
-            sent_pause = 0.20
-            clause_pause = 0.08
-
-            ok, dur = tts_engine.generate_kokoro_audio(
-                text=clean_text,
-                output_path=out_wav,
-                voice=chosen_voice,
-                speed=speed,
-                sentence_pause=sent_pause,
-                clause_pause=clause_pause
+        # STRICT PROVENANCE GUARD: Ban unauthorized fallback to Bella
+        if chosen_voice and chosen_voice.lower() in ("af_bella", "bella"):
+            logger.warning(
+                "Blocked attempt to use unapproved voice '%s'; switching to locked cloned voice '%s'",
+                chosen_voice, LOCKED_VOICE_ID
             )
-            if not ok or not out_wav.exists():
-                raise RuntimeError(f"Kokoro synthesis failed for script {script_id} with voice {chosen_voice}")
-            
-            # Extract word boundaries via CaptionEngine (faster-whisper)
+            chosen_voice = LOCKED_VOICE_ID
+
+        # BRANCH 1: F5-TTS Approved Cloned Voice (conditioned on reference speaker)
+        if chosen_voice in ("f5_cloned_narrator_v1", "f5_tts", "cloned_narrator") or chosen_voice.startswith("f5_"):
+            raw_f5_wav = VOICE_DIR / f"raw_f5_{script_id}.wav"
+            if out_wav.exists() and out_wav.stat().st_size > 1000:
+                logger.info(f"Reusing verified mastered narration at {out_wav}")
+                try:
+                    from engines.caption_engine import CaptionEngine
+                    ce = CaptionEngine()
+                    words = ce.transcribe_words(str(out_wav))
+                except Exception as e:
+                    logger.warning(f"Whisper word boundary notice: {e}")
+                    words = []
+            else:
+                try:
+                    from engines.tts.f5_tts_voice_engine import F5TTSVoiceEngine, synthesize_canonical_narration
+                    logger.info(f"Synthesizing narration via F5-TTS cloned voice for script '{script_id}'...")
+                    synthesize_canonical_narration(
+                        text=clean_text,
+                        output_path=raw_f5_wav,
+                        speed=1.06,
+                        seed=102,
+                        nfe_step=16
+                    )
+                    F5TTSVoiceEngine.apply_post_processing(
+                        raw_wav=str(raw_f5_wav),
+                        processed_wav=str(out_wav),
+                        target_lufs=-14.0,
+                        max_true_peak_db=-1.0
+                    )
+                    from engines.caption_engine import CaptionEngine
+                    ce = CaptionEngine()
+                    words = ce.transcribe_words(str(out_wav))
+                except Exception as exc:
+                    logger.error(f"F5-TTS cloned synthesis notice/fallback: {exc}. Using matched male reference voice 'male_18'.")
+                    chosen_voice = "male_18"
+
+        # BRANCH 2: Kokoro-82M ONNX (if not already synthesized by F5-TTS)
+        if not (out_wav.exists() and out_wav.stat().st_size > 1000):
+            if chosen_voice.startswith("am_") or chosen_voice == "male_18" or os.getenv("TTS_PROVIDER", "kokoro") == "kokoro":
+                from engines.tts_engine import TTSEngine
+                tts_engine = TTSEngine()
+                
+                speed = 1.05
+                sent_pause = 0.20
+                clause_pause = 0.08
+
+                ok, dur = tts_engine.generate_kokoro_audio(
+                    text=clean_text,
+                    output_path=out_wav,
+                    voice=chosen_voice if chosen_voice != "f5_cloned_narrator_v1" else "male_18",
+                    speed=speed,
+                    sentence_pause=sent_pause,
+                    clause_pause=clause_pause
+                )
+                if not ok or not out_wav.exists():
+                    raise RuntimeError(f"Kokoro synthesis failed for script {script_id} with voice {chosen_voice}")
+                
+                # Extract word boundaries via CaptionEngine (faster-whisper)
+                try:
+                    from engines.caption_engine import CaptionEngine
+                    ce = CaptionEngine()
+                    words = ce.transcribe_words(out_wav)
+                except Exception as e:
+                    logger.warning(f"Whisper word boundary extraction notice: {e}")
+                    words = []
+            else:
+                # BRANCH 3: Edge-TTS
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                try:
+                    ok, words = loop.run_until_complete(
+                        self._synthesize_edge_tts_async(clean_text, raw_mp3)
+                    )
+                finally:
+                    loop.close()
+
+                if not ok:
+                    raise RuntimeError(f"Edge-TTS synthesis failed for script {script_id}")
+
+                # Convert MP3 to clean 44.1kHz 16-bit PCM WAV
+                conv_cmd = [
+                    "ffmpeg", "-y", "-loglevel", "error",
+                    "-i", str(raw_mp3),
+                    "-ar", "44100", "-ac", "1",
+                    str(out_wav)
+                ]
+                subprocess.run(conv_cmd, check=True)
+                raw_mp3.unlink(missing_ok=True)
+
+        # Ensure word boundaries extracted if still empty but out_wav exists
+        if not words and out_wav.exists() and out_wav.stat().st_size > 1000:
             try:
                 from engines.caption_engine import CaptionEngine
                 ce = CaptionEngine()
-                words = ce.transcribe_words(out_wav)
+                words = ce.transcribe_words(str(out_wav))
             except Exception as e:
                 logger.warning(f"Whisper word boundary extraction notice: {e}")
                 words = []
-        else:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            try:
-                ok, words = loop.run_until_complete(
-                    self._synthesize_edge_tts_async(clean_text, raw_mp3)
-                )
-            finally:
-                loop.close()
-
-            if not ok:
-                raise RuntimeError(f"Edge-TTS synthesis failed for script {script_id}")
-
-            # Convert MP3 to clean 44.1kHz 16-bit PCM WAV
-            conv_cmd = [
-                "ffmpeg", "-y", "-loglevel", "error",
-                "-i", str(raw_mp3),
-                "-ar", "44100", "-ac", "1",
-                str(out_wav)
-            ]
-            subprocess.run(conv_cmd, check=True)
-            raw_mp3.unlink(missing_ok=True)
 
         # Get exact duration via ffprobe
         dur_cmd = [
@@ -663,7 +729,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 raise ValueError(f"No accepted movie shots found for script {script_id}.")
 
             content_type = script.content_type
-            voice_id = "af_bella"  # Permanent production voice for all categories
+            voice_id = LOCKED_VOICE_ID  # Authoritative locked production voice (f5_cloned_narrator_v1)
             # Novel Story may have visual PART marker; Discovery has NO PART MARKER whatsoever
             is_discovery = bool(content_type and "discovery" in content_type)
             if is_discovery:
@@ -683,11 +749,11 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 bgm_weight = DEFAULT_BGM_AMIX_WEIGHT
             full_text = script.full_text
 
-        # 1. Generate Narration TTS Audio (Bella for all categories)
+        # 1. Generate Narration TTS Audio (Authoritative locked production voice)
         narration_wav, narration_dur, word_boundaries = self.generate_narration_audio(
             script_id=script_id,
             script_text=full_text,
-            voice_id="af_bella"
+            voice_id=voice_id
         )
 
         # 2. Generate ASS Subtitles + Visual PART marker (only for Novel Story)

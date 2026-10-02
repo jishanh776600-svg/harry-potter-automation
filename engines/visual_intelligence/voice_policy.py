@@ -30,6 +30,16 @@ class VoiceVariationPolicy:
     """
 
     APPROVED_PERSONAS: Dict[str, Dict[str, Any]] = {
+        "f5_cloned_narrator_v1": {
+            "id": "f5_cloned_narrator_v1",
+            "name": "Approved Cloned Storyteller (F5-TTS)",
+            "gender": "MALE",
+            "style": "Fast-paced conversational insider storyteller",
+            "persona": "Approved Cloned Storyteller",
+            "best_for": ["harry potter", "novel", "discovery", "mystery", "dark arts", "lore", "facts"],
+            "profile": DeliveryProfile.CONVERSATIONAL,
+            "supported_profiles": [DeliveryProfile.CONVERSATIONAL, DeliveryProfile.INVESTIGATIVE]
+        },
         "male_18": {
             "id": "male_18",
             "name": "Male 18 (Fenrir Onyx - Dark Baritone)",
@@ -64,7 +74,7 @@ class VoiceVariationPolicy:
 
     # Backward compatibility alias
     AVAILABLE_VOICES = list(APPROVED_PERSONAS.keys())
-    APPROVED_PRODUCTION_VOICES = ["male_18", "MALE_18_FenrirOnyx_DarkBaritone", "af_bella"]
+    APPROVED_PRODUCTION_VOICES = ["f5_cloned_narrator_v1", "male_18", "MALE_18_FenrirOnyx_DarkBaritone", "af_bella"]
 
     MAX_CONSECUTIVE_VOICE = 2
     MAX_CONSECUTIVE_PROFILE = 2

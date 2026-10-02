@@ -87,8 +87,8 @@ jobs:
             echo "AI_COUNCIL_DEEPSEEK_KEY_3=${AI_COUNCIL_DEEPSEEK_KEY_3}" >> .env
           fi
           echo "TEST_MODE=false" >> .env
-          echo "CLOUD_MODE=true" >> .env
-          echo "KOKORO_VOICE=af_bella" >> .env
+          echo "KOKORO_VOICE=f5_cloned_narrator_v1" >> .env
+          echo "TTS_VOICE=f5_cloned_narrator_v1" >> .env
           echo "TOKEN_PATH=credentials/hp_token.json" >> .env
           echo "CLIENT_SECRETS_PATH=credentials/hp_client_secret.json" >> .env
           echo "AUTOMATION_ID=harry_potter" >> .env

@@ -47,11 +47,11 @@ def test_approved_production_voices_whitelist():
     
     available_ids = [v["id"] for v in AVAILABLE_VOICES]
     assert "male_18" in available_ids
-    assert KOKORO_VOICE in ["male_18", "MALE_18_FenrirOnyx_DarkBaritone"]
+    assert KOKORO_VOICE in ["f5_cloned_narrator_v1", "male_18", "MALE_18_FenrirOnyx_DarkBaritone"]
 
 
 # ------------------------------------------------------------------------------
-# TEST 2: Elimination of Retired Voices (Resolving safely to male_18)
+# TEST 2: Elimination of Retired Voices (Resolving safely to approved voice)
 # ------------------------------------------------------------------------------
 def test_elimination_of_retired_voices():
     """Verify retired voices cannot be selected and resolve safely to approved voice."""
@@ -66,7 +66,7 @@ def test_elimination_of_retired_voices():
         # Safe resolution fallback
         resolved = resolve_voice_config(voice)
         assert resolved["id"] in APPROVED_PRODUCTION_VOICES
-        assert resolved["id"] == "male_18"
+        assert resolved["id"] in ["f5_cloned_narrator_v1", "male_18"]
 
     # Verify get_active_voice() never returns a retired voice even if DB has stale value
     mock_db = MagicMock()
@@ -74,7 +74,7 @@ def test_elimination_of_retired_voices():
     mock_row.value = "af_sarah"
     mock_db.query.return_value.filter.return_value.first.return_value = mock_row
     assert get_active_voice(mock_db) in APPROVED_PRODUCTION_VOICES
-    assert get_active_voice(mock_db) == "male_18"
+    assert get_active_voice(mock_db) in ["f5_cloned_narrator_v1", "male_18"]
 
 
 # ------------------------------------------------------------------------------

@@ -29,9 +29,26 @@ logger = logging.getLogger(__name__)
 KOKORO_MODEL_URL = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx"
 KOKORO_VOICES_URL = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin"
 
-APPROVED_PRODUCTION_VOICES = ["male_18", "MALE_18_FenrirOnyx_DarkBaritone", "af_bella"]
+APPROVED_PRODUCTION_VOICES = ["f5_cloned_narrator_v1", "male_18", "MALE_18_FenrirOnyx_DarkBaritone", "af_bella"]
 
 AVAILABLE_VOICES = [
+    {
+        "id": "f5_cloned_narrator_v1",
+        "display_name": "Approved Cloned Storyteller (F5-TTS)",
+        "engine": "F5-TTS Reference Flow Matching",
+        "description": "Permanent Production Cloned Voice: Conditioned on canonical 24k reference speaker audio.",
+        "style": "Fast-paced conversational insider storyteller",
+        "gender": "Male",
+        "accent": "American Conversational Storyteller",
+        "age": "28",
+        "kokoro_voice": "male_18",
+        "edge_voice": "en-US-ChristopherNeural",
+        "edge_pitch": "+0Hz",
+        "edge_rate": "+6%",
+        "delivery_profile": "CLONED_REFERENCE_NARRATOR",
+        "speed": 1.06,
+        "available": True
+    },
     {
         "id": "male_18",
         "display_name": "Male 18 (Fenrir Onyx - Dark Baritone)",
@@ -129,7 +146,10 @@ def resolve_voice_config(voice_id: str) -> dict:
     for v in AVAILABLE_VOICES:
         if v["id"] == voice_id and v.get("available", False) and v["id"] in APPROVED_PRODUCTION_VOICES:
             return v
-    # Safe fallback to approved permanent production voice (Male 18)
+    # Safe fallback to approved permanent production voice (f5_cloned_narrator_v1, then male_18)
+    for v in AVAILABLE_VOICES:
+        if v["id"] == "f5_cloned_narrator_v1":
+            return v
     for v in AVAILABLE_VOICES:
         if v["id"] == "male_18":
             return v
@@ -145,7 +165,7 @@ def get_active_voice(db: Optional[Session] = None) -> str:
                 return cfg.value
         except Exception:
             pass
-    return "male_18"
+    return "f5_cloned_narrator_v1"
 
 
 def select_voice_by_policy(category: str = "", title: str = "", script_text: str = "") -> str:
