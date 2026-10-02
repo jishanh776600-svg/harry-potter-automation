@@ -46,7 +46,7 @@ CLIPS_DIR = PROJECT_ROOT / "data" / "clips"
 CREDENTIALS_DIR = PROJECT_ROOT / "credentials"
 HP_TOKEN_PATH = CREDENTIALS_DIR / "hp_token.json"
 
-MIN_CONFIDENCE_THRESHOLD = 75.0
+MIN_CONFIDENCE_THRESHOLD = 85.0
 DEFAULT_TARGET_SHOT_DURATION = 2.2  # Seconds
 MIN_SHOT_DURATION = 1.5
 MAX_SHOT_DURATION = 3.0
@@ -194,48 +194,42 @@ class MovieRetrievalEngine:
         canonical_event: Optional[Any] = None
     ) -> List[Dict[str, Any]]:
         """
-        Queries the movie subtitles FTS5 index across generated queries.
-        Prioritizes the beat's preferred_movie_number, then falls back globally.
-        If a canonical event is provided, directly ensures the exact ground-truth scene chunks are present.
+        Pure Visual-Event Retrieval (Subtitle Search Completely Eliminated).
+        Queries the structured MovieEventIndex catalog across subjects, actions,
+        targets, and locations. Clips are strictly derived from verified canonical
+        event timestamps (never from spoken dialogue subtitles).
         """
-        queries = self.build_queries_for_beat(beat)
         preferred_m = beat.get("preferred_movie_number")
         candidates_by_id = {}
 
-        # Round 0A: Inject ground-truth canonical scene chunks if provided
+        # Round 0A: Inject ground-truth canonical event directly if provided
         if canonical_event:
             m_num = canonical_event.movie_number
-            st_sec = float(getattr(canonical_event, "scene_start_sec", getattr(canonical_event, "start_time", 0.0)))
-            end_sec = float(getattr(canonical_event, "scene_end_sec", getattr(canonical_event, "end_time", 0.0)))
-            with self.Session() as session:
-                chunks = (
-                    session.query(MovieSubtitleChunk)
-                    .filter(
-                        MovieSubtitleChunk.movie_number == m_num,
-                        MovieSubtitleChunk.end_seconds >= max(0.0, st_sec - 15.0),
-                        MovieSubtitleChunk.start_seconds <= end_sec + 15.0
-                    )
-                    .all()
-                )
-                for ch in chunks:
-                    if ch.id not in candidates_by_id:
-                        candidates_by_id[ch.id] = {
-                            "chunk_id": ch.id,
-                            "movie_number": ch.movie_number,
-                            "movie_title": ch.movie_title,
-                            "start_seconds": ch.start_seconds,
-                            "end_seconds": ch.end_seconds,
-                            "start_timecode": ch.start_timecode,
-                            "end_timecode": ch.end_timecode,
-                            "duration_seconds": ch.duration_seconds,
-                            "text": ch.text,
-                            "video_filename": ch.movie.video_filename if ch.movie else "",
-                            "video_drive_id": ch.movie.video_drive_id if ch.movie else "",
-                            "relevance_rank": -2.0,
-                            "matched_query": f"[CANONICAL: {getattr(canonical_event, 'event_summary', getattr(canonical_event, 'action', ''))[:30]}]",
-                            "is_canonical": True,
-                            "canonical_event_obj": canonical_event
-                        }
+            st_sec = float(getattr(canonical_event, "start_time", getattr(canonical_event, "scene_start_sec", 0.0)))
+            end_sec = float(getattr(canonical_event, "end_time", getattr(canonical_event, "scene_end_sec", 0.0)))
+            ev_id = getattr(canonical_event, "event_id", f"canonical_m{m_num}_{int(st_sec)}")
+            chunk_id = f"evt_{ev_id}"
+            meta = get_movie_by_number(m_num)
+            v_filename = meta["video_filename"] if meta else f"hp_movie_{m_num}.mp4"
+            v_drive_id = meta["video_drive_id"] if meta else ""
+            summary = getattr(canonical_event, "event_summary", getattr(canonical_event, "visual_description", getattr(canonical_event, "action", "")))
+            candidates_by_id[chunk_id] = {
+                "chunk_id": chunk_id,
+                "movie_number": m_num,
+                "movie_title": f"Harry Potter Movie {m_num}",
+                "start_seconds": st_sec,
+                "end_seconds": end_sec,
+                "start_timecode": f"{int(st_sec//60):02d}:{int(st_sec%60):02d}",
+                "end_timecode": f"{int(end_sec//60):02d}:{int(end_sec%60):02d}",
+                "duration_seconds": max(1.5, end_sec - st_sec),
+                "text": summary,
+                "video_filename": v_filename,
+                "video_drive_id": v_drive_id,
+                "relevance_rank": -2.0,
+                "matched_query": f"[CANONICAL: {summary[:30]}]",
+                "is_canonical": True,
+                "canonical_event_obj": canonical_event
+            }
 
         # Round 0B: Structured MovieEventIndex retrieval
         try:
@@ -251,81 +245,36 @@ class MovieRetrievalEngine:
                 objects=list(beat.get("objects", [])),
                 movie_number=preferred_m
             )
-            event_matches = self.movie_event_retrieval_engine.retrieve_events(me_query, top_k=3, min_score=35.0)
+            event_matches = self.movie_event_retrieval_engine.retrieve_events(me_query, top_k=5, min_score=35.0)
             for ev, ev_score, _ in event_matches:
-                with self.Session() as session:
-                    ev_chunks = (
-                        session.query(MovieSubtitleChunk)
-                        .filter(
-                            MovieSubtitleChunk.movie_number == ev.movie_number,
-                            MovieSubtitleChunk.end_seconds >= max(0.0, ev.start_time - 10.0),
-                            MovieSubtitleChunk.start_seconds <= ev.end_time + 10.0
-                        )
-                        .all()
-                    )
-                    if ev_chunks:
-                        for ch in ev_chunks:
-                            if ch.id not in candidates_by_id:
-                                candidates_by_id[ch.id] = {
-                                    "chunk_id": ch.id,
-                                    "movie_number": ch.movie_number,
-                                    "movie_title": ch.movie_title,
-                                    "start_seconds": ch.start_seconds,
-                                    "end_seconds": ch.end_seconds,
-                                    "start_timecode": ch.start_timecode,
-                                    "end_timecode": ch.end_timecode,
-                                    "duration_seconds": ch.duration_seconds,
-                                    "text": ch.text,
-                                    "video_filename": ch.movie.video_filename if ch.movie else "",
-                                    "video_drive_id": ch.movie.video_drive_id if ch.movie else "",
-                                    "relevance_rank": -2.0,
-                                    "matched_query": f"[EVENT: {ev.primary_subject} {ev.action[:25]}]",
-                                    "is_canonical": True,
-                                    "canonical_event_obj": ev,
-                                }
-                    else:
-                        chunk_id = f"evt_{ev.event_id}"
-                        if chunk_id not in candidates_by_id:
-                            candidates_by_id[chunk_id] = {
-                                "chunk_id": chunk_id,
-                                "movie_number": ev.movie_number,
-                                "movie_title": f"Harry Potter Movie {ev.movie_number}",
-                                "start_seconds": ev.start_time,
-                                "end_seconds": ev.end_time,
-                                "start_timecode": f"{int(ev.start_time//60):02d}:{int(ev.start_time%60):02d}",
-                                "end_timecode": f"{int(ev.end_time//60):02d}:{int(ev.end_time%60):02d}",
-                                "duration_seconds": ev.duration,
-                                "text": f"{ev.primary_subject} {ev.action}. {ev.visual_description}",
-                                "video_filename": f"hp_movie_{ev.movie_number}.mp4",
-                                "video_drive_id": "",
-                                "relevance_rank": -2.0,
-                                "matched_query": f"[EVENT: {ev.primary_subject} {ev.action[:25]}]",
-                                "is_canonical": True,
-                                "canonical_event_obj": ev,
-                            }
+                chunk_id = f"evt_{ev.event_id}"
+                if chunk_id not in candidates_by_id:
+                    meta = get_movie_by_number(ev.movie_number)
+                    v_filename = meta["video_filename"] if meta else f"hp_movie_{ev.movie_number}.mp4"
+                    v_drive_id = meta["video_drive_id"] if meta else ""
+                    candidates_by_id[chunk_id] = {
+                        "chunk_id": chunk_id,
+                        "movie_number": ev.movie_number,
+                        "movie_title": f"Harry Potter Movie {ev.movie_number}",
+                        "start_seconds": ev.start_time,
+                        "end_seconds": ev.end_time,
+                        "start_timecode": f"{int(ev.start_time//60):02d}:{int(ev.start_time%60):02d}",
+                        "end_timecode": f"{int(ev.end_time//60):02d}:{int(ev.end_time%60):02d}",
+                        "duration_seconds": ev.duration,
+                        "text": f"{ev.primary_subject} {ev.action}. {ev.visual_description}",
+                        "video_filename": v_filename,
+                        "video_drive_id": v_drive_id,
+                        "relevance_rank": -2.0,
+                        "matched_query": f"[EVENT: {ev.primary_subject} {ev.action[:25]}]",
+                        "is_canonical": True,
+                        "canonical_event_obj": ev,
+                    }
         except Exception as e:
             logger.debug(f"MovieEvent retrieval in search_candidates_for_beat: {e}")
 
-        # Round 1: Preferred movie search
-        if preferred_m:
-            for q in queries:
-                matches = self.asset_engine.search_movie_scenes(q, movie_number=preferred_m, limit=max_candidates)
-                for m in matches:
-                    if m["chunk_id"] not in candidates_by_id:
-                        m["matched_query"] = q
-                        candidates_by_id[m["chunk_id"]] = m
-
-        # Round 2: Fallback global search ONLY if preferred movie has zero candidates
-        if len(candidates_by_id) == 0:
-            for q in queries:
-                matches = self.asset_engine.search_movie_scenes(q, movie_number=None, limit=5)
-                for m in matches:
-                    if m["chunk_id"] not in candidates_by_id:
-                        m["matched_query"] = q
-                        candidates_by_id[m["chunk_id"]] = m
-                if len(candidates_by_id) >= max_candidates:
-                    break
-
+        # SUBTITLE SEARCH COMPLETELY ELIMINATED:
+        # We do NOT run Round 1 or Round 2 against MovieSubtitleChunk.
+        # Movie footage must ONLY be extracted from verified MovieEvent visual timestamps.
         return list(candidates_by_id.values())
 
     # --------------------------------------------------------------------------
@@ -628,8 +577,19 @@ class MovieRetrievalEngine:
         # ----------------------------------------------------------------------
         # A. Semantic Relevance (0 - 25 pts)
         # ----------------------------------------------------------------------
+        # ----------------------------------------------------------------------
+        # A. Semantic Relevance (0 - 25 pts)
+        # ----------------------------------------------------------------------
         if is_canonical:
-            sem_score = 25.0
+            canonical_obj = canonical_event or candidate.get("canonical_event_obj")
+            if canonical_obj:
+                ev_text = f"{getattr(canonical_obj, 'primary_subject', '')} {getattr(canonical_obj, 'action', '')} {getattr(canonical_obj, 'visual_description', '')}".lower()
+                req_words = set(re.findall(r"[a-zA-Z]{4,}", str(beat.get("visual_requirement", "")).lower()))
+                action_words = set(re.findall(r"[a-zA-Z]{4,}", str(beat.get("action", "")).lower()))
+                overlap = sum(1 for w in req_words.union(action_words) if w in ev_text)
+                sem_score = min(25.0, 15.0 + overlap * 3.0)
+            else:
+                sem_score = 25.0
         else:
             rank = float(candidate.get("relevance_rank", 0.0))
             rank_pts = max(0.0, min(10.0, 10.0 - abs(rank) * 1.0))
@@ -657,10 +617,25 @@ class MovieRetrievalEngine:
                 if re.search(r"\b" + re.escape(kc) + r"\b", raw_t, re.IGNORECASE):
                     beat_chars.append(kc)
 
-        if is_canonical:
-            char_score = 20.0
-        elif not beat_chars:
+        if not beat_chars:
             char_score = 15.0  # Neutral non-character beat
+        elif is_canonical:
+            canonical_obj = canonical_event or candidate.get("canonical_event_obj")
+            if canonical_obj:
+                ev_chars = (
+                    [getattr(canonical_obj, "primary_subject", "").lower()]
+                    + [c.lower() for c in getattr(canonical_obj, "secondary_subjects", [])]
+                    + [c.lower() for c in getattr(canonical_obj, "characters_present", [])]
+                )
+                matches_char = any(any(bc.lower() in ec or ec in bc.lower() for ec in ev_chars) for bc in beat_chars)
+                if matches_char:
+                    char_score = 20.0
+                elif candidate.get("is_atmospheric_fallback"):
+                    char_score = 15.0
+                else:
+                    char_score = 0.0  # Character mismatch!
+            else:
+                char_score = 20.0
         else:
             char_points = 0.0
             primary_char = beat_chars[0].lower()
@@ -941,8 +916,7 @@ class MovieRetrievalEngine:
             return False, "REJECTED", "NON_CANONICAL_MOVIE_NUMBER"
 
         score = float(candidate.get("score", 0.0))
-        is_canonical = bool(candidate.get("is_canonical"))
-        if is_canonical or score >= threshold:
+        if score >= threshold:
             return True, "ACCEPTED", "HIGH_CONFIDENCE_MOVIE_MATCH"
         else:
             return False, "REJECTED", f"LOW_RETRIEVAL_CONFIDENCE (Score {score:.1f} < {threshold:.1f})"
@@ -966,7 +940,7 @@ class MovieRetrievalEngine:
         """
         valid_candidates = [
             c for c in ranked_candidates
-            if c.get("score", 0.0) >= MIN_CONFIDENCE_THRESHOLD or c.get("is_canonical")
+            if c.get("score", 0.0) >= MIN_CONFIDENCE_THRESHOLD
         ]
 
         if not valid_candidates:

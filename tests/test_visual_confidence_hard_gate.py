@@ -26,10 +26,10 @@ def script_engine():
     return HarryPotterScriptEngine()
 
 
-def test_confidence_threshold_locked_at_75(retrieval_engine):
-    """Verifies that the visual confidence threshold is elevated to 75.0."""
-    assert MIN_CONFIDENCE_THRESHOLD == 75.0, (
-        f"MIN_CONFIDENCE_THRESHOLD must be 75.0, found {MIN_CONFIDENCE_THRESHOLD}"
+def test_confidence_threshold_locked_at_85(retrieval_engine):
+    """Verifies that the visual confidence threshold is elevated to 85.0."""
+    assert MIN_CONFIDENCE_THRESHOLD == 85.0, (
+        f"MIN_CONFIDENCE_THRESHOLD must be 85.0, found {MIN_CONFIDENCE_THRESHOLD}"
     )
 
 

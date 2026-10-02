@@ -4141,5 +4141,244 @@
     ],
     "unsupported_claims": [],
     "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m8_voldemort_disintegrates_ash_courtyard",
+    "movie_id": "hp_movie_8",
+    "movie_number": 8,
+    "scene_id": "m8_scene_voldemort_death_ash",
+    "start_time": 6605.0,
+    "end_time": 6640.0,
+    "characters_present": [
+      "Lord Voldemort",
+      "Harry Potter"
+    ],
+    "primary_subject": "Lord Voldemort",
+    "secondary_subjects": [
+      "Harry Potter"
+    ],
+    "action": "dissolves and disintegrates into black ash and fluttering ribbon flakes in ruined courtyard",
+    "target": "Lord Voldemort",
+    "interaction_type": "death",
+    "location": "Hogwarts ruined courtyard",
+    "visible_objects": [
+      "Elder Wand",
+      "black ash flakes",
+      "fluttering ribbons",
+      "ruins"
+    ],
+    "emotional_state": "shock and final defeat",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "slow_push",
+    "preceding_event": "evt_m8_harry_catches_elder_wand_courtyard",
+    "following_event": null,
+    "dialogue_ref": null,
+    "visual_description": "Voldemort's body peels away and disintegrates into floating black confetti ash blowing away in the courtyard wind after his curse rebounds.",
+    "observable_claims": [
+      "Voldemort chest and face disintegrating into ash",
+      "Black ribbons floating in wind",
+      "Courtyard ruins in background"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m8_harry_catches_elder_wand_courtyard",
+    "movie_id": "hp_movie_8",
+    "movie_number": 8,
+    "scene_id": "m8_scene_harry_catches_elder_wand",
+    "start_time": 6590.0,
+    "end_time": 6610.0,
+    "characters_present": [
+      "Harry Potter",
+      "Lord Voldemort"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Lord Voldemort"
+    ],
+    "action": "catches the flying Elder Wand in mid-air as Voldemort's Avada Kedavra rebounds",
+    "target": "Elder Wand",
+    "interaction_type": "disarm",
+    "location": "Hogwarts ruined courtyard",
+    "visible_objects": [
+      "Elder Wand",
+      "wand sparks",
+      "courtyard stones"
+    ],
+    "emotional_state": "resolute triumph",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "pan",
+    "preceding_event": "evt_m8_final_duel_spells_collide_courtyard",
+    "following_event": "evt_m8_voldemort_disintegrates_ash_courtyard",
+    "dialogue_ref": null,
+    "visual_description": "Harry Potter catches the spinning Elder Wand out of the air as the golden collision rebounds against Voldemort.",
+    "observable_claims": [
+      "Harry catching wand in mid-air",
+      "Elder Wand spinning",
+      "Spell light subsiding"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m8_final_duel_spells_collide_courtyard",
+    "movie_id": "hp_movie_8",
+    "movie_number": 8,
+    "scene_id": "m8_scene_final_spell_clash",
+    "start_time": 6555.0,
+    "end_time": 6590.0,
+    "characters_present": [
+      "Harry Potter",
+      "Lord Voldemort"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Lord Voldemort"
+    ],
+    "action": "casts Expelliarmus clashing red and green beam against Voldemort's killing curse",
+    "target": "Lord Voldemort",
+    "interaction_type": "duel",
+    "location": "Hogwarts ruined courtyard",
+    "visible_objects": [
+      "Elder Wand",
+      "holly wand",
+      "red and green spell beam collision"
+    ],
+    "emotional_state": "climactic fury",
+    "camera_scale": "MEDIUM_WIDE",
+    "camera_motion": "dynamic_orbit",
+    "preceding_event": null,
+    "following_event": "evt_m8_harry_catches_elder_wand_courtyard",
+    "dialogue_ref": null,
+    "visual_description": "Intense clash of red and green magical jets between Harry and Voldemort across the ruined courtyard.",
+    "observable_claims": [
+      "Red and green spell beams colliding",
+      "Harry and Voldemort aiming wands",
+      "Debris blowing in blast"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m8_harry_breaks_elder_wand_viaduct",
+    "movie_id": "hp_movie_8",
+    "movie_number": 8,
+    "scene_id": "m8_scene_elder_wand_broken",
+    "start_time": 6770.0,
+    "end_time": 6810.0,
+    "characters_present": [
+      "Harry Potter",
+      "Ron Weasley",
+      "Hermione Granger"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Ron Weasley",
+      "Hermione Granger"
+    ],
+    "action": "snaps the Elder Wand in half with bare hands and throws pieces into the chasm",
+    "target": "Elder Wand",
+    "interaction_type": "destruction",
+    "location": "Hogwarts broken stone viaduct bridge",
+    "visible_objects": [
+      "Elder Wand",
+      "broken wand halves",
+      "bridge chasm"
+    ],
+    "emotional_state": "wisdom and closure",
+    "camera_scale": "CLOSE_UP",
+    "camera_motion": "static",
+    "preceding_event": null,
+    "following_event": null,
+    "dialogue_ref": null,
+    "visual_description": "Harry Potter grips the Elder Wand with both hands, snaps the wood in two, and throws the fragments over the viaduct railing.",
+    "observable_claims": [
+      "Harry snapping wand in half",
+      "Two pieces tossed into air",
+      "Hermione and Ron watching in shock"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m7_dursleys_car_departure_driveway",
+    "movie_id": "hp_movie_7",
+    "movie_number": 7,
+    "scene_id": "m7_scene_dursleys_depart",
+    "start_time": 98.0,
+    "end_time": 120.0,
+    "characters_present": [
+      "Vernon Dursley",
+      "Dudley Dursley",
+      "Petunia Dursley",
+      "Harry Potter"
+    ],
+    "primary_subject": "Vernon Dursley",
+    "secondary_subjects": [
+      "Dudley Dursley",
+      "Petunia Dursley",
+      "Harry Potter"
+    ],
+    "action": "packs car boot hurriedly and drives away from Privet Drive forever",
+    "target": "car",
+    "interaction_type": "departure",
+    "location": "Number 4 Privet Drive driveway",
+    "visible_objects": [
+      "car trunk",
+      "suitcases",
+      "Privet Drive house",
+      "overcast sky"
+    ],
+    "emotional_state": "hurried anxiety",
+    "camera_scale": "MEDIUM_WIDE",
+    "camera_motion": "tracking",
+    "preceding_event": null,
+    "following_event": "evt_m7_harry_alone_empty_privet_drive",
+    "dialogue_ref": "Come on, Dudley, hurry up.",
+    "visual_description": "The Dursley family packs suitcases into their car boot outside Privet Drive and drives away, leaving Harry behind.",
+    "observable_claims": [
+      "Vernon slamming car boot",
+      "Dudley getting in car",
+      "Car pulling away down street"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m7_harry_alone_empty_privet_drive",
+    "movie_id": "hp_movie_7",
+    "movie_number": 7,
+    "scene_id": "m7_scene_harry_alone_empty_house",
+    "start_time": 110.0,
+    "end_time": 125.0,
+    "characters_present": [
+      "Harry Potter"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [],
+    "action": "walks through the empty stripped bedroom and hallway of Privet Drive alone",
+    "target": "empty bedroom",
+    "interaction_type": "observation",
+    "location": "Number 4 Privet Drive interior",
+    "visible_objects": [
+      "empty cupboard",
+      "bare walls",
+      "dust motes"
+    ],
+    "emotional_state": "solitary nostalgia",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "slow_pan",
+    "preceding_event": "evt_m7_dursleys_car_departure_driveway",
+    "following_event": null,
+    "dialogue_ref": null,
+    "visual_description": "Harry stands in the empty, silent bedroom of Privet Drive looking out the window as the car departs.",
+    "observable_claims": [
+      "Harry looking through window",
+      "Empty bare room without furniture",
+      "Dust in sunlight"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
   }
 ]
