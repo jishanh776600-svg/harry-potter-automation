@@ -63,8 +63,8 @@ LOCKED_VOICE_RATE = "+0%"
 DEFAULT_BGM_TRACK = "Barty Crouch Junior! - Harry Potter and the Goblet of Fire Complete Score (Film Mix).wav"
 DEFAULT_BGM_DRIVE_ID = "1KExAdFU1tI7Ht_j0AxTqzIqgV3HtHkIe"
 DEFAULT_BGM_SPEED = 1.2        # Permanent 1.2x playback speed
-DEFAULT_BGM_VOLUME_DB = -18.0  # Very low background level beneath deep baritone narration
-DEFAULT_BGM_AMIX_WEIGHT = 0.20 # Subtle background music bed
+DEFAULT_BGM_VOLUME_DB = -16.5  # Audible, energetic music bed
+DEFAULT_BGM_AMIX_WEIGHT = 1.0   # Clear prominence with voice normalized to -14.0 LUFS
 FRAMING_POLICY_VERSION = "v2_natural_medium"
 VISUAL_POLICY_VERSION = "HYBRID_TRUTHFUL_V1"
 
@@ -665,17 +665,22 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             content_type = script.content_type
             voice_id = "af_bella"  # Permanent production voice for all categories
             # Novel Story may have visual PART marker; Discovery has NO PART MARKER whatsoever
-            if content_type == "discovery":
+            is_discovery = bool(content_type and "discovery" in content_type)
+            if is_discovery:
                 part_marker = None
                 from core.discovery_bgm import DiscoveryBGMGate
                 discovery_bgm = DiscoveryBGMGate.verify_and_resolve_bgm()
                 bgm_track = discovery_bgm.bgm_filename
                 bgm_sha = discovery_bgm.actual_sha256 or ""
                 bgm_fp = discovery_bgm.compute_config_fingerprint()
+                bgm_vol = discovery_bgm.volume_db if discovery_bgm.volume_db is not None else DEFAULT_BGM_VOLUME_DB
+                bgm_weight = discovery_bgm.volume_amix_weight if discovery_bgm.volume_amix_weight is not None else DEFAULT_BGM_AMIX_WEIGHT
             else:
                 part_marker = script.part_marker or "PART 01"
                 bgm_sha = ""
                 bgm_fp = ""
+                bgm_vol = DEFAULT_BGM_VOLUME_DB
+                bgm_weight = DEFAULT_BGM_AMIX_WEIGHT
             full_text = script.full_text
 
         # 1. Generate Narration TTS Audio (Bella for all categories)
@@ -701,7 +706,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             total_duration=narration_dur,
             output_master_wav=master_audio_wav,
             bgm_filename=bgm_track,
-            bgm_volume_db=-28.0
+            bgm_volume_db=bgm_vol,
+            bgm_amix_weight=bgm_weight
         )
 
         # 4. Resolve / Extract Physical Shots (Movie or Artwork)

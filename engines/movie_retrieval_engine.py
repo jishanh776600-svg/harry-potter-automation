@@ -96,6 +96,8 @@ class MovieRetrievalEngine:
         self.Session = sessionmaker(bind=self.engine)
         self.asset_engine = MovieAssetEngine()
         self.semantic_event_engine = EventSemanticVisualEngine()
+        from engines.movie_event.retrieval_engine import MovieEventRetrievalEngine
+        self.movie_event_retrieval_engine = MovieEventRetrievalEngine()
 
     # --------------------------------------------------------------------------
     # 1. VISUAL BEAT QUERY BUILDER
@@ -131,20 +133,30 @@ class MovieRetrievalEngine:
                     if h not in queries:
                         queries.append(h)
 
-        # 2. Character names (tokens and full names)
+        # 2. Objects and key visual props
+        objects = list(beat.get("objects", []))
+        for obj in objects:
+            clean_obj = re.sub(r"[^a-zA-Z0-9\s]", "", obj).strip()
+            if clean_obj and len(clean_obj) >= 3 and clean_obj not in queries:
+                queries.append(clean_obj)
+
+        # 3. Character names (full names prioritized over generic single names)
         for char in characters:
             clean_char = re.sub(r"[^a-zA-Z0-9\s]", "", char).strip()
             if clean_char:
-                for token in clean_char.split():
-                    if len(token) >= 4 and token.lower() not in ("baby", "professor", "albus", "uncle", "aunt"):
-                        if token not in queries:
-                            queries.append(token)
                 if clean_char not in queries:
                     queries.append(clean_char)
+                # Only add single tokens if not overly generic/ubiquitous
+                for token in clean_char.split():
+                    if len(token) >= 4 and token.lower() not in (
+                        "baby", "professor", "albus", "uncle", "aunt", "harry", "potter", "lord"
+                    ):
+                        if token not in queries:
+                            queries.append(token)
 
-        # 3. Salient action / location nouns
+        # 4. Salient action / requirement keywords
         salient_words = []
-        for text_source in (location, action, req, raw_text):
+        for text_source in (action, req, location):
             words = re.findall(r"[a-zA-Z]{4,}", text_source)
             for w in words:
                 w_lower = w.lower()
@@ -153,13 +165,14 @@ class MovieRetrievalEngine:
                     "standing", "looking", "walking", "holding", "silent",
                     "quiet", "suburban", "evening", "across", "under", "front", "side",
                     "completely", "reveals", "their", "there", "about", "which", "would",
-                    "before", "after", "while", "during"
+                    "before", "after", "while", "during", "hogwarts", "classroom", "corridor", "office"
                 ):
                     if w not in salient_words:
                         salient_words.append(w)
         if salient_words:
-            queries.append(" ".join(salient_words[:3]))
-            for sw in salient_words[:6]:
+            if not queries:
+                queries.append(" ".join(salient_words[:3]))
+            for sw in salient_words[:4]:
                 if sw not in queries:
                     queries.append(sw)
 
@@ -189,11 +202,11 @@ class MovieRetrievalEngine:
         preferred_m = beat.get("preferred_movie_number")
         candidates_by_id = {}
 
-        # Round 0: Inject ground-truth canonical scene chunks if provided
+        # Round 0A: Inject ground-truth canonical scene chunks if provided
         if canonical_event:
             m_num = canonical_event.movie_number
-            st_sec = float(canonical_event.scene_start_sec)
-            end_sec = float(canonical_event.scene_end_sec)
+            st_sec = float(getattr(canonical_event, "scene_start_sec", getattr(canonical_event, "start_time", 0.0)))
+            end_sec = float(getattr(canonical_event, "scene_end_sec", getattr(canonical_event, "end_time", 0.0)))
             with self.Session() as session:
                 chunks = (
                     session.query(MovieSubtitleChunk)
@@ -218,9 +231,80 @@ class MovieRetrievalEngine:
                             "text": ch.text,
                             "video_filename": ch.movie.video_filename if ch.movie else "",
                             "video_drive_id": ch.movie.video_drive_id if ch.movie else "",
-                            "relevance_rank": -1.0,
-                            "matched_query": f"[CANONICAL: {canonical_event.event_summary[:30]}]"
+                            "relevance_rank": -2.0,
+                            "matched_query": f"[CANONICAL: {getattr(canonical_event, 'event_summary', getattr(canonical_event, 'action', ''))[:30]}]",
+                            "is_canonical": True,
+                            "canonical_event_obj": canonical_event
                         }
+
+        # Round 0B: Structured MovieEventIndex retrieval
+        try:
+            from engines.movie_event.models import MovieEventQuery
+            sub = beat.get("subject") or (beat.get("characters")[0] if beat.get("characters") else None)
+            act = beat.get("action") or beat.get("visual_requirement")
+            tgt = beat.get("object") or beat.get("target") or (beat.get("objects")[0] if beat.get("objects") else None)
+            me_query = MovieEventQuery(
+                subject=sub,
+                action=act,
+                target=tgt,
+                location=beat.get("location"),
+                objects=list(beat.get("objects", [])),
+                movie_number=preferred_m
+            )
+            event_matches = self.movie_event_retrieval_engine.retrieve_events(me_query, top_k=3, min_score=35.0)
+            for ev, ev_score, _ in event_matches:
+                with self.Session() as session:
+                    ev_chunks = (
+                        session.query(MovieSubtitleChunk)
+                        .filter(
+                            MovieSubtitleChunk.movie_number == ev.movie_number,
+                            MovieSubtitleChunk.end_seconds >= max(0.0, ev.start_time - 10.0),
+                            MovieSubtitleChunk.start_seconds <= ev.end_time + 10.0
+                        )
+                        .all()
+                    )
+                    if ev_chunks:
+                        for ch in ev_chunks:
+                            if ch.id not in candidates_by_id:
+                                candidates_by_id[ch.id] = {
+                                    "chunk_id": ch.id,
+                                    "movie_number": ch.movie_number,
+                                    "movie_title": ch.movie_title,
+                                    "start_seconds": ch.start_seconds,
+                                    "end_seconds": ch.end_seconds,
+                                    "start_timecode": ch.start_timecode,
+                                    "end_timecode": ch.end_timecode,
+                                    "duration_seconds": ch.duration_seconds,
+                                    "text": ch.text,
+                                    "video_filename": ch.movie.video_filename if ch.movie else "",
+                                    "video_drive_id": ch.movie.video_drive_id if ch.movie else "",
+                                    "relevance_rank": -2.0,
+                                    "matched_query": f"[EVENT: {ev.primary_subject} {ev.action[:25]}]",
+                                    "is_canonical": True,
+                                    "canonical_event_obj": ev,
+                                }
+                    else:
+                        chunk_id = f"evt_{ev.event_id}"
+                        if chunk_id not in candidates_by_id:
+                            candidates_by_id[chunk_id] = {
+                                "chunk_id": chunk_id,
+                                "movie_number": ev.movie_number,
+                                "movie_title": f"Harry Potter Movie {ev.movie_number}",
+                                "start_seconds": ev.start_time,
+                                "end_seconds": ev.end_time,
+                                "start_timecode": f"{int(ev.start_time//60):02d}:{int(ev.start_time%60):02d}",
+                                "end_timecode": f"{int(ev.end_time//60):02d}:{int(ev.end_time%60):02d}",
+                                "duration_seconds": ev.duration,
+                                "text": f"{ev.primary_subject} {ev.action}. {ev.visual_description}",
+                                "video_filename": f"hp_movie_{ev.movie_number}.mp4",
+                                "video_drive_id": "",
+                                "relevance_rank": -2.0,
+                                "matched_query": f"[EVENT: {ev.primary_subject} {ev.action[:25]}]",
+                                "is_canonical": True,
+                                "canonical_event_obj": ev,
+                            }
+        except Exception as e:
+            logger.debug(f"MovieEvent retrieval in search_candidates_for_beat: {e}")
 
         # Round 1: Preferred movie search
         if preferred_m:
@@ -389,23 +473,21 @@ class MovieRetrievalEngine:
         combined = f"{cand_text} {cand_context}".lower()
 
         # Check canonical event matching
-        if canonical_event:
-            ev_start = float(canonical_event.scene_start_sec)
-            ev_end = float(canonical_event.scene_end_sec)
-            c_start = float(candidate.get("start_seconds", 0.0))
-            c_end = float(candidate.get("end_seconds", 0.0))
-            if (c_start <= ev_end + 3.0) and (c_end >= ev_start - 3.0):
-                ev_summary = canonical_event.event_summary.lower()
-                if any(w in ev_summary for w in ("close-up", "face in shock", "eyes widen", "tears")):
-                    return {"shot_scale": ShotScale.CLOSE_UP, "prominence": 1.0, "is_canonical": True}
-                elif any(w in ev_summary for w in ("two professors", "walking together", "greets", "talking quietly", "conferring")):
-                    return {"shot_scale": ShotScale.TWO_SHOT, "prominence": 1.0, "is_canonical": True}
-                elif any(w in ev_summary for w in ("walks into", "striding down", "approaching", "walking across")):
-                    return {"shot_scale": ShotScale.MEDIUM_WIDE, "prominence": 1.0, "is_canonical": True}
-                elif any(w in ev_summary for w in ("stepping off", "sitting motionless", "cat sitting", "picks up", "holding", "standing")):
-                    return {"shot_scale": ShotScale.MEDIUM_SHOT, "prominence": 1.0, "is_canonical": True}
-                elif any(w in ev_summary for w in ("street sign", "sky", "street going dark", "landscape", "castle")):
-                    return {"shot_scale": ShotScale.WIDE_SHOT, "prominence": 0.50, "is_canonical": True}
+        canonical_obj = canonical_event or candidate.get("canonical_event_obj")
+        if canonical_obj or candidate.get("is_canonical"):
+            c_scale_str = getattr(canonical_obj, "camera_scale", "") if canonical_obj else ""
+            if c_scale_str and hasattr(ShotScale, c_scale_str):
+                return {"shot_scale": ShotScale[c_scale_str], "prominence": 1.0, "is_canonical": True}
+            ev_summary = getattr(canonical_obj, "event_summary", getattr(canonical_obj, "visual_description", "")).lower()
+            if any(w in ev_summary for w in ("close-up", "face in shock", "eyes widen", "tears", "wandlight", "taps")):
+                return {"shot_scale": ShotScale.CLOSE_UP, "prominence": 1.0, "is_canonical": True}
+            elif any(w in ev_summary for w in ("two professors", "walking together", "greets", "talking quietly", "conferring", "two-shot")):
+                return {"shot_scale": ShotScale.TWO_SHOT, "prominence": 1.0, "is_canonical": True}
+            elif any(w in ev_summary for w in ("walks into", "striding down", "approaching", "walking across")):
+                return {"shot_scale": ShotScale.MEDIUM_WIDE, "prominence": 1.0, "is_canonical": True}
+            elif any(w in ev_summary for w in ("street sign", "sky", "street going dark", "landscape", "castle")):
+                return {"shot_scale": ShotScale.WIDE_SHOT, "prominence": 0.50, "is_canonical": True}
+            return {"shot_scale": ShotScale.MEDIUM_SHOT, "prominence": 1.0, "is_canonical": True}
 
         # Check beat characters
         beat_chars = list(beat.get("characters", []))
@@ -495,7 +577,7 @@ class MovieRetrievalEngine:
         framing_info = self.infer_candidate_framing_and_scale(candidate, beat, canonical_event=canonical_event)
         cand_scale = framing_info["shot_scale"]
         prominence_factor = framing_info["prominence"]
-        is_canonical = framing_info.get("is_canonical", False)
+        is_canonical = framing_info.get("is_canonical", False) or candidate.get("is_canonical", False)
 
         c_movie = int(candidate.get("movie_number", 1))
         c_start = float(candidate.get("start_seconds", 0.0))
@@ -557,6 +639,14 @@ class MovieRetrievalEngine:
             kw_pts = min(15.0, overlap_count * 5.0)
             sem_score = min(25.0, rank_pts + kw_pts)
 
+            # Key prop check for non-canonical candidates
+            key_props = set()
+            for p in beat.get("objects", []):
+                key_props.update(re.findall(r"[a-zA-Z]{3,}", p.lower()))
+            req_props = key_props.intersection({"map", "parchment", "sword", "wand", "mirror", "snitch", "cloak", "potion"})
+            if req_props and not any(rp in combined_text for rp in req_props):
+                sem_score = max(0.0, sem_score - 10.0)
+
         # ----------------------------------------------------------------------
         # B. Named-Character Presence (0 - 20 pts)
         # ----------------------------------------------------------------------
@@ -567,16 +657,16 @@ class MovieRetrievalEngine:
                 if re.search(r"\b" + re.escape(kc) + r"\b", raw_t, re.IGNORECASE):
                     beat_chars.append(kc)
 
-        if not beat_chars:
+        if is_canonical:
+            char_score = 20.0
+        elif not beat_chars:
             char_score = 15.0  # Neutral non-character beat
         else:
             char_points = 0.0
             primary_char = beat_chars[0].lower()
             tokens = [t for t in re.split(r"\s+", primary_char) if len(t) >= 4]
 
-            if is_canonical and canonical_event and any(primary_char in c.lower() for c in canonical_event.associated_characters):
-                char_points = 20.0
-            elif primary_char in combined_text:
+            if primary_char in combined_text:
                 char_points = 20.0
             elif any(t in combined_text for t in tokens):
                 char_points = 16.0
@@ -585,6 +675,13 @@ class MovieRetrievalEngine:
                 sec_tokens = [t for t in re.split(r"\s+", sec_char) if len(t) >= 4]
                 if sec_char in combined_text or any(t in combined_text for t in sec_tokens):
                     char_points = 12.0
+
+            # Adversarial character check in dialogue
+            adversarial_chars = ["snape", "severus", "malfoy", "draco", "voldemort", "bellatrix", "umbridge", "vernon", "dursley"]
+            has_adversary = any(ac in combined_text for ac in adversarial_chars if ac not in primary_char)
+            if has_adversary and primary_char not in combined_text:
+                char_points = max(0.0, char_points - 15.0)
+
             char_score = min(20.0, char_points)
 
         # ----------------------------------------------------------------------
@@ -1235,9 +1332,29 @@ class MovieRetrievalEngine:
         for beat in beats:
             beat_id = beat.get("beat_id", "beat_1")
             canonical_event = canonical_events_map.get(beat_id)
+            if not canonical_event:
+                # Dynamic canonical event resolution from MovieEventRetrievalEngine
+                try:
+                    from engines.movie_event.models import MovieEventQuery
+                    sub = beat.get("subject") or (beat.get("characters")[0] if beat.get("characters") else None)
+                    act = beat.get("action") or beat.get("visual_requirement")
+                    tgt = beat.get("object") or beat.get("target") or (beat.get("objects")[0] if beat.get("objects") else None)
+                    me_q = MovieEventQuery(
+                        subject=sub,
+                        action=act,
+                        target=tgt,
+                        location=beat.get("location"),
+                        objects=list(beat.get("objects", [])),
+                        movie_number=beat.get("preferred_movie_number")
+                    )
+                    top_evs = self.movie_event_retrieval_engine.retrieve_events(me_q, top_k=1, min_score=40.0)
+                    if top_evs:
+                        canonical_event = top_evs[0][0]
+                except Exception as e:
+                    logger.debug(f"Dynamic canonical event resolution error for beat {beat_id}: {e}")
 
             # 1. Search candidates
-            candidates = self.search_candidates_for_beat(beat)
+            candidates = self.search_candidates_for_beat(beat, canonical_event=canonical_event)
 
             # 2. Context expansion
             for c in candidates:

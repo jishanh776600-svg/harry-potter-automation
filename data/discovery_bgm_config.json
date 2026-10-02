@@ -7,9 +7,9 @@
   "duration_sec": 91.24136054421768,
   "sample_rate": 44100,
   "speed_multiplier": 1.2,
-  "volume_db": -20.5,
+  "volume_db": -16.5,
   "volume_amix_weight": 1.0,
   "status": "VERIFIED",
   "rejection_reason": null,
-  "config_fingerprint": "88963c8f3d0c86579264f30693074e55e93a4742189026b8452aa1d5fa28552e"
+  "config_fingerprint": "f84714dbe6f8498c30dbdde599e4ad92c8f525596934a9e5e59035c33d3c0b06"
 }

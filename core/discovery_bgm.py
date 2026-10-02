@@ -53,8 +53,8 @@ class DiscoveryBGMConfig:
     duration_sec: Optional[float] = None
     sample_rate: Optional[int] = None
     speed_multiplier: float = 1.2
-    volume_db: float = -28.0
-    volume_amix_weight: float = 0.08
+    volume_db: float = -16.5
+    volume_amix_weight: float = 1.0
     status: str = "UNCONFIGURED"  # UNCONFIGURED, VERIFIED, REJECTED_STALE
     rejection_reason: Optional[str] = None
 
