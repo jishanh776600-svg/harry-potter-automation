@@ -1207,6 +1207,25 @@ class ShortsPipeline:
                 related_youtube_video_id=upload_rec.youtube_video_id
             )
 
+            # Update HarryPotterScript and candidate tables to SCHEDULED
+            try:
+                from core.models import HarryPotterScript, DiscoveryCandidate, NovStoryCandidate
+                clean_sid = resolved_meta.get("script_id") or target_file.get("name", "").replace(".mp4", "")
+                possible_sids = [clean_sid, clean_sid.replace("hps_", ""), f"hps_{clean_sid}"]
+                hp_s = db.query(HarryPotterScript).filter(HarryPotterScript.id.in_(possible_sids)).first()
+                if hp_s:
+                    hp_s.status = "SCHEDULED"
+                    if hp_s.candidate_id:
+                        dc = db.query(DiscoveryCandidate).filter_by(id=hp_s.candidate_id).first()
+                        if dc:
+                            dc.status = "SCHEDULED"
+                        nc = db.query(NovStoryCandidate).filter_by(id=hp_s.candidate_id).first()
+                        if nc:
+                            nc.status = "SCHEDULED"
+                db.commit()
+            except Exception as hp_sched_err:
+                logger.warning(f"Notice updating HP script scheduled status: {hp_sched_err}")
+
             console.print(Panel.fit(
                 f"[bold green][+] True YouTube Scheduled Short Successfully Uploaded & Verified![/bold green]\n"
                 f"Title: [bold]{title}[/bold]\n"

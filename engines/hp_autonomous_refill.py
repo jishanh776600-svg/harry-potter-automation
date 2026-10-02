@@ -40,7 +40,7 @@ from config.settings import (
 )
 from config.constants import TARGET_RESERVE_BUFFER
 from core.database import SessionLocal
-from core.models import HarryPotterScript, HPRender, HPMovieClip, NovStoryCandidate, DiscoveryCandidate
+from core.models import HarryPotterScript, HPRender, HPMovieClip, NovStoryCandidate, DiscoveryCandidate, UploadRecord
 from core.lock import ProcessLock, ProcessLockError
 from core.cloud_lock import CloudLockManager, CloudLockError
 from engines.drive_engine import DriveVaultEngine
@@ -149,6 +149,34 @@ class HPAutonomousRefillEngine:
             logger.warning(f"Notice listing 01_READY vault files: {e}")
         return script_ids
 
+    def get_all_vault_script_ids(self) -> Set[str]:
+        """Discovers all script IDs already present in Drive 01_READY, 02_PROCESSING, or 03_PUBLISHED."""
+        script_ids = set()
+        for folder in ["01_READY", "02_PROCESSING", "03_PUBLISHED"]:
+            try:
+                files = self.drive_engine.list_files_in_folder(folder)
+                for f in files:
+                    fname = f.get("name", "")
+                    if fname.endswith(".mp4"):
+                        sid = fname[:-4]
+                        script_ids.add(sid)
+                        if sid.startswith("hps_"):
+                            script_ids.add(sid.replace("hps_", ""))
+                    props = f.get("properties") or {}
+                    if props.get("script_id"):
+                        psid = props["script_id"]
+                        script_ids.add(psid)
+                        if psid.startswith("hps_"):
+                            script_ids.add(psid.replace("hps_", ""))
+                    if props.get("job_id"):
+                        pjid = props["job_id"].replace("job_", "")
+                        script_ids.add(pjid)
+                        if pjid.startswith("hps_"):
+                            script_ids.add(pjid.replace("hps_", ""))
+            except Exception as e:
+                logger.warning(f"Notice listing {folder} vault files: {e}")
+        return script_ids
+
     def _get_or_create_candidate_script(
         self,
         session,
@@ -161,10 +189,29 @@ class HPAutonomousRefillEngine:
         2. If none, sources from unscripted NovStoryCandidate / DiscoveryCandidate.
         3. If candidate pool is exhausted, dynamically invokes ContentPlanner to plan new candidates,
            then generates broadcast script via HarryPotterScriptEngine.
+        Enforces comprehensive cross-table exclusions against UploadRecord, Drive vault, and in-run attempts.
         """
-        # 1. Look for existing scripts in HarryPotterScript table not yet deposited
+        # Build comprehensive exclusion set
+        full_exclusions = set(excluded_script_ids or [])
+
+        # Exclude any script / candidate referenced by active or published UploadRecords
+        try:
+            active_uploads = session.query(UploadRecord).filter(
+                UploadRecord.status.in_(["PUBLISHED", "SCHEDULED", "SUCCESS", "TEST_VERIFIED"])
+            ).all()
+            for u in active_uploads:
+                if u.job_id:
+                    clean_jid = u.job_id.replace("job_", "")
+                    full_exclusions.add(clean_jid)
+                    if clean_jid.startswith("hps_"):
+                        full_exclusions.add(clean_jid.replace("hps_", ""))
+        except Exception as ue:
+            logger.warning(f"Notice querying UploadRecord exclusions: {ue}")
+
+        # 1. Look for existing scripts in HarryPotterScript table not yet deposited/published/scheduled
+        terminal_statuses = ["DEPOSITED", "PUBLISHED", "SCHEDULED", "PROCESSING", "QUARANTINED"]
         deposited_scripts = session.query(HarryPotterScript.id).filter(
-            HarryPotterScript.status.in_(["DEPOSITED", "PUBLISHED"])
+            HarryPotterScript.status.in_(terminal_statuses)
         )
 
         existing_query = session.query(HarryPotterScript).filter(
@@ -172,28 +219,47 @@ class HPAutonomousRefillEngine:
             HarryPotterScript.qa_status.in_(["APPROVED", "PASSED"]),
             ~HarryPotterScript.id.in_(deposited_scripts)
         )
-        if excluded_script_ids:
-            existing_query = existing_query.filter(~HarryPotterScript.id.in_(excluded_script_ids))
+        if full_exclusions:
+            existing_query = existing_query.filter(~HarryPotterScript.id.in_(full_exclusions))
 
         script = existing_query.order_by(HarryPotterScript.created_at.asc()).first()
         if script:
+            # Quality & integrity check: scripts with empty visual beats cannot be rendered
+            v_beats = []
+            try:
+                v_beats = json.loads(script.visual_beats_json or "[]")
+            except Exception:
+                pass
+            if not v_beats and content_type.startswith("discovery"):
+                logger.warning(f"[Refill:Pool] Script {script.id} has empty visual beats. Quarantining...")
+                script.qa_status = "FAILED"
+                script.status = "QUARANTINED"
+                session.commit()
+                full_exclusions.add(script.id)
+                return self._get_or_create_candidate_script(session, content_type, full_exclusions)
+
             logger.info(f"[Refill:Pool] Found existing undeposited script: {script.id} ({content_type})")
             return script
 
         # 2. If no eligible script in DB, look for unscripted candidates
         logger.info(f"[Refill:Pool] No undeposited {content_type} scripts found in DB. Sourcing candidate pool...")
         script_engine = HarryPotterScriptEngine()
-        existing_script_cand_ids = session.query(HarryPotterScript.candidate_id)
+        existing_script_cand_ids = session.query(HarryPotterScript.candidate_id).filter(
+            HarryPotterScript.candidate_id.isnot(None)
+        )
+
+        excluded_cand_ids = set()
+        for s in full_exclusions:
+            excluded_cand_ids.add(s)
+            clean_s = s.replace("hps_", "")
+            excluded_cand_ids.add(clean_s)
 
         if content_type == "novel_story":
             cand_query = session.query(NovStoryCandidate).filter(
                 NovStoryCandidate.status == "ELIGIBLE",
-                ~NovStoryCandidate.id.in_(existing_script_cand_ids)
+                ~NovStoryCandidate.id.in_(existing_script_cand_ids),
+                ~NovStoryCandidate.id.in_(excluded_cand_ids)
             )
-            if excluded_script_ids:
-                cand_query = cand_query.filter(
-                    ~NovStoryCandidate.id.in_([s.replace("hps_", "") for s in excluded_script_ids])
-                )
             candidate = cand_query.order_by(NovStoryCandidate.global_chronology_start.asc()).first()
 
             # If no candidates in DB, invoke ContentPlanner to plan next chapter segments
@@ -203,8 +269,12 @@ class HPAutonomousRefillEngine:
                     planner = ContentPlannerEngine()
                     new_cands = planner.plan_novel_story_candidates(count=4)
                     if new_cands:
-                        first_id = new_cands[0].get("candidate_id") or new_cands[0].get("id")
-                        candidate = session.query(NovStoryCandidate).filter_by(id=first_id).first()
+                        for nc in new_cands:
+                            cid = nc.get("candidate_id") or nc.get("id")
+                            if cid and cid not in excluded_cand_ids:
+                                candidate = session.query(NovStoryCandidate).filter_by(id=cid).first()
+                                if candidate:
+                                    break
                 except Exception as cp_err:
                     logger.warning(f"Notice during Novel Story candidate planning: {cp_err}")
 
@@ -217,13 +287,10 @@ class HPAutonomousRefillEngine:
 
         elif content_type.startswith("discovery"):
             cand_query = session.query(DiscoveryCandidate).filter(
-                DiscoveryCandidate.status == "ELIGIBLE",
-                ~DiscoveryCandidate.id.in_(existing_script_cand_ids)
+                DiscoveryCandidate.status.in_(["ELIGIBLE", "APPROVED"]),
+                ~DiscoveryCandidate.id.in_(existing_script_cand_ids),
+                ~DiscoveryCandidate.id.in_(excluded_cand_ids)
             )
-            if excluded_script_ids:
-                cand_query = cand_query.filter(
-                    ~DiscoveryCandidate.id.in_([s.replace("hps_", "") for s in excluded_script_ids])
-                )
             candidate = cand_query.first()
 
             # If no discovery candidates in DB, invoke ContentPlanner
@@ -233,8 +300,12 @@ class HPAutonomousRefillEngine:
                     planner = ContentPlannerEngine()
                     new_cands = planner.plan_discovery_candidates(count=4)
                     if new_cands:
-                        first_id = new_cands[0].get("candidate_id") or new_cands[0].get("id")
-                        candidate = session.query(DiscoveryCandidate).filter_by(id=first_id).first()
+                        for nc in new_cands:
+                            cid = nc.get("candidate_id") or nc.get("id")
+                            if cid and cid not in excluded_cand_ids:
+                                candidate = session.query(DiscoveryCandidate).filter_by(id=cid).first()
+                                if candidate:
+                                    break
                 except Exception as cp_err:
                     logger.warning(f"Notice during Discovery candidate planning: {cp_err}")
 
@@ -316,10 +387,17 @@ class HPAutonomousRefillEngine:
                         match_status="ACCEPTED"
                     ).count()
                     if accepted_shots_count == 0:
+                        logger.warning(f"[Refill:Visual] 0 movie shots for {script_id}. Quarantining script...")
+                        script.qa_status = "FAILED"
+                        script.status = "QUARANTINED"
+                        session.commit()
                         return False, script_id, f"Visual retrieval yielded 0 accepted movie shots for {script_id}"
                     logger.info(f"[Refill:Visual] Successfully resolved {accepted_shots_count} movie shots for {script_id}")
                 except Exception as ve:
                     logger.error(f"[Refill:Visual] Visual shot resolution failed for {script_id}: {ve}")
+                    script.qa_status = "FAILED"
+                    script.status = "QUARANTINED"
+                    session.commit()
                     return False, script_id, f"Visual retrieval exception: {ve}"
 
             try:
@@ -373,6 +451,13 @@ class HPAutonomousRefillEngine:
             if render_rec:
                 render_rec.status = "DEPOSITED"
                 render_rec.qa_status = "PASSED"
+            if script.candidate_id:
+                cand = session.query(DiscoveryCandidate).filter_by(id=script.candidate_id).first()
+                if cand:
+                    cand.status = "DEPOSITED"
+                cand_ns = session.query(NovStoryCandidate).filter_by(id=script.candidate_id).first()
+                if cand_ns:
+                    cand_ns.status = "DEPOSITED"
             session.commit()
 
             return True, script_id, None
@@ -537,8 +622,17 @@ class HPAutonomousRefillEngine:
 
             consecutive_failures = 0
             produced_count = 0
-            vaulted_ids = self.get_ready_vault_script_ids() if not self.is_dry_run else set()
+            vaulted_ids = self.get_all_vault_script_ids() if not self.is_dry_run else set()
             excluded_script_ids: Set[str] = set(vaulted_ids)
+            try:
+                for u in session.query(UploadRecord).all():
+                    if u.job_id:
+                        clean_u = u.job_id.replace("job_", "")
+                        excluded_script_ids.add(clean_u)
+                        if clean_u.startswith("hps_"):
+                            excluded_script_ids.add(clean_u.replace("hps_", ""))
+            except Exception as ue:
+                logger.warning(f"Notice gathering UploadRecord exclusions: {ue}")
 
             # Dry Run branch
             if self.is_dry_run:
@@ -574,11 +668,17 @@ class HPAutonomousRefillEngine:
                         telemetry.videos_deposited += 1
                         consecutive_failures = 0
                         slot_produced = True
+                        if sid:
+                            excluded_script_ids.add(sid)
+                            excluded_script_ids.add(sid.replace("hps_", ""))
+                            excluded_script_ids.add(f"hps_{sid}")
                     else:
                         consecutive_failures += 1
                         telemetry.videos_qa_failed += 1
                         if sid:
                             excluded_script_ids.add(sid)
+                            excluded_script_ids.add(sid.replace("hps_", ""))
+                            excluded_script_ids.add(f"hps_{sid}")
                         telemetry.failure_reasons.append(f"Novel Story candidate '{sid or idx+1}' failed: {reason}")
                         logger.warning(f"[Refill] Candidate '{sid}' failed. Trying next candidate from pool...")
                         if consecutive_failures >= 2:
@@ -605,11 +705,17 @@ class HPAutonomousRefillEngine:
                             telemetry.videos_deposited += 1
                             consecutive_failures = 0
                             slot_produced = True
+                            if sid:
+                                excluded_script_ids.add(sid)
+                                excluded_script_ids.add(sid.replace("hps_", ""))
+                                excluded_script_ids.add(f"hps_{sid}")
                         else:
                             consecutive_failures += 1
                             telemetry.videos_qa_failed += 1
                             if sid:
                                 excluded_script_ids.add(sid)
+                                excluded_script_ids.add(sid.replace("hps_", ""))
+                                excluded_script_ids.add(f"hps_{sid}")
                             telemetry.failure_reasons.append(f"Discovery Big candidate '{sid or idx+1}' failed: {reason}")
                             logger.warning(f"[Refill] Candidate '{sid}' failed. Trying next candidate from pool...")
                             if consecutive_failures >= 2:
@@ -634,11 +740,17 @@ class HPAutonomousRefillEngine:
                             telemetry.videos_deposited += 1
                             consecutive_failures = 0
                             slot_produced = True
+                            if sid:
+                                excluded_script_ids.add(sid)
+                                excluded_script_ids.add(sid.replace("hps_", ""))
+                                excluded_script_ids.add(f"hps_{sid}")
                         else:
                             consecutive_failures += 1
                             telemetry.videos_qa_failed += 1
                             if sid:
                                 excluded_script_ids.add(sid)
+                                excluded_script_ids.add(sid.replace("hps_", ""))
+                                excluded_script_ids.add(f"hps_{sid}")
                             telemetry.failure_reasons.append(f"Discovery Short candidate '{sid or idx+1}' failed: {reason}")
                             logger.warning(f"[Refill] Candidate '{sid}' failed. Trying next candidate from pool...")
                             if consecutive_failures >= 2:

@@ -196,6 +196,24 @@ def vault_transition_to_published(
         if job:
             job.state = JobState.PUBLISHED.value
 
+        # Also synchronize HarryPotterScript and candidate tables
+        try:
+            from core.models import HarryPotterScript, DiscoveryCandidate, NovStoryCandidate
+            clean_jid = upload_rec.job_id.replace("job_", "")
+            possible_sids = [clean_jid, clean_jid.replace("hps_", ""), f"hps_{clean_jid}"]
+            hp_scripts = db.query(HarryPotterScript).filter(HarryPotterScript.id.in_(possible_sids)).all()
+            for sc in hp_scripts:
+                sc.status = "PUBLISHED"
+                if sc.candidate_id:
+                    cand = db.query(DiscoveryCandidate).filter_by(id=sc.candidate_id).first()
+                    if cand:
+                        cand.status = "PUBLISHED"
+                    cand_ns = db.query(NovStoryCandidate).filter_by(id=sc.candidate_id).first()
+                    if cand_ns:
+                        cand_ns.status = "PUBLISHED"
+        except Exception as hp_sync_err:
+            logger.warning(f"[GATEWAY] Notice syncing HarryPotterScript published status: {hp_sync_err}")
+
     db.commit()
 
     logger.info(
