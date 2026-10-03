@@ -1,0 +1,193 @@
+{
+  "benchmark_timestamp": "2026-09-26 21:19:19",
+  "total_scenarios_tested": 8,
+  "recall_at_5": {
+    "l1_fts5_dialogue": 0.125,
+    "l2_movie_event_catalog": 0.375,
+    "l3_openclip_dense": 0.5,
+    "l4_qddetr_temporal": 0.0,
+    "cascade_fusion": 0.625
+  },
+  "silent_scenes_recall": {
+    "silent_scenes_count": 3,
+    "l1_fts5_recall": 0.0,
+    "l3_openclip_recall": 0.667,
+    "cascade_fusion_recall": 0.667
+  },
+  "performance": {
+    "average_latency_ms": 776.95,
+    "min_latency_ms": 226.7,
+    "max_latency_ms": 1140.94,
+    "ram_initial_mb": 585.6,
+    "ram_final_mb": 1241.4,
+    "ram_delta_mb": 655.8,
+    "index_total_vectors": 139
+  },
+  "hard_invariants": {
+    "authority_boundary_enforced": true,
+    "zero_verified_at_retrieval": true,
+    "negative_cases_handled": true,
+    "no_synthetic_grounding_used": true
+  },
+  "scenarios": [
+    {
+      "scenario_id": "scenario_1_elder_wand_snap",
+      "description": "Harry breaks / snaps the Elder Wand in half on the stone bridge (SILENT ACTION)",
+      "is_silent": true,
+      "query_text": "Harry snaps the Elder Wand in half on the stone bridge",
+      "latency_ms": 764.43,
+      "total_candidates": 5,
+      "l1_fts5_found": false,
+      "l2_movie_event_found": true,
+      "l3_openclip_found": true,
+      "l4_qddetr_found": false,
+      "fusion_found": true,
+      "correct_rank": 1,
+      "top_candidate_source": "FUSION",
+      "top_candidate_score": 0.8098,
+      "is_verified_invariant_preserved": true
+    },
+    {
+      "scenario_id": "scenario_2_hermione_punches_malfoy",
+      "description": "Hermione Granger punches Draco Malfoy in the face at the sundial",
+      "is_silent": false,
+      "query_text": "Hermione punches Draco Malfoy in the face with her fist",
+      "latency_ms": 897.4,
+      "total_candidates": 5,
+      "l1_fts5_found": false,
+      "l2_movie_event_found": true,
+      "l3_openclip_found": false,
+      "l4_qddetr_found": false,
+      "fusion_found": true,
+      "correct_rank": 1,
+      "top_candidate_source": "L2_MOVIE_EVENT",
+      "top_candidate_score": 0.8,
+      "is_verified_invariant_preserved": true
+    },
+    {
+      "scenario_id": "scenario_3_ollivander_wand_handover",
+      "description": "Ollivander hands wand across desk to Harry Potter in dark wand shop",
+      "is_silent": false,
+      "query_text": "Ollivander handing wand across desk to Harry in dusty shop",
+      "latency_ms": 646.44,
+      "total_candidates": 5,
+      "l1_fts5_found": true,
+      "l2_movie_event_found": false,
+      "l3_openclip_found": true,
+      "l4_qddetr_found": false,
+      "fusion_found": true,
+      "correct_rank": 1,
+      "top_candidate_source": "FUSION",
+      "top_candidate_score": 0.7655,
+      "is_verified_invariant_preserved": true
+    },
+    {
+      "scenario_id": "scenario_4_sorting_hat_placed",
+      "description": "Sorting Hat placed on Harry Potter head in the Great Hall",
+      "is_silent": false,
+      "query_text": "Sorting Hat placed on young Harry Potter head on stool",
+      "latency_ms": 900.7,
+      "total_candidates": 5,
+      "l1_fts5_found": false,
+      "l2_movie_event_found": true,
+      "l3_openclip_found": false,
+      "l4_qddetr_found": false,
+      "fusion_found": false,
+      "correct_rank": -1,
+      "top_candidate_source": "FUSION",
+      "top_candidate_score": 0.6635,
+      "is_verified_invariant_preserved": true
+    },
+    {
+      "scenario_id": "scenario_5_neville_sword_nagini",
+      "description": "Neville Longbottom slashes Nagini snake with Godric Gryffindor sword",
+      "is_silent": false,
+      "query_text": "Neville drawing the sword of Gryffindor to decapitate Nagini snake",
+      "latency_ms": 734.37,
+      "total_candidates": 5,
+      "l1_fts5_found": false,
+      "l2_movie_event_found": false,
+      "l3_openclip_found": false,
+      "l4_qddetr_found": false,
+      "fusion_found": false,
+      "correct_rank": -1,
+      "top_candidate_source": "L1_FTS5",
+      "top_candidate_score": 0.6563,
+      "is_verified_invariant_preserved": true
+    },
+    {
+      "scenario_id": "scenario_6_buckbeak_slash_malfoy",
+      "description": "Buckbeak the hippogriff rears up and strikes Draco Malfoy with talons",
+      "is_silent": false,
+      "query_text": "Buckbeak hippogriff strikes Draco Malfoy on the arm with talons",
+      "latency_ms": 226.7,
+      "total_candidates": 5,
+      "l1_fts5_found": false,
+      "l2_movie_event_found": false,
+      "l3_openclip_found": true,
+      "l4_qddetr_found": false,
+      "fusion_found": true,
+      "correct_rank": 2,
+      "top_candidate_source": "FUSION",
+      "top_candidate_score": 0.7522,
+      "is_verified_invariant_preserved": true
+    },
+    {
+      "scenario_id": "scenario_7_hogwarts_panoramic_landscape",
+      "description": "Sweeping cinematic camera pan across Hogwarts castle and mountains (SILENT LANDSCAPE)",
+      "is_silent": true,
+      "query_text": "Sweeping panoramic camera pan across Hogwarts castle towers and mountains",
+      "latency_ms": 1140.94,
+      "total_candidates": 1,
+      "l1_fts5_found": false,
+      "l2_movie_event_found": false,
+      "l3_openclip_found": false,
+      "l4_qddetr_found": false,
+      "fusion_found": false,
+      "correct_rank": -1,
+      "top_candidate_source": "FUSION",
+      "top_candidate_score": 0.5691,
+      "is_verified_invariant_preserved": true
+    },
+    {
+      "scenario_id": "scenario_8_wand_intact_nearmiss",
+      "description": "Harry holding the Elder Wand intact before snapping it (CONTROL / NEAR-MISS)",
+      "is_silent": true,
+      "query_text": "Harry holding intact unbroken wand in both hands",
+      "latency_ms": 904.66,
+      "total_candidates": 5,
+      "l1_fts5_found": false,
+      "l2_movie_event_found": false,
+      "l3_openclip_found": true,
+      "l4_qddetr_found": false,
+      "fusion_found": true,
+      "correct_rank": 1,
+      "top_candidate_source": "FUSION",
+      "top_candidate_score": 0.7808,
+      "is_verified_invariant_preserved": true
+    }
+  ],
+  "negative_cases": [
+    {
+      "id": "neg_1_wrong_action",
+      "description": "Same character (Hermione & Malfoy), completely wrong action (hugs)",
+      "top_candidate_score": 0.7193,
+      "candidate_count": 3,
+      "is_verified_invariant_preserved": true
+    },
+    {
+      "id": "neg_2_wrong_character",
+      "description": "Same action (punches Malfoy), completely wrong subject (Snape)",
+      "top_candidate_score": 0.7377,
+      "candidate_count": 3,
+      "is_verified_invariant_preserved": true
+    },
+    {
+      "id": "neg_3_wrong_location_object",
+      "description": "Sorting Hat located in Ollivanders dusty wand shop (Absurd pairing)",
+      "top_candidate_score": 0.6584,
+      "candidate_count": 3,
+      "is_verified_invariant_preserved": true
+    }
+  ]
+}

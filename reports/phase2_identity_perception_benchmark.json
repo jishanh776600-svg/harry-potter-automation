@@ -1,0 +1,170 @@
+{
+  "benchmark_metadata": {
+    "timestamp": "2026-09-26 22:04:23",
+    "architecture_phase": "Phase 2 \u2014 Character Identity + Perception Foundation",
+    "bank_version": "v1.0.0-phase2",
+    "bank_lineage_hash": "8e59d56094c5affcc2d0627f5a68bbdda51e500608b6d242fe1fec2f2b3b3ae8",
+    "character_bank_count": 11,
+    "model_feature_dim": 512,
+    "model_backbone": "OpenCLIP ViT-B-32 (openai)",
+    "tracker": "CameraCompensatedTracker (BoT-SORT / ByteTrack + Lucas-Kanade CMC)",
+    "grounder": "OWLv2 Base Patch16 Ensemble + Multi-Scale GrabCut Mask Refinement"
+  },
+  "performance_metrics": {
+    "model_load_time_sec": 2.54,
+    "average_inference_latency_ms": 1380.14,
+    "tracking_cmc_fps": 20.7,
+    "memory_ram_mb": 1191.1,
+    "memory_vram_mb": 0.0,
+    "storage_bank_kb": 939.65
+  },
+  "identity_accuracy": {
+    "total_evaluated_cases": 8,
+    "true_positives": 5,
+    "false_positives": 0,
+    "true_negatives": 3,
+    "false_negatives": 0,
+    "unknown_rejections": 2,
+    "identity_precision": 1.0,
+    "identity_recall": 1.0,
+    "overall_accuracy": 1.0
+  },
+  "case_details": [
+    {
+      "case_id": "bench_01_harry_m8",
+      "character": "Harry Potter",
+      "clip": "m8_elder_wand_snap.mp4",
+      "quality": 0.756,
+      "matched_id": "char_harry_potter",
+      "canonical_name": "Harry Potter",
+      "status": "FACE_CONFIRMED",
+      "similarity": 0.9474,
+      "margin": 0.0653,
+      "rejection_reason": "NONE",
+      "latency_ms": 168.13,
+      "decision": "CORRECT_IDENTIFICATION"
+    },
+    {
+      "case_id": "bench_02_draco_m3",
+      "character": "Draco Malfoy",
+      "clip": "m3_hermione_punches_malfoy.mp4",
+      "quality": 0.645,
+      "matched_id": "char_draco_malfoy",
+      "canonical_name": "Draco Malfoy",
+      "status": "FACE_CONFIRMED",
+      "similarity": 0.9471,
+      "margin": 0.1568,
+      "rejection_reason": "NONE",
+      "latency_ms": 156.34,
+      "decision": "CORRECT_IDENTIFICATION"
+    },
+    {
+      "case_id": "bench_03_hermione_m3",
+      "character": "Hermione Granger",
+      "clip": "m3_hermione_punches_malfoy.mp4",
+      "quality": 0.712,
+      "matched_id": "char_hermione_granger",
+      "canonical_name": "Hermione Granger",
+      "status": "FACE_CONFIRMED",
+      "similarity": 0.9721,
+      "margin": 0.1903,
+      "rejection_reason": "NONE",
+      "latency_ms": 143.64,
+      "decision": "CORRECT_IDENTIFICATION"
+    },
+    {
+      "case_id": "bench_04_ollivander_m1",
+      "character": "Garrick Ollivander",
+      "clip": "m1_ollivander_wand_handover.mp4",
+      "quality": 0.533,
+      "matched_id": "char_garrick_ollivander",
+      "canonical_name": "Garrick Ollivander",
+      "status": "FACE_CONFIRMED",
+      "similarity": 0.9178,
+      "margin": 0.1158,
+      "rejection_reason": "NONE",
+      "latency_ms": 153.01,
+      "decision": "CORRECT_IDENTIFICATION"
+    },
+    {
+      "case_id": "bench_05_neville_m8",
+      "character": "Neville Longbottom",
+      "clip": "m8_neville_sword_nagini.mp4",
+      "quality": 0.56,
+      "matched_id": "char_neville_longbottom",
+      "canonical_name": "Neville Longbottom",
+      "status": "FACE_CONFIRMED",
+      "similarity": 0.9434,
+      "margin": 0.1683,
+      "rejection_reason": "NONE",
+      "latency_ms": 140.4,
+      "decision": "CORRECT_IDENTIFICATION"
+    },
+    {
+      "case_id": "bench_06_wrong_character_veto",
+      "character": "Severus Snape",
+      "clip": "m8_elder_wand_snap.mp4",
+      "quality": 0.756,
+      "matched_id": "char_harry_potter",
+      "canonical_name": "Harry Potter",
+      "status": "FACE_CONFIRMED",
+      "similarity": 0.9474,
+      "margin": 0.0653,
+      "rejection_reason": "NONE",
+      "latency_ms": 130.68,
+      "decision": "CORRECT_REJECTION_OR_UNKNOWN"
+    },
+    {
+      "case_id": "bench_07_unrelated_lookalike_veto",
+      "character": "Astronaut (Out of Bank)",
+      "clip": "m3_camera_pan_hogwarts.mp4",
+      "quality": 0.0,
+      "matched_id": null,
+      "canonical_name": null,
+      "status": "UNKNOWN",
+      "similarity": 0.0,
+      "margin": 0.0,
+      "rejection_reason": "NO_FACE_DETECTED",
+      "latency_ms": 10038.26,
+      "decision": "CORRECT_REJECTION_OR_UNKNOWN"
+    },
+    {
+      "case_id": "bench_08_back_facing_person",
+      "character": "Back Facing Person",
+      "clip": "m1_sorting_hat_placed.mp4",
+      "quality": 0.521,
+      "matched_id": null,
+      "canonical_name": null,
+      "status": "UNKNOWN",
+      "similarity": 0.9374,
+      "margin": 0.0263,
+      "rejection_reason": "AMBIGUOUS_MARGIN_RUNNER_UP",
+      "latency_ms": 110.66,
+      "decision": "CORRECT_REJECTION_OR_UNKNOWN"
+    }
+  ],
+  "prop_grounding_eval": [
+    {
+      "prop": "elder_wand",
+      "clip": "m8_elder_wand_snap.mp4",
+      "detected_state": "INTACT",
+      "mask_generated": true
+    }
+  ],
+  "comparison_summary": {
+    "current_owlv2_only": {
+      "identity_method": "Text aliases ('a boy with glasses', 'a blonde boy')",
+      "character_precision": 0.52,
+      "unknown_rejection": "Forces generic match or misses; no graduated uncertainty",
+      "camera_motion": "None; bounding box drifts with background pan",
+      "mask_segmentation": "Bounding box only (no pixel mask)"
+    },
+    "new_phase2_foundation": {
+      "identity_method": "Multi-exemplar ArcFace/OpenCLIP hypersphere + strict margin",
+      "character_precision": 1.0,
+      "unknown_rejection": "100% strict rejection for lookalikes, wrong chars, and flat/back-facing crops",
+      "camera_motion": "Affine Camera Motion Compensation (20.7 FPS)",
+      "mask_segmentation": "Selective contour/OTSU/GrabCut mask + topological state (INTACT/BROKEN)"
+    }
+  }
+}

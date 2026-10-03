@@ -1,0 +1,200 @@
+{
+  "timestamp": "2026-09-26 20:52:14",
+  "total_elapsed_sec": 98.39,
+  "peak_ram_mb": 949.38,
+  "shot_detection": {
+    "module": "ShotBoundaryDetector (OpenCV Histogram)",
+    "tests": [
+      {
+        "test_case": "Hard Cut (m3_shot_boundary_cut.mp4)",
+        "expected_cut": true,
+        "detected_cut": true,
+        "shot_count": 3,
+        "cut_timestamps": [
+          0.709,
+          3.921
+        ],
+        "is_correct": true,
+        "elapsed_sec": 1.19
+      },
+      {
+        "test_case": "Continuous Camera Pan (m3_camera_pan_hogwarts.mp4)",
+        "expected_cut": false,
+        "detected_cut": true,
+        "shot_count": 2,
+        "cut_timestamps": [
+          2.878
+        ],
+        "is_correct": false,
+        "elapsed_sec": 1.199
+      },
+      {
+        "test_case": "Fast Action Wand Snap (m8_elder_wand_snap.mp4)",
+        "expected_cut": false,
+        "detected_cut": true,
+        "shot_count": 2,
+        "cut_timestamps": [
+          3.629
+        ],
+        "is_correct": false,
+        "elapsed_sec": 0.386
+      }
+    ]
+  },
+  "character_identity": {
+    "module": "OpenVocabularyGrounder (OWLv2)",
+    "tests": [
+      {
+        "frame_case": "Hermione & Malfoy Frontal (m3_hermione_punches_malfoy.mp4 @ 1.0s)",
+        "detected": {
+          "Hermione Granger": 0.328,
+          "Draco Malfoy": 0.31
+        },
+        "true_positives": [
+          "Hermione Granger",
+          "Draco Malfoy"
+        ],
+        "false_negatives": [],
+        "false_positives": [],
+        "elapsed_sec": 72.979
+      },
+      {
+        "frame_case": "Harry in Profile with Sorting Hat (m1_sorting_hat_placed.mp4 @ 1.0s)",
+        "detected": {
+          "Sorting Hat": 0.426,
+          "Harry Potter": 0.619
+        },
+        "true_positives": [
+          "Harry Potter",
+          "Sorting Hat"
+        ],
+        "false_negatives": [],
+        "false_positives": [],
+        "elapsed_sec": 11.537
+      },
+      {
+        "frame_case": "Ollivander Handover Low-Light (m1_ollivander_wand_handover.mp4 @ 0.8s)",
+        "detected": {
+          "Harry Potter": 0.74
+        },
+        "true_positives": [
+          "Harry Potter"
+        ],
+        "false_negatives": [
+          "Ollivander"
+        ],
+        "false_positives": [],
+        "elapsed_sec": 9.485
+      }
+    ]
+  },
+  "action_and_hoi": {
+    "module": "Action & State Analyzers",
+    "handover": {
+      "action": "handover",
+      "detected": true,
+      "confidence": 0.98,
+      "peak_metric": 0.282
+    },
+    "state_transition": {
+      "snap_detected": false,
+      "snap_disruption_ratio": 1.041,
+      "intact_nearmiss_detected": false,
+      "intact_disruption_ratio": 1.159,
+      "distinguishes_correctly": false
+    }
+  },
+  "composition_and_crop": {
+    "module": "SubjectAwareCompositionEngine",
+    "tests": [
+      {
+        "scenario": "Centered Subject (x=0.50)",
+        "is_valid": true,
+        "expected_valid": true,
+        "as_expected": true,
+        "crop_window": {
+          "x": 735,
+          "y": 0,
+          "w": 450,
+          "h": 800,
+          "src_w": 1920,
+          "src_h": 800,
+          "strategy": "SUBJECT_AWARE_OPTIMIZED",
+          "ffmpeg_filter": "crop=450:800:735:0,scale=1080:1920:flags=lanczos,fps=30",
+          "normalized_center_x": 0.5
+        },
+        "retained_subject_ratio": 1.0,
+        "rejection_reasons": []
+      },
+      {
+        "scenario": "Far Right Subject (Hermione/Malfoy standoff, x=0.70)",
+        "is_valid": true,
+        "expected_valid": true,
+        "as_expected": true,
+        "crop_window": {
+          "x": 1177,
+          "y": 0,
+          "w": 450,
+          "h": 800,
+          "src_w": 1920,
+          "src_h": 800,
+          "strategy": "SUBJECT_AWARE_OPTIMIZED",
+          "ffmpeg_filter": "crop=450:800:1177:0,scale=1080:1920:flags=lanczos,fps=30",
+          "normalized_center_x": 0.7302
+        },
+        "retained_subject_ratio": 1.0,
+        "rejection_reasons": []
+      },
+      {
+        "scenario": "Extreme Wide Separation (Subject A at x=0.05, Subject B at x=0.90)",
+        "is_valid": false,
+        "expected_valid": false,
+        "as_expected": true,
+        "crop_window": {
+          "x": 783,
+          "y": 0,
+          "w": 450,
+          "h": 800,
+          "src_w": 1920,
+          "src_h": 800,
+          "strategy": "FAILED_MULTI_SUBJECT_LOST",
+          "ffmpeg_filter": "crop=450:800:783:0,scale=1080:1920:flags=lanczos,fps=30",
+          "normalized_center_x": 0.525
+        },
+        "retained_subject_ratio": 0.247,
+        "rejection_reasons": [
+          "CROP_MULTI_SUBJECT_LOST"
+        ]
+      }
+    ]
+  },
+  "retrieval_cascade": {
+    "module": "MovieEventRetrievalEngine",
+    "tests": [
+      {
+        "query": "Hermione punches Malfoy",
+        "has_dialogue": true,
+        "movie_event_found": false,
+        "top_candidate": null,
+        "score": 0.0,
+        "elapsed_sec": 0.0024
+      },
+      {
+        "query": "Harry breaks the Elder Wand",
+        "has_dialogue": false,
+        "movie_event_found": false,
+        "top_candidate": null,
+        "score": 0.0,
+        "elapsed_sec": 0.0025
+      },
+      {
+        "query": "Sorting Hat placed on Harry",
+        "has_dialogue": true,
+        "movie_event_found": false,
+        "top_candidate": null,
+        "score": 0.0,
+        "elapsed_sec": 0.0032
+      }
+    ]
+  }
+}

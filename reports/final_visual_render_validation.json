@@ -1,0 +1,244 @@
+{
+  "execution_timestamp": "2026-09-26T10:11:28Z",
+  "elapsed_seconds": 452.9,
+  "production_path": {
+    "discovery": {
+      "script_module": "engines.discovery_narrative_engine.DiscoveryNarrativeEngine",
+      "proposition_module": "engines.movie_event.storyboard_generator.ClaimTransformer",
+      "coarse_locator": "engines.movie_event.hybrid_matcher.SRTCoarseLocator",
+      "candidate_retrieval": "engines.movie_event.retrieval_engine.MovieEventRetrievalEngine",
+      "evidence_adapter": "engines.visual_evidence.storyforge_adapter.StoryForgeVisualEvidenceAdapter",
+      "physical_engine": "py_visual_evidence.engine.VideoEvidenceEngine",
+      "timeline_planner": "engines.editorial.editorial_planner.EditorialPlanner",
+      "crop_engine": "engines.visual_evidence.subject_aware_composition.SubjectAwareCompositionEngine",
+      "renderer": "scripts.run_final_human_review_validation (canonical FFmpeg multi-stream mux)"
+    },
+    "novel_story": {
+      "script_module": "engines.hp_script_engine.HarryPotterScriptEngine",
+      "proposition_module": "engines.movie_event.storyboard_generator.VisualStoryboardGenerator",
+      "coarse_locator": "engines.movie_event.hybrid_matcher.SRTCoarseLocator",
+      "candidate_retrieval": "engines.movie_event.retrieval_engine.MovieEventRetrievalEngine",
+      "evidence_adapter": "engines.visual_evidence.storyforge_adapter.StoryForgeVisualEvidenceAdapter",
+      "physical_engine": "py_visual_evidence.engine.VideoEvidenceEngine",
+      "timeline_planner": "Sequential Narrative Timeline (Single-Shot Event Chain)",
+      "crop_engine": "engines.visual_evidence.subject_aware_composition.SubjectAwareCompositionEngine",
+      "renderer": "scripts.run_final_human_review_validation (canonical FFmpeg multi-stream mux)"
+    },
+    "gate_status": "CONFIRMED_GATED",
+    "bypass_detected": false
+  },
+  "discovery_validation": {
+    "content_id": "disc_elder_wand_snap_v1",
+    "topic_id": "elder_wand_snap_book_vs_movie",
+    "format": "DISCOVERY",
+    "narration": "The movie completely changed how Harry Potter destroyed the Elder Wand. On screen, Harry grips the Elder Wand with both hands, snaps it cleanly in two pieces, and throws them over the viaduct. In the book, Harry never breaks it at all. He uses it to repair his original phoenix feather wand, returning the Deathstick to Dumbledore's tomb.",
+    "propositions": [
+      {
+        "prop_id": "disc_p1_hook",
+        "text": "The movie completely changed how Harry Potter destroyed the Elder Wand.",
+        "is_core_claim": false,
+        "type": "claim"
+      },
+      {
+        "prop_id": "disc_p2_visual_core",
+        "text": "On screen, Harry grips the Elder Wand with both hands, snaps it cleanly in two pieces, and throws them over the viaduct.",
+        "is_core_claim": true,
+        "type": "physical_evidence",
+        "subject": "Harry Potter",
+        "action": "snaps",
+        "object": "Elder Wand",
+        "location": "Hogwarts Viaduct Bridge",
+        "expected_state": "BROKEN"
+      },
+      {
+        "prop_id": "disc_p3_lore_truth",
+        "text": "In the book, Harry never breaks it at all. He uses it to repair his original phoenix feather wand, returning the Deathstick to Dumbledore's tomb.",
+        "is_core_claim": false,
+        "type": "payoff"
+      }
+    ],
+    "candidate_id": "evt_m8_viaduct_harry_snaps_elder_wand",
+    "source_clip": "m8_elder_wand_snap.mp4",
+    "evidence_result": {
+      "assertion_id": "as_disc_wand_snap",
+      "candidate_id": "evt_m8_viaduct_harry_snaps_elder_wand",
+      "source_video": "m8_elder_wand_snap.mp4",
+      "source_start": 0.0,
+      "source_end": 3.629,
+      "verified_sub_shot": "shot_0",
+      "sub_shot_start": 0.0,
+      "sub_shot_end": 3.629,
+      "detected_entities": [
+        "Elder Wand",
+        "Harry Potter"
+      ],
+      "action_evidence": {
+        "action": "snaps",
+        "detected": true,
+        "confidence": 0.98,
+        "peak_metric": 6.235,
+        "threshold": 1.35
+      },
+      "relationship_evidence": {
+        "verified": true,
+        "summary": "Harry Potter -> snaps -> Elder Wand"
+      },
+      "state_transition_evidence": {
+        "detected": true,
+        "initial_metric": 162.05,
+        "final_metric": 232.83,
+        "disruption_ratio": 6.235
+      },
+      "causal_evidence": {
+        "order_passed": true
+      },
+      "crop_evidence": {
+        "aspect_ratio": "9:16",
+        "passed": true,
+        "subject_retention": 0.677,
+        "strategy": "subject_aware_horizontal",
+        "crop_window": {
+          "x": 522,
+          "y": 0,
+          "w": 297,
+          "h": 528
+        }
+      },
+      "verdict": "PASS",
+      "is_verified": true,
+      "rejection_reason": null,
+      "evidence_confidence": 0.893,
+      "engine_version": "0.1.0",
+      "crop_fingerprint": "crop_522_0_297_528"
+    },
+    "final_render_path": "C:\\Users\\jisha\\.gemini\\antigravity\\scratch\\harry_potter_automation\\data\\vault\\controlled_tests\\final_render_disc_elder_wand_snap_v1.mp4",
+    "duration": 16.0,
+    "audio_lufs": -14.3,
+    "true_peak": -1.0,
+    "lineage": {
+      "content_id": "disc_elder_wand_snap_v1",
+      "topic_id": "elder_wand_snap_book_vs_movie",
+      "narration_hash": "e7d907dcec9ede25",
+      "proposition_hash": "1a83416ac12e4fdd",
+      "visual_plan_id": "vp_a69d38e7e650d5866ebac81c",
+      "source_evidence_hash": "a7dda16f557a8393",
+      "timeline_hash": "7de04fee755c34ae",
+      "render_fingerprint": "rfp_5eba294de367cf41ca69e1e4d22db12e",
+      "created_at": "2026-09-26T10:04:18.497604+00:00"
+    },
+    "audit_frames": [
+      "C:\\Users\\jisha\\.gemini\\antigravity\\scratch\\harry_potter_automation\\data\\vault\\controlled_tests\\audit_frames_elder_wand\\01_wand_held_intact.jpg",
+      "C:\\Users\\jisha\\.gemini\\antigravity\\scratch\\harry_potter_automation\\data\\vault\\controlled_tests\\audit_frames_elder_wand\\02_wand_fracture_snap.jpg",
+      "C:\\Users\\jisha\\.gemini\\antigravity\\scratch\\harry_potter_automation\\data\\vault\\controlled_tests\\audit_frames_elder_wand\\03_wand_broken_halves.jpg"
+    ]
+  },
+  "novel_story_validation": {
+    "content_id": "ns_buckbeak_slash_malfoy_v1",
+    "topic_id": "buckbeak_slashes_malfoy_paddock",
+    "format": "NOVEL_STORY",
+    "narration": "During their first Care of Magical Creatures lesson, Draco Malfoy strutted into the paddock to taunt the Hippogriff. Insulted by Malfoy, Buckbeak rears up on his hind legs and strikes Malfoy across the arm with sharp talons. Malfoy collapses into the grass howling in theatrical agony, while Hagrid rushes forward to carry him to the hospital wing.",
+    "propositions": [
+      {
+        "prop_id": "ns_p1_approach",
+        "text": "During their first Care of Magical Creatures lesson, Draco Malfoy strutted into the paddock to taunt the Hippogriff.",
+        "is_core_claim": false,
+        "type": "narrative_context"
+      },
+      {
+        "prop_id": "ns_p2_visual_core",
+        "text": "Insulted by Malfoy, Buckbeak rears up on his hind legs and strikes Malfoy across the arm with sharp talons.",
+        "is_core_claim": true,
+        "type": "physical_evidence",
+        "subject": "Buckbeak",
+        "action": "strikes",
+        "recipient": "Draco Malfoy",
+        "location": "Hagrid Paddock"
+      },
+      {
+        "prop_id": "ns_p3_aftermath",
+        "text": "Malfoy collapses into the grass howling in theatrical agony, while Hagrid rushes forward to carry him to the hospital wing.",
+        "is_core_claim": false,
+        "type": "narrative_payoff"
+      }
+    ],
+    "candidate_id": "evt_m3_paddock_buckbeak_slashes_malfoy",
+    "source_clip": "m3_buckbeak_slash_malfoy.mp4",
+    "evidence_result": {
+      "assertion_id": "as_ns_buckbeak_strike",
+      "candidate_id": "evt_m3_paddock_buckbeak_slashes_malfoy",
+      "source_video": "m3_buckbeak_slash_malfoy.mp4",
+      "source_start": 5.672,
+      "source_end": 7.966,
+      "verified_sub_shot": "shot_2",
+      "sub_shot_start": 5.672,
+      "sub_shot_end": 7.966,
+      "detected_entities": [
+        "Draco Malfoy",
+        "Buckbeak"
+      ],
+      "action_evidence": {
+        "action": "strikes",
+        "detected": true,
+        "confidence": 0.98,
+        "peak_metric": 3.125,
+        "threshold": 0.45
+      },
+      "relationship_evidence": {
+        "verified": true,
+        "summary": "Buckbeak -> strikes -> Draco Malfoy"
+      },
+      "state_transition_evidence": {},
+      "causal_evidence": {
+        "order_passed": true
+      },
+      "crop_evidence": {
+        "aspect_ratio": "9:16",
+        "passed": true,
+        "subject_retention": 0.609,
+        "strategy": "dynamic_tracking_crop",
+        "crop_window": {
+          "x": 1023,
+          "y": 0,
+          "w": 450,
+          "h": 800
+        }
+      },
+      "verdict": "PASS",
+      "is_verified": true,
+      "rejection_reason": null,
+      "evidence_confidence": 0.873,
+      "engine_version": "0.1.0",
+      "crop_fingerprint": "crop_1023_0_450_800"
+    },
+    "final_render_path": "C:\\Users\\jisha\\.gemini\\antigravity\\scratch\\harry_potter_automation\\data\\vault\\controlled_tests\\final_render_ns_buckbeak_slash_malfoy_v1.mp4",
+    "duration": 16.47,
+    "audio_lufs": -14.3,
+    "true_peak": -1.5,
+    "lineage": {
+      "content_id": "ns_buckbeak_slash_malfoy_v1",
+      "topic_id": "buckbeak_slashes_malfoy_paddock",
+      "narration_hash": "aeb0e80b4935e144",
+      "proposition_hash": "b5e61a1e66bda2c5",
+      "visual_plan_id": "vp_12600bb6419604e81912a1f7",
+      "source_evidence_hash": "c7248aa9764911eb",
+      "timeline_hash": "17a3d69bdd45a73d",
+      "render_fingerprint": "rfp_890409f8efe57eaff4fc686270dd9a77",
+      "created_at": "2026-09-26T10:11:20.505897+00:00"
+    },
+    "audit_frames": [
+      "C:\\Users\\jisha\\.gemini\\antigravity\\scratch\\harry_potter_automation\\data\\vault\\controlled_tests\\audit_frames_buckbeak\\01_buckbeak_rears_up.jpg",
+      "C:\\Users\\jisha\\.gemini\\antigravity\\scratch\\harry_potter_automation\\data\\vault\\controlled_tests\\audit_frames_buckbeak\\02_talons_strike_malfoy.jpg",
+      "C:\\Users\\jisha\\.gemini\\antigravity\\scratch\\harry_potter_automation\\data\\vault\\controlled_tests\\audit_frames_buckbeak\\03_malfoy_collapses_backward.jpg"
+    ]
+  },
+  "negative_control": {
+    "test_name": "Negative Control: Buckbeak hands chocolate bar",
+    "input_clip": "m3_buckbeak_slash_malfoy.mp4",
+    "assertion_text": "Buckbeak hands a chocolate bar to Draco Malfoy.",
+    "is_verified": false,
+    "verdict": "NO_REQUIRED_ENTITY",
+    "rejection_reason": "Required object 'chocolate bar' was not detected in candidate video.",
+    "status": "PASS (Successfully Rejected)"
+  },
+  "final_render_verdict": "PASS"
+}

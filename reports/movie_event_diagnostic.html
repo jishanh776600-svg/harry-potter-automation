@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STORY FORGE — V2 Movie Event Visual Matching Diagnostic</title>
+    <style>
+        :root {
+            --bg-primary: #0f1117;
+            --bg-secondary: #1a1d27;
+            --bg-card: #232736;
+            --text-main: #f0f3f6;
+            --text-muted: #9aa0a6;
+            --accent-gold: #e5a93c;
+            --accent-green: #34d399;
+            --accent-red: #f87171;
+            --accent-blue: #60a5fa;
+            --border: #2d3348;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            margin: 0;
+            padding: 30px;
+            line-height: 1.5;
+        }
+        .header {
+            max-width: 1200px;
+            margin: 0 auto 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .badge-verified { background: rgba(52, 211, 153, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
+        .badge-rejected { background: rgba(248, 113, 113, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
+        .badge-direct { background: rgba(96, 165, 250, 0.2); color: var(--accent-blue); border: 1px solid var(--accent-blue); }
+        .badge-gold { background: rgba(229, 169, 60, 0.2); color: var(--accent-gold); border: 1px solid var(--accent-gold); }
+        
+        .container { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 30px; }
+        
+        .query-card {
+            background-color: var(--bg-secondary);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            padding: 24px;
+        }
+        .query-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .query-title h2 { margin: 0; font-size: 1.3rem; color: #fff; }
+        
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            background: var(--bg-card);
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .meta-item { display: flex; flex-direction: column; }
+        .meta-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+        .meta-val { font-size: 0.95rem; font-weight: 500; margin-top: 4px; }
+        
+        .event-chain {
+            background: rgba(0,0,0,0.25);
+            border-left: 3px solid var(--accent-gold);
+            padding: 14px 18px;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        .event-chain strong { color: var(--accent-gold); }
+        
+        .candidates-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+        }
+        .candidates-table th, .candidates-table td {
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        .candidates-table th { background: var(--bg-card); color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; }
+        .candidates-table tr.top-match { background: rgba(52, 211, 153, 0.08); font-weight: 600; }
+        .tc-code { font-family: monospace; color: var(--accent-gold); }
+        .diag-text { font-size: 0.82rem; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>STORY FORGE — V2 Movie Event Visual Matching Diagnostic</h1>
+        <p style="color: var(--text-muted);">Controlled Offline Validation Report (Phase 1: Architecture & Intelligence Only)</p>
+    </div>
+
+    <div class="container">
+        <!-- BENCHMARK 1 -->
+        <div class="query-card">
+            <div class="query-title">
+                <h2>1. Snape questions Harry in Potions classroom</h2>
+                <div>
+                    <span class="badge badge-direct">DIRECT EVIDENCE</span>
+                    <span class="badge badge-gold">MOVIE 1</span>
+                </div>
+            </div>
+            <div class="meta-grid">
+                <div class="meta-item"><span class="meta-label">Primary Subject</span><span class="meta-val">Severus Snape</span></div>
+                <div class="meta-item"><span class="meta-label">Required Action</span><span class="meta-val">questions and confronts</span></div>
+                <div class="meta-item"><span class="meta-label">Required Target</span><span class="meta-val">Harry Potter</span></div>
+                <div class="meta-item"><span class="meta-label">Required Setting</span><span class="meta-val">Potions classroom</span></div>
+            </div>
+            <div class="event-chain">
+                <strong>Event Chain Continuity:</strong><br>
+                1. <em>Preceding Approach:</em> Snape walks down aisle stopping beside Harry's desk (00:52:18)<br>
+                2. <em>Core Action:</em> Snape questions Harry directly with Hermione raising hand (00:52:39 - 00:53:15)<br>
+                3. <em>Following Reaction:</em> Harry challenges Snape telling him to ask Hermione (00:53:16)
+            </div>
+            <table class="candidates-table">
+                <thead>
+                    <tr>
+                        <th>Candidate ID</th>
+                        <th>Timestamps</th>
+                        <th>Depicted Action</th>
+                        <th>Target</th>
+                        <th>Score</th>
+                        <th>Verdict & Diagnostics</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="top-match">
+                        <td><code>evt_m1_potions_snape_questions_harry</code></td>
+                        <td class="tc-code">00:52:39 – 00:53:15</td>
+                        <td>questions and confronts Harry directly</td>
+                        <td>Harry Potter</td>
+                        <td>90.0</td>
+                        <td><span class="badge badge-verified">VERIFIED</span><br><span class="diag-text">Shows Snape grilling Harry at desk; Hermione raises hand.</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>evt_m1_potions_snape_walks_toward_harry</code></td>
+                        <td class="tc-code">00:52:18 – 00:52:28</td>
+                        <td>walks slowly toward Harry's desk</td>
+                        <td>Harry Potter</td>
+                        <td>55.0</td>
+                        <td><span class="badge badge-rejected">REJECT_ACTION_MISMATCH</span><br><span class="diag-text">Candidate is walking, not questioning.</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>evt_m1_potions_snape_walks_alone_distractor</code></td>
+                        <td class="tc-code">00:51:40 – 00:51:55</td>
+                        <td>walks silently through corridor</td>
+                        <td>dungeon corridor</td>
+                        <td>30.0</td>
+                        <td><span class="badge badge-rejected">REJECT_ACTION_MISMATCH</span><br><span class="diag-text">Walking alone in hallway; Harry missing.</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- BENCHMARK 2 -->
+        <div class="query-card">
+            <div class="query-title">
+                <h2>2. Neville draws the Sword of Gryffindor</h2>
+                <div>
+                    <span class="badge badge-direct">DIRECT EVIDENCE</span>
+                    <span class="badge badge-gold">MOVIE 8</span>
+                </div>
+            </div>
+            <div class="meta-grid">
+                <div class="meta-item"><span class="meta-label">Primary Subject</span><span class="meta-val">Neville Longbottom</span></div>
+                <div class="meta-item"><span class="meta-label">Required Action</span><span class="meta-val">draws / pulls weapon</span></div>
+                <div class="meta-item"><span class="meta-label">Key Object</span><span class="meta-val">Sword of Gryffindor / Sorting Hat</span></div>
+                <div class="meta-item"><span class="meta-label">Required Setting</span><span class="meta-val">Hogwarts Ruined Courtyard</span></div>
+            </div>
+            <div class="event-chain">
+                <strong>Event Chain Continuity:</strong><br>
+                1. <em>Preceding Approach:</em> Neville delivers defiant speech holding Sorting Hat (01:42:20)<br>
+                2. <em>Core Action:</em> Neville pulls silver Sword of Gryffindor from Sorting Hat (01:42:48 - 01:43:35)<br>
+                3. <em>Following Reaction:</em> Neville charges on rubble and beheads Nagini (01:46:20)
+            </div>
+            <table class="candidates-table">
+                <thead>
+                    <tr>
+                        <th>Candidate ID</th>
+                        <th>Timestamps</th>
+                        <th>Depicted Action</th>
+                        <th>Target</th>
+                        <th>Score</th>
+                        <th>Verdict & Diagnostics</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="top-match">
+                        <td><code>evt_m8_courtyard_neville_draws_sword</code></td>
+                        <td class="tc-code">01:42:48 – 01:43:35</td>
+                        <td>draws Sword of Gryffindor from Sorting Hat</td>
+                        <td>Sword of Gryffindor</td>
+                        <td>90.0</td>
+                        <td><span class="badge badge-verified">VERIFIED</span><br><span class="diag-text">Neville unsheathes sword high before Death Eaters.</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>evt_m8_courtyard_neville_speech</code></td>
+                        <td class="tc-code">01:42:20 – 01:42:44</td>
+                        <td>delivers defiant speech holding hat</td>
+                        <td>Lord Voldemort</td>
+                        <td>55.0</td>
+                        <td><span class="badge badge-rejected">REJECT_ACTION_MISMATCH</span><br><span class="diag-text">Delivering speech; sword not yet drawn.</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>evt_m1_staircase_neville_nervous_distractor</code></td>
+                        <td class="tc-code">00:40:15 – 00:40:22</td>
+                        <td>stands nervously waiting before Sorting</td>
+                        <td>Trevor Toad</td>
+                        <td>30.0</td>
+                        <td><span class="badge badge-rejected">REJECT_ACTION_MISMATCH</span><br><span class="diag-text">Year 1 Neville holding toad; sword missing.</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- BENCHMARK 3 -->
+        <div class="query-card">
+            <div class="query-title">
+                <h2>3. Harry opens the Chamber of Secrets entrance</h2>
+                <div>
+                    <span class="badge badge-direct">DIRECT EVIDENCE</span>
+                    <span class="badge badge-gold">MOVIE 2</span>
+                </div>
+            </div>
+            <div class="meta-grid">
+                <div class="meta-item"><span class="meta-label">Primary Subject</span><span class="meta-val">Harry Potter</span></div>
+                <div class="meta-item"><span class="meta-label">Required Action</span><span class="meta-val">speaks Parseltongue / opens</span></div>
+                <div class="meta-item"><span class="meta-label">Target Mechanism</span><span class="meta-val">Chamber entrance / sink taps</span></div>
+                <div class="meta-item"><span class="meta-label">Required Setting</span><span class="meta-val">Moaning Myrtle's Bathroom</span></div>
+            </div>
+            <div class="event-chain">
+                <strong>Event Chain Continuity:</strong><br>
+                1. <em>Preceding Approach:</em> Harry examines carved snake on brass tap (01:58:10)<br>
+                2. <em>Core Action:</em> Harry speaks Parseltongue, tap turns, sinks sink down exposing pipe (01:58:40 - 01:59:25)<br>
+                3. <em>Following Reaction:</em> Harry, Ron, Lockhart look down gaping dark hole (01:59:26)
+            </div>
+            <table class="candidates-table">
+                <thead>
+                    <tr>
+                        <th>Candidate ID</th>
+                        <th>Timestamps</th>
+                        <th>Depicted Action</th>
+                        <th>Target</th>
+                        <th>Score</th>
+                        <th>Verdict & Diagnostics</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="top-match">
+                        <td><code>evt_m2_bathroom_harry_speaks_parseltongue_opens_chamber</code></td>
+                        <td class="tc-code">01:58:40 – 01:59:25</td>
+                        <td>speaks Parseltongue and opens Chamber entrance</td>
+                        <td>Chamber entrance</td>
+                        <td>90.0</td>
+                        <td><span class="badge badge-verified">VERIFIED</span><br><span class="diag-text">Snake rotates, circular washbasins separate and reveal pipe.</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>evt_m2_bathroom_harry_inspects_sink</code></td>
+                        <td class="tc-code">01:58:10 – 01:58:35</td>
+                        <td>examines copper snake engraving on tap</td>
+                        <td>snake tap</td>
+                        <td>55.0</td>
+                        <td><span class="badge badge-rejected">REJECT_ACTION_MISMATCH</span><br><span class="diag-text">Examining tap only; entrance not yet open.</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>evt_m2_bathroom_harry_stares_flooded_distractor</code></td>
+                        <td class="tc-code">01:26:00 – 01:26:15</td>
+                        <td>wades through water in flooded bathroom</td>
+                        <td>flooded floor</td>
+                        <td>30.0</td>
+                        <td><span class="badge badge-rejected">REJECT_ACTION_MISMATCH</span><br><span class="diag-text">Wading in water; zero entrance interaction.</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- BENCHMARK 4 -->
+        <div class="query-card">
+            <div class="query-title">
+                <h2>4. Hermione punches Malfoy</h2>
+                <div>
+                    <span class="badge badge-direct">DIRECT EVIDENCE</span>
+                    <span class="badge badge-gold">MOVIE 3</span>
+                </div>
+            </div>
+            <div class="meta-grid">
+                <div class="meta-item"><span class="meta-label">Primary Subject</span><span class="meta-val">Hermione Granger</span></div>
+                <div class="meta-item"><span class="meta-label">Required Action</span><span class="meta-val">punches squarely in face</span></div>
+                <div class="meta-item"><span class="meta-label">Required Target</span><span class="meta-val">Draco Malfoy</span></div>
+                <div class="meta-item"><span class="meta-label">Required Setting</span><span class="meta-val">Sundial Hill / Stone Circle</span></div>
+            </div>
+            <div class="event-chain">
+                <strong>Event Chain Continuity:</strong><br>
+                1. <em>Preceding Approach:</em> Hermione corners Malfoy and draws wand to throat (01:23:15)<br>
+                2. <em>Core Action:</em> Hermione turns and strikes Malfoy in nose with fist (01:23:32 - 01:23:45)<br>
+                3. <em>Following Reaction:</em> Malfoy flees whimpering down the hill holding face (01:23:46)
+            </div>
+            <table class="candidates-table">
+                <thead>
+                    <tr>
+                        <th>Candidate ID</th>
+                        <th>Timestamps</th>
+                        <th>Depicted Action</th>
+                        <th>Target</th>
+                        <th>Score</th>
+                        <th>Verdict & Diagnostics</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="top-match">
+                        <td><code>evt_m3_sundial_hermione_punches_malfoy</code></td>
+                        <td class="tc-code">01:23:32 – 01:23:45</td>
+                        <td>punches Malfoy squarely in the face</td>
+                        <td>Draco Malfoy</td>
+                        <td>80.0</td>
+                        <td><span class="badge badge-verified">VERIFIED</span><br><span class="diag-text">Hermione strikes Malfoy in the nose; Malfoy falls to rocks.</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>evt_m3_sundial_hermione_draws_wand</code></td>
+                        <td class="tc-code">01:23:15 – 01:23:28</td>
+                        <td>corners Malfoy and draws wand to throat</td>
+                        <td>Draco Malfoy</td>
+                        <td>35.0</td>
+                        <td><span class="badge badge-rejected">REJECT_ACTION_MISMATCH</span><br><span class="diag-text">Threatening with wand is not a punch.</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>evt_m3_sundial_malfoy_flees_in_terror</code></td>
+                        <td class="tc-code">01:23:46 – 01:24:02</td>
+                        <td>flees whimpering down the hill</td>
+                        <td>Sundial hill slope</td>
+                        <td>12.0</td>
+                        <td><span class="badge badge-rejected">REJECT_ACTION_MISMATCH</span><br><span class="diag-text">Malfoy fleeing is reaction/retreat.</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

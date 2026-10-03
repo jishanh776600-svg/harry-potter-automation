@@ -1,0 +1,140 @@
+{
+  "tc1_correct_handover": {
+    "observed_subject": "Garrick Ollivander",
+    "subject_confidence": 0.96,
+    "observed_object": "wand",
+    "object_confidence": 0.92,
+    "observed_action": "hands",
+    "action_confidence": 0.91,
+    "observed_recipient": "Harry Potter",
+    "spatial_relationship": "Ollivander -> wand -> Harry",
+    "temporal_interval": [
+      0.0,
+      1.2929583333333332
+    ],
+    "state_transition_detected": true,
+    "crop_safe_zone_passed": true,
+    "verdict": "PASS",
+    "rejection_reason": null
+  },
+  "tc2_present_no_handover": {
+    "observed_subject": "Garrick Ollivander",
+    "subject_confidence": 0.94,
+    "observed_object": "wand box",
+    "object_confidence": 0.88,
+    "observed_action": "browses shelves",
+    "action_confidence": 0.35,
+    "observed_recipient": null,
+    "spatial_relationship": "Ollivander -> shelf (no handoff to recipient)",
+    "temporal_interval": [
+      0.0,
+      1.2929583333333332
+    ],
+    "state_transition_detected": false,
+    "crop_safe_zone_passed": true,
+    "verdict": "REJECT",
+    "rejection_reason": "ACTION_ABSENT: Character present but handover transfer absent"
+  },
+  "tc3_holding_no_wave": {
+    "observed_subject": "Harry Potter",
+    "subject_confidence": 0.97,
+    "observed_object": "wand",
+    "object_confidence": 0.94,
+    "observed_action": "stationary hold",
+    "action_confidence": 0.22,
+    "observed_recipient": null,
+    "spatial_relationship": "Harry holding wand without wave motion",
+    "temporal_interval": [
+      0.0,
+      1.3346666666666667
+    ],
+    "state_transition_detected": false,
+    "crop_safe_zone_passed": true,
+    "verdict": "REJECT",
+    "rejection_reason": "ACTION_ABSENT: Subject is holding wand stationary, waving action absent"
+  },
+  "tc4_vase_intact": {
+    "observed_subject": "glass vase",
+    "subject_confidence": 0.93,
+    "observed_object": "glass vase",
+    "object_confidence": 0.9,
+    "observed_action": "static intact",
+    "action_confidence": 0.15,
+    "observed_recipient": null,
+    "spatial_relationship": "vase intact on shelf",
+    "temporal_interval": [
+      0.0,
+      1.3346666666666667
+    ],
+    "state_transition_detected": false,
+    "crop_safe_zone_passed": true,
+    "verdict": "REJECT",
+    "rejection_reason": "STATE_TRANSITION_ABSENT: Object is present but intact, destruction event absent"
+  },
+  "tc5_destruction_occurs": {
+    "observed_subject": "glass vase",
+    "subject_confidence": 0.91,
+    "observed_object": "glass shards",
+    "object_confidence": 0.93,
+    "observed_action": "explodes into fragments",
+    "action_confidence": 0.96,
+    "observed_recipient": null,
+    "spatial_relationship": "vase on shelf violently fragments",
+    "temporal_interval": [
+      0.0,
+      1.3346666666666667
+    ],
+    "state_transition_detected": true,
+    "crop_safe_zone_passed": true,
+    "verdict": "PASS",
+    "rejection_reason": null
+  },
+  "tc6_wrong_character": {
+    "observed_subject": "Vernon Dursley",
+    "subject_confidence": 0.97,
+    "observed_object": "coffee cup",
+    "object_confidence": 0.89,
+    "observed_action": "gesturing angrily",
+    "action_confidence": 0.88,
+    "observed_recipient": null,
+    "spatial_relationship": "Vernon at dining table",
+    "temporal_interval": [
+      0.0,
+      1.3
+    ],
+    "state_transition_detected": false,
+    "crop_safe_zone_passed": true,
+    "verdict": "REJECT",
+    "rejection_reason": "CHARACTER_MISMATCH: Observed 'Vernon Dursley' does not match expected 'Harry Potter'"
+  },
+  "tc7_temporal_order": {
+    "valid": {
+      "is_valid_order": true,
+      "violations": [],
+      "verdict": "PASS"
+    },
+    "invalid": {
+      "is_valid_order": false,
+      "violations": [
+        "Event 'Vase shatters' at 1565.0s occurs BEFORE event 'Harry waves wand' at 1570.0s"
+      ],
+      "verdict": "REJECT"
+    }
+  },
+  "tc8_crop": {
+    "clipped": {
+      "clip": "tc8a_center_crop_vase_clipped.mp4",
+      "retained_subject_ratio": 0.0,
+      "inside_safe_zone": false,
+      "verdict": "REJECT",
+      "rejection_reason": "CROP_SUBJECT_LOST: Critical event subject (vase) was truncated outside the 9:16 vertical crop window"
+    },
+    "retained": {
+      "clip": "tc8b_subject_aware_crop_vase_visible.mp4",
+      "retained_subject_ratio": 0.94,
+      "inside_safe_zone": true,
+      "verdict": "PASS",
+      "rejection_reason": null
+    }
+  }
+}

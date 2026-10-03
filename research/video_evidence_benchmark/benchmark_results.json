@@ -1,0 +1,80 @@
+{
+  "pyscenedetect_tc1": {
+    "tool": "PySceneDetect (ContentDetector)",
+    "clip": "tc1_correct_handover.mp4",
+    "cuts_detected": 0,
+    "scenes": [],
+    "latency_ms": 366.61,
+    "mem_delta_mb": 5.75
+  },
+  "kinematics_tc3_holding": {
+    "tool": "Dense Optical Flow Kinematics (Farneback)",
+    "clip": "tc3_holding_no_wave.mp4",
+    "frames_analyzed": 31,
+    "mean_top5pct_velocity": 7.105,
+    "peak_velocity": 26.227,
+    "action_detected": true,
+    "latency_ms": 2741.12,
+    "fps": 11.3,
+    "mem_delta_mb": 6.43
+  },
+  "kinematics_tc7_waving": {
+    "tool": "Dense Optical Flow Kinematics (Farneback)",
+    "clip": "tc7_harry_wand_wave.mp4",
+    "frames_analyzed": 30,
+    "mean_top5pct_velocity": 14.608,
+    "peak_velocity": 31.916,
+    "action_detected": true,
+    "latency_ms": 2970.08,
+    "fps": 10.1,
+    "mem_delta_mb": 1.41
+  },
+  "state_change_tc4_intact": {
+    "tool": "Structural Edge Fragmentation & Temporal State Transition",
+    "clip": "tc4_vase_intact_no_shatter.mp4",
+    "before_edge_var": 26.67,
+    "during_edge_var": 23.29,
+    "after_edge_var": 21.57,
+    "energy_ratio_during_vs_before": 0.873,
+    "peak_frame_diff_burst": 30.73,
+    "destruction_event_detected": true,
+    "latency_ms": 886.02,
+    "fps": 36.1,
+    "mem_delta_mb": 33.96
+  },
+  "state_change_tc5_destruct": {
+    "tool": "Structural Edge Fragmentation & Temporal State Transition",
+    "clip": "tc5_vase_destruction_occurs.mp4",
+    "before_edge_var": 13.97,
+    "during_edge_var": 8.56,
+    "after_edge_var": 5.57,
+    "energy_ratio_during_vs_before": 0.613,
+    "peak_frame_diff_burst": 25.35,
+    "destruction_event_detected": true,
+    "latency_ms": 861.75,
+    "fps": 37.1,
+    "mem_delta_mb": 33.71
+  },
+  "crop_tc8a_clipped": {
+    "tool": "Post-Crop 9:16 Safe-Zone & Motion Visibility Validator",
+    "clip": "tc8a_center_crop_vase_clipped.mp4",
+    "resolution": "1080x1920",
+    "is_9_16": true,
+    "mean_motion_per_pixel": 8.833,
+    "safe_zone_motion_ratio": 0.632,
+    "event_visible_in_crop": false,
+    "verdict": "REJECT_CROPPED_OUT",
+    "latency_ms": 644.11
+  },
+  "crop_tc8b_visible": {
+    "tool": "Post-Crop 9:16 Safe-Zone & Motion Visibility Validator",
+    "clip": "tc8b_subject_aware_crop_vase_visible.mp4",
+    "resolution": "1080x1920",
+    "is_9_16": true,
+    "mean_motion_per_pixel": 3.635,
+    "safe_zone_motion_ratio": 0.574,
+    "event_visible_in_crop": false,
+    "verdict": "REJECT_CROPPED_OUT",
+    "latency_ms": 676.53
+  }
+}

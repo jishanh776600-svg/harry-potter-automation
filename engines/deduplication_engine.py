@@ -31,12 +31,26 @@ DEDUP_STOPWORDS = {
     "story", "history", "true", "shocking", "unbelievable", "bizarre", "strange",
     "incident", "event", "disaster", "crisis", "mystery", "case", "great", "short",
     "shorts", "video", "youtube", "tiktok",
+    # Standard English pronouns, conjunctions, and auxiliary verbs
+    "he", "she", "it", "they", "we", "i", "you", "his", "her", "him", "them", "us", "me",
+    "my", "your", "their", "our", "its", "mine", "yours", "theirs", "ours", "hers",
+    "himself", "herself", "itself", "themselves", "myself", "yourself",
+    "and", "but", "or", "nor", "for", "yet", "so", "if", "because", "although", "though",
+    "even", "while", "whereas", "until", "unless", "since", "as",
+    "is", "am", "are", "was", "were", "be", "been", "being",
+    "have", "has", "had", "having", "do", "does", "did", "doing",
+    "would", "could", "should", "might", "may", "must",
     # Harry Potter common channel anchors (prevent false cross-short collisions)
     "harry", "potter", "wizarding", "world", "hogwarts", "magic", "magical",
     "chapter", "part", "novel", "stone", "philosopher", "sorcerer",
-    "bella", "voiceover", "canonical", "source", "did", "do", "does", "what",
+    "bella", "voiceover", "canonical", "source", "what",
     "who", "which", "first", "second", "third", "finally", "discovery", "ron",
-    "hermione", "weasley"
+    "hermione", "weasley",
+    # YouTube formatting, packaging adverbs, and hashtag tokens
+    "harrypotter", "really", "actually", "truly", "books", "movies", "book",
+    "movie", "film", "films", "explained", "theory", "secret", "secrets",
+    "details", "detail", "scenes", "scene", "never", "ever", "knew", "know",
+    "notice", "noticed", "versus", "vs", "dark", "lord"
 }
 
 GENERIC_DEDUP_ENTITIES = {
@@ -51,7 +65,13 @@ GENERIC_DEDUP_ENTITIES = {
     "movie", "film", "audio", "footage", "scene", "scenes", "version", "adaptation",
     "did", "do", "does", "why", "how", "what", "when", "where", "who", "which",
     "first", "second", "third", "finally", "discovery", "ron", "hermione", "weasley",
-    "harry", "potter", "hogwarts"
+    "harry", "potter", "hogwarts",
+    # Common Harry Potter universe characters and houses that appear across many videos
+    "malfoy", "draco", "lucius", "dumbledore", "albus", "snape", "severus",
+    "voldemort", "tom", "riddle", "dobby", "hagrid", "rubeus", "mcgonagall",
+    "minerva", "gryffindor", "slytherin", "ravenclaw", "hufflepuff",
+    "sirius", "black", "lupin", "remus", "pettigrew", "peter", "james", "lily",
+    "neville", "longbottom", "bellatrix", "lestrange"
 }
 
 # Thematic anchors that link events when exact year matches
