@@ -25,7 +25,9 @@ class VisualSourceType(str, Enum):
     MOVIE_DIRECT = "MOVIE_DIRECT"          # Exact filmed moment in Movies 1–8
     FAN_ART = "FAN_ART"                    # Existing fan art / illustration for novel-only scene
     OFFICIAL_ARTWORK = "OFFICIAL_ARTWORK"  # Officially licensed/published artwork
+    NOVEL_PARCHMENT = "NOVEL_PARCHMENT"    # Canonical novel parchment quote card / original text
     NO_VALID_VISUAL = "NO_VALID_VISUAL"    # No truthful visual available; adapt or flag
+
 
 
 class ArtistLicenseStatus(str, Enum):

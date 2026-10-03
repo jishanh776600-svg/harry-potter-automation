@@ -170,6 +170,12 @@ class EditorialTimelineV2:
     topic_id: str
     total_duration_seconds: float
     total_cuts: int
+    content_id: str = ""
+    narration_hash: str = ""
+    proposition_hash: str = ""
+    visual_plan_id: str = ""
+    source_evidence_hash: str = ""
+    render_fingerprint: str = ""
     units: List[EditorialUnit] = field(default_factory=list)
     fact_counters: List[Dict[str, Any]] = field(default_factory=list)
     deterministic_fingerprint: str = ""
@@ -178,8 +184,8 @@ class EditorialTimelineV2:
     quality_audit: Dict[str, Any] = field(default_factory=dict)
 
     def calculate_fingerprint(self, config_version: str = "v2.0") -> str:
-        """Computes deterministic 16-character SHA-256 fingerprint."""
-        raw_signature = f"{self.topic_id}:{config_version}:"
+        """Computes deterministic 16-character SHA-256 fingerprint bound to content and visual plan."""
+        raw_signature = f"{self.content_id}:{self.topic_id}:{self.narration_hash}:{self.visual_plan_id}:{config_version}:"
         for u in self.units:
             raw_signature += (
                 f"[{u.unit_id}|{u.asset_id}|{u.source_start:.2f}-{u.source_end:.2f}|"
@@ -194,6 +200,12 @@ class EditorialTimelineV2:
         return {
             "timeline_id": self.timeline_id,
             "topic_id": self.topic_id,
+            "content_id": self.content_id,
+            "narration_hash": self.narration_hash,
+            "proposition_hash": self.proposition_hash,
+            "visual_plan_id": self.visual_plan_id,
+            "source_evidence_hash": self.source_evidence_hash,
+            "render_fingerprint": self.render_fingerprint,
             "total_duration_seconds": round(self.total_duration_seconds, 3),
             "total_cuts": self.total_cuts,
             "deterministic_fingerprint": self.deterministic_fingerprint,

@@ -30,12 +30,13 @@ import soundfile as sf
 
 logger = logging.getLogger("VoicePauseCompressor")
 
-DEFAULT_MAX_PAUSE_SEC: float = 0.20
-DEFAULT_TARGET_PAUSE_SEC: float = 0.15
+PAUSE_COMPRESSION_FACTOR: float = 0.70
+DEFAULT_MAX_PAUSE_SEC: float = 0.14   # 30% reduction from 0.20s
+DEFAULT_TARGET_PAUSE_SEC: float = 0.105 # 30% reduction from 0.15s
 DEFAULT_SILENCE_RMS_THRESH: float = 0.012
 DEFAULT_FRAME_MS: float = 10.0
-PRE_SPEECH_PAD_MS: float = 30.0   # 30ms hangover prevents clipping attack consonants (/s/, /t/, /p/, /k/)
-POST_SPEECH_PAD_MS: float = 40.0  # 40ms hangover prevents clipping releases and trailing sibilants
+PRE_SPEECH_PAD_MS: float = 25.0   # 25ms hangover prevents clipping attack consonants while eliminating drag
+POST_SPEECH_PAD_MS: float = 30.0  # 30ms hangover prevents clipping releases while eliminating drag
 CROSSFADE_MS: float = 5.0         # 5ms smooth crossfade across spliced silence points
 
 
@@ -157,8 +158,8 @@ class VoicePauseCompressor:
         max_pause_sec: float = DEFAULT_MAX_PAUSE_SEC,
         target_pause_sec: float = DEFAULT_TARGET_PAUSE_SEC,
         rms_thresh: float = DEFAULT_SILENCE_RMS_THRESH,
-        leading_silence_max_sec: float = 0.10,
-        trailing_silence_max_sec: float = 0.18,
+        leading_silence_max_sec: float = 0.07,
+        trailing_silence_max_sec: float = 0.12,
     ) -> Dict[str, Any]:
         """
         Compresses any silence gap > max_pause_sec down to target_pause_sec (<= max_pause_sec).

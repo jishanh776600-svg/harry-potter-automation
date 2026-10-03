@@ -74,14 +74,16 @@ class RenderEngine:
         duration: float,
         output_path: Path,
         motion: str = "none",
-        overlay_image: Optional[Path] = None
+        overlay_image: Optional[Path] = None,
+        allow_loop: bool = False,
     ) -> Path:
         """
         Renders a video clip into a 1080x1920 vertical 9:16 MP4 clip.
-        Uses intelligent center-crop scaling and automatic looping for shorter clips.
         Maintains native moving video at 30 fps (never freeze-frames with zoompan).
         Supports optional overlay compositing.
+        Semantic looping is strictly disabled by default (allow_loop=False).
         """
+        loop_args = ["-stream_loop", "-1"] if allow_loop else []
         if overlay_image and Path(overlay_image).exists():
             vf_filter = (
                 f"[0:v]scale={VIDEO_WIDTH}:{VIDEO_HEIGHT}:force_original_aspect_ratio=increase,"
@@ -91,7 +93,7 @@ class RenderEngine:
             )
             cmd = [
                 FFMPEG_EXE, "-y",
-                "-stream_loop", "-1",
+                *loop_args,
                 "-ss", "0",
                 "-i", str(video_path),
                 "-i", str(overlay_image),
@@ -115,7 +117,7 @@ class RenderEngine:
             )
             cmd = [
                 FFMPEG_EXE, "-y",
-                "-stream_loop", "-1",
+                *loop_args,
                 "-ss", "0",
                 "-i", str(video_path),
                 "-t", str(duration),
@@ -215,14 +217,22 @@ class RenderEngine:
         duration: float,
         motion: str,
         output_path: Path,
-        overlay_image: Optional[Path] = None
+        overlay_image: Optional[Path] = None,
+        allow_loop: bool = False,
     ) -> Path:
         """
         Polymorphic shot renderer: dispatches to video or image rendering based on file extension/type.
         """
         suffix = media_path.suffix.lower()
         if suffix in [".mp4", ".mov", ".mkv", ".webm"]:
-            out = self.render_video_shot_clip(media_path, duration, output_path, motion=motion, overlay_image=overlay_image)
+            out = self.render_video_shot_clip(
+                media_path,
+                duration,
+                output_path,
+                motion=motion,
+                overlay_image=overlay_image,
+                allow_loop=allow_loop,
+            )
         else:
             out = self.render_image_shot_clip(media_path, duration, motion, output_path)
 
@@ -231,7 +241,14 @@ class RenderEngine:
             logger.warning(f"[AUTO_REPAIR] Shot clip {output_path.name} failed visual validation. Auto-repairing with safe moving asset.")
             safe_asset = self.get_safe_fallback_video()
             if safe_asset.suffix.lower() in [".mp4", ".mov", ".mkv", ".webm"]:
-                out = self.render_video_shot_clip(safe_asset, duration, output_path, motion=motion, overlay_image=overlay_image)
+                out = self.render_video_shot_clip(
+                    safe_asset,
+                    duration,
+                    output_path,
+                    motion=motion,
+                    overlay_image=overlay_image,
+                    allow_loop=allow_loop,
+                )
             else:
                 out = self.render_image_shot_clip(safe_asset, duration, motion, output_path)
         return out
@@ -246,11 +263,13 @@ class RenderEngine:
         ass_subtitle_path: Optional[Path] = None,
         bgm_mood: Optional[str] = None,
         motion_style: Optional[str] = None,
-        editing_plan: Optional[Any] = None
+        editing_plan: Optional[Any] = None,
+        strict_no_loop: bool = True,
     ) -> RenderOutput:
         """
         Assembles all shots, applies editing plan directives, muxes master audio (with SFX + BGM),
         burns subtitles, and outputs final 1080x1920 vertical MP4.
+        Enforces strict anti-loop policy (strict_no_loop=True by default).
         """
         temp_clips = []
         concat_list_path = self.renders_dir / f"concat_{job_id}.txt"
@@ -293,6 +312,12 @@ class RenderEngine:
         target_dur = max(total_visual_dur, audio_dur)
         if target_dur > total_visual_dur and shots_data:
             deficit = target_dur - total_visual_dur
+            if strict_no_loop and deficit > 0.1:
+                raise ValueError(
+                    f"INSUFFICIENT_VISUAL_COVERAGE: Visual duration ({total_visual_dur:.2f}s) is shorter than "
+                    f"master audio duration ({target_dur:.2f}s) by {deficit:.2f}s. "
+                    f"Semantic loop/extension fallback is strictly prohibited."
+                )
             shots_data[-1]["duration"] = round(shots_data[-1]["duration"] + deficit, 2)
             logger.info(f"[RENDER_SYNC] Extended final shot by {deficit:.2f}s to match master audio duration ({target_dur:.2f}s)")
 
@@ -340,7 +365,8 @@ class RenderEngine:
                     duration=shot["duration"],
                     motion=motion,
                     output_path=clip_out,
-                    overlay_image=overlay_path
+                    overlay_image=overlay_path,
+                    allow_loop=not strict_no_loop,
                 )
                 temp_clips.append(clip_out)
                 clean_clip_path = str(clip_out).replace("\\", "/")

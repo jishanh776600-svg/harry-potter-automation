@@ -38,6 +38,11 @@ from engines.beast.beast_v2_action_verifier import (
     BeastV2ActionVerifier,
 )
 from core.beast_v2_types import ActionCategory
+from core.composition_models import NormalizedBBox, ShotScale
+from engines.visual_evidence.subject_aware_composition import (
+    SubjectAwareCompositionEngine,
+    PostCropVerificationResult,
+)
 
 logger = logging.getLogger("VisualEvidenceValidator")
 
@@ -47,8 +52,13 @@ class VisualEvidenceValidator:
     Proposition-level video evidence validation engine.
     """
 
-    def __init__(self, config: Optional[EvidenceValidatorConfig] = None):
+    def __init__(
+        self,
+        config: Optional[EvidenceValidatorConfig] = None,
+        composition_engine: Optional[SubjectAwareCompositionEngine] = None,
+    ):
         self.config = config or EvidenceValidatorConfig()
+        self.composition_engine = composition_engine or SubjectAwareCompositionEngine()
 
     def validate_candidate(
         self,
@@ -138,9 +148,17 @@ class VisualEvidenceValidator:
             temporal_alignment = 0.3
 
         # --- B. Subject Check ---
+        prop_text = " ".join(filter(None, [
+            str(prop_dict.get("claim", "")),
+            str(prop_dict.get("narration_text", "")),
+            str(prop_dict.get("text", "")),
+            str(prop_dict.get("narration", "")),
+            str(prop_dict.get("action", "")),
+        ]))
         subject_alignment, subj_ok, subj_reason = self._check_subject(
             expected_subject=prop_dict.get("subject"),
             observed=observed,
+            prop_text=prop_text,
         )
         if not subj_ok:
             rejection_reasons.append(EvidenceRejectionReason.SUBJECT_MISMATCH)
@@ -190,6 +208,55 @@ class VisualEvidenceValidator:
             rejection_reasons.append(EvidenceRejectionReason.CONTEXT_MISMATCH)
             vetoes.append(ctx_reason)
 
+        # --- F. Post-Crop 16:9 -> 9:16 Composition & Safe-Zone Check ---
+        cand_bboxes = []
+        raw_bbox = cand_dict.get("subject_bbox") or (cand_dict.get("metadata") or {}).get("subject_bbox")
+        if raw_bbox:
+            if isinstance(raw_bbox, NormalizedBBox):
+                cand_bboxes.append(raw_bbox)
+            elif isinstance(raw_bbox, dict):
+                cand_bboxes.append(NormalizedBBox(
+                    x=float(raw_bbox.get("x", 0.38)),
+                    y=float(raw_bbox.get("y", 0.15)),
+                    w=float(raw_bbox.get("w", 0.24)),
+                    h=float(raw_bbox.get("h", 0.75)),
+                ))
+            elif isinstance(raw_bbox, (list, tuple)) and len(raw_bbox) == 4:
+                cand_bboxes.append(NormalizedBBox(
+                    x=float(raw_bbox[0]), y=float(raw_bbox[1]), w=float(raw_bbox[2]), h=float(raw_bbox[3])
+                ))
+
+        raw_bboxes_list = cand_dict.get("subject_bboxes") or (cand_dict.get("metadata") or {}).get("subject_bboxes")
+        if raw_bboxes_list and isinstance(raw_bboxes_list, list):
+            for rb in raw_bboxes_list:
+                if isinstance(rb, NormalizedBBox):
+                    cand_bboxes.append(rb)
+                elif isinstance(rb, dict):
+                    cand_bboxes.append(NormalizedBBox(
+                        x=float(rb.get("x", 0.38)), y=float(rb.get("y", 0.15)),
+                        w=float(rb.get("w", 0.24)), h=float(rb.get("h", 0.75)),
+                    ))
+
+        shot_scale = cand_dict.get("shot_scale") or (cand_dict.get("metadata") or {}).get("shot_scale") or "MEDIUM"
+        is_two_shot = str(shot_scale).upper() in ("TWO_SHOT", "GROUP_SHOT")
+
+        post_crop = self.composition_engine.compute_crop_and_verify(
+            subject_bboxes=cand_bboxes if cand_bboxes else None,
+            shot_scale=shot_scale,
+            is_two_shot=is_two_shot,
+        )
+
+        if not post_crop.is_valid or not post_crop.safe_zone_passed:
+            if post_crop.primary_rejection_reason == "CROP_MULTI_SUBJECT_LOST":
+                rejection_reasons.append(EvidenceRejectionReason.CROP_MULTI_SUBJECT_LOST)
+            elif post_crop.primary_rejection_reason == "CROP_SAFE_ZONE_VIOLATION":
+                rejection_reasons.append(EvidenceRejectionReason.CROP_SAFE_ZONE_VIOLATION)
+            elif post_crop.primary_rejection_reason == "CROP_SUBJECT_OUTSIDE":
+                rejection_reasons.append(EvidenceRejectionReason.CROP_SUBJECT_OUTSIDE)
+            else:
+                rejection_reasons.append(EvidenceRejectionReason.CROP_SUBJECT_CLIPPED)
+            vetoes.append(f"Post-Crop Composition Veto: {post_crop.explanation}")
+
         # Compute composite score
         passed_gates = len(vetoes) == 0
         composite = (
@@ -225,7 +292,7 @@ class VisualEvidenceValidator:
             explanation = f"DIRECT evidence confirmed: Action '{observed.action}', Subject '{observed.subject}', Object '{observed.object}' in context '{observed.context}' with verified temporal action dynamics (confidence: {observed.temporal_action_confidence:.2f})."
         else:
             # Determine canonical primary rejection reason
-            # Phase violations (BEFORE/AFTER) and Action mismatches take top precedence
+            # Phase violations (BEFORE/AFTER), Action mismatches, and Crop failures take top precedence
             if EvidenceRejectionReason.BEFORE_PHASE_ONLY in rejection_reasons:
                 primary_reason = EvidenceRejectionReason.BEFORE_PHASE_ONLY
             elif EvidenceRejectionReason.AFTER_PHASE_ONLY in rejection_reasons:
@@ -236,6 +303,14 @@ class VisualEvidenceValidator:
                 primary_reason = EvidenceRejectionReason.ACTION_TRANSITION_MISSING
             elif EvidenceRejectionReason.SUBJECT_MISMATCH in rejection_reasons:
                 primary_reason = EvidenceRejectionReason.SUBJECT_MISMATCH
+            elif EvidenceRejectionReason.CROP_MULTI_SUBJECT_LOST in rejection_reasons:
+                primary_reason = EvidenceRejectionReason.CROP_MULTI_SUBJECT_LOST
+            elif EvidenceRejectionReason.CROP_SUBJECT_OUTSIDE in rejection_reasons:
+                primary_reason = EvidenceRejectionReason.CROP_SUBJECT_OUTSIDE
+            elif EvidenceRejectionReason.CROP_SUBJECT_CLIPPED in rejection_reasons:
+                primary_reason = EvidenceRejectionReason.CROP_SUBJECT_CLIPPED
+            elif EvidenceRejectionReason.CROP_SAFE_ZONE_VIOLATION in rejection_reasons:
+                primary_reason = EvidenceRejectionReason.CROP_SAFE_ZONE_VIOLATION
             elif EvidenceRejectionReason.OBJECT_MISSING in rejection_reasons:
                 primary_reason = EvidenceRejectionReason.OBJECT_MISSING
             elif EvidenceRejectionReason.CONTEXT_MISMATCH in rejection_reasons:
@@ -327,6 +402,7 @@ class VisualEvidenceValidator:
                 "passed_gates": passed_gates,
             },
             evidence_trace=evidence_trace,
+            crop_composition=post_crop.to_dict(),
         )
 
     # --------------------------------------------------------------------------
@@ -337,8 +413,26 @@ class VisualEvidenceValidator:
         self,
         expected_subject: Optional[str],
         observed: ObservedProposition,
+        prop_text: str = "",
     ) -> Tuple[float, bool, str]:
+        # Scan proposition text for explicitly named entities
+        named_entities_found = []
+        if prop_text:
+            text_lower = prop_text.lower()
+            for canonical, aliases in CHARACTER_ALIASES.items():
+                if any(re.search(rf"\b{re.escape(a)}\b", text_lower) for a in aliases):
+                    if canonical not in named_entities_found:
+                        named_entities_found.append(canonical)
+
         if not expected_subject or expected_subject.strip().lower() in ("none", "", "ambient", "environment"):
+            # RESTRICT AMBIENT ESCAPE HATCH:
+            # If narration explicitly names an entity, downgrade to ambient is FORBIDDEN.
+            if named_entities_found:
+                entity_list = ", ".join(named_entities_found)
+                return 0.0, False, (
+                    f"Ambient bypass rejected: narration explicitly names entity ({entity_list}). "
+                    f"Named entity verification is mandatory."
+                )
             return 1.0, True, ""
 
         exp_clean = expected_subject.strip().lower()
@@ -358,7 +452,8 @@ class VisualEvidenceValidator:
         # Check aliases
         for canonical, aliases in CHARACTER_ALIASES.items():
             if norm_exp == canonical:
-                if any(a in " ".join(observed.detected_subjects) for a in aliases):
+                obs_text = " ".join(observed.detected_subjects).lower()
+                if any(re.search(rf"\b{re.escape(a)}\b", obs_text) for a in aliases):
                     return 1.0, True, ""
 
         return 0.0, False, f"Subject Mismatch: Expected '{expected_subject}' but observed subjects are '{observed.detected_subjects or 'None'}'"
@@ -497,6 +592,7 @@ class VisualEvidenceValidator:
             p = dict(prop)
             return {
                 "proposition_id": p.get("proposition_id", "prop_01"),
+                "claim": p.get("claim") or p.get("narration") or p.get("narration_text") or p.get("text") or "",
                 "subject": p.get("subject") or p.get("primary_subject"),
                 "action": p.get("action") or p.get("required_action"),
                 "object": p.get("object") or (p.get("required_objects")[0] if p.get("required_objects") else None),
@@ -506,6 +602,7 @@ class VisualEvidenceValidator:
             }
         return {
             "proposition_id": getattr(prop, "proposition_id", "prop_01"),
+            "claim": getattr(prop, "claim", getattr(prop, "narration", getattr(prop, "text", ""))),
             "subject": getattr(prop, "subject", getattr(prop, "primary_subject", None)),
             "action": getattr(prop, "action", getattr(prop, "required_action", None)),
             "object": getattr(prop, "object", None) or (getattr(prop, "required_objects", [None])[0] if getattr(prop, "required_objects", None) else None),
@@ -530,4 +627,7 @@ class VisualEvidenceValidator:
             "scene_description": getattr(cand, "scene_description", ""),
             "metadata": getattr(cand, "metadata", {}),
             "media_type": getattr(cand, "media_type", "video"),
+            "subject_bbox": getattr(cand, "subject_bbox", None),
+            "subject_bboxes": getattr(cand, "subject_bboxes", None),
+            "shot_scale": getattr(cand, "shot_scale", "MEDIUM"),
         }

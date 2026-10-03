@@ -38,6 +38,14 @@ from engines.editorial.pacing_engine import EditorialPacingEngine
 from engines.editorial.treatment_selector import EditorialTreatmentSelector
 from engines.editorial.caption_sfx_intelligence import CaptionSFXIntelligence
 from engines.movie_retrieval_engine import MovieRetrievalEngine
+from core.visual_artifact_lineage import (
+    compute_narration_hash,
+    compute_proposition_hash,
+    compute_evidence_hash,
+    compute_timeline_hash,
+    compute_visual_plan_id,
+    compute_render_fingerprint,
+)
 
 logger = logging.getLogger("EditorialPlanner")
 
@@ -438,12 +446,64 @@ class EditorialPlanner:
         current_time += payoff_dur
 
         # ----------------------------------------------------------------------
-        # D. TIMELINE ASSEMBLY & QUALITY AUDIT
+        # D. TIMELINE ASSEMBLY & QUALITY AUDIT (WITH STRICT LINEAGE BINDING)
         # ----------------------------------------------------------------------
+        content_id = str(getattr(topic_pack, "topic_id", "content_default"))
+        if narration_script and getattr(narration_script, "full_text", None):
+            narration_text = narration_script.full_text
+        else:
+            fact_texts = " ".join((f.claim or "") for f in getattr(topic_pack, "facts", []))
+            narration_text = f"{hook_text} {fact_texts} {payoff_text}".strip()
+
+        narr_hash = compute_narration_hash(narration_text)
+        prop_list = getattr(topic_pack, "propositions", []) or []
+        prop_hash = compute_proposition_hash(prop_list)
+        ev_hash = compute_evidence_hash([
+            {
+                "cand_id": m.candidate_id,
+                "prop_id": m.verification_metadata.get("proposition_id", m.candidate_id),
+                "asset_id": m.asset_id,
+                "src_interval": (m.source_start, m.source_end),
+                "evidence_class": m.evidence_type.value if hasattr(m.evidence_type, "value") else str(m.evidence_type),
+            }
+            for m in beast_matches
+        ])
+        time_hash = compute_timeline_hash([
+            {
+                "shot_idx": u.unit_id,
+                "cand_id": getattr(u, "candidate_id", u.proposition_id),
+                "timeline_start": u.narration_start,
+                "duration": u.duration_seconds,
+                "timeline_end": u.narration_end,
+            }
+            for u in units
+        ])
+        v_plan_id = compute_visual_plan_id(
+            content_id=content_id,
+            topic_id=topic_pack.topic_id,
+            narration_hash=narr_hash,
+            proposition_hash=prop_hash,
+            evidence_hash=ev_hash,
+            timeline_hash=time_hash,
+        )
+        r_fingerprint = compute_render_fingerprint(
+            content_id=content_id,
+            narration_hash=narr_hash,
+            visual_plan_id=v_plan_id,
+            evidence_hash=ev_hash,
+            timeline_hash=time_hash,
+        )
+
         timeline_id = f"timeline_{topic_pack.topic_id}"
         timeline = EditorialTimelineV2(
             timeline_id=timeline_id,
             topic_id=topic_pack.topic_id,
+            content_id=content_id,
+            narration_hash=narr_hash,
+            proposition_hash=prop_hash,
+            visual_plan_id=v_plan_id,
+            source_evidence_hash=ev_hash,
+            render_fingerprint=r_fingerprint,
             total_duration_seconds=round(current_time, 3),
             total_cuts=len(units),
             units=units,

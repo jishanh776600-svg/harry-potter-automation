@@ -430,7 +430,8 @@ class MovieAssetEngine:
         duration_seconds: float,
         output_clip_path: Path,
         target_width: int = 1080,
-        target_height: int = 1920
+        target_height: int = 1920,
+        custom_vf: Optional[str] = None
     ) -> Path:
         """
         CRITICAL AUDIO MUTING INVARIANT:
@@ -440,6 +441,8 @@ class MovieAssetEngine:
         """
         output_clip_path.parent.mkdir(parents=True, exist_ok=True)
 
+        vf = custom_vf if custom_vf else f"crop=ih*9/16:ih,scale={target_width}:{target_height}"
+
         # Explicit FFmpeg command with -an (disable audio) and 9:16 vertical crop
         cmd = [
             "ffmpeg", "-y",
@@ -447,8 +450,9 @@ class MovieAssetEngine:
             "-i", str(video_input_path),
             "-t", str(round(duration_seconds, 3)),
             "-an",  # HARD INVARIANT: STRIP ALL AUDIO
-            "-vf", f"crop=ih*9/16:ih,scale={target_width}:{target_height}",
+            "-vf", vf,
             "-c:v", "libx264",
+
             "-preset", "fast",
             "-crf", "20",
             "-pix_fmt", "yuv420p",

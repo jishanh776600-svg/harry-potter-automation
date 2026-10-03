@@ -4,9 +4,20 @@
     "scene": "Peeves causing chaos in Hogwarts Great Hall",
     "title": "Peeves causing chaos in Hogwarts Great Hall",
     "description": "Peeves the Poltergeist dropping water balloons and juggling goblets above the Hogwarts Great Hall feast tables while students duck for cover",
-    "characters": ["Peeves"],
-    "actions": ["chaos", "dropping water balloons", "juggling goblets", "tormenting students"],
-    "objects": ["water balloons", "goblets", "tables"],
+    "characters": [
+      "Peeves"
+    ],
+    "actions": [
+      "chaos",
+      "dropping water balloons",
+      "juggling goblets",
+      "tormenting students"
+    ],
+    "objects": [
+      "water balloons",
+      "goblets",
+      "tables"
+    ],
     "location": "Great Hall",
     "book_number": 1,
     "chapter_number": 7,
@@ -23,7 +34,16 @@
     "local_path": "data/artworks/test_artwork_sample.jpg",
     "image_hash": "c9531394c528dfd523f0a1f336a343644a4eaddcaf074114521a671511563b94",
     "file_size_bytes": 24593,
-    "tags": ["peeves", "poltergeist", "chaos", "great hall", "feast", "ghost", "floating", "students"],
+    "tags": [
+      "peeves",
+      "poltergeist",
+      "chaos",
+      "great hall",
+      "feast",
+      "ghost",
+      "floating",
+      "students"
+    ],
     "is_official": false
   },
   {
@@ -31,9 +51,21 @@
     "scene": "Neville Longbottom pleading with the Sorting Hat for Hufflepuff",
     "title": "Neville Longbottom pleading with the Sorting Hat for Hufflepuff",
     "description": "Young Neville Longbottom sitting on the sorting stool under the oversized Sorting Hat whispering desperately for Hufflepuff",
-    "characters": ["Neville Longbottom", "Neville"],
-    "actions": ["pleading", "whispering", "sorting", "sitting on stool"],
-    "objects": ["Sorting Hat", "sorting stool", "robes"],
+    "characters": [
+      "Neville Longbottom",
+      "Neville"
+    ],
+    "actions": [
+      "pleading",
+      "whispering",
+      "sorting",
+      "sitting on stool"
+    ],
+    "objects": [
+      "Sorting Hat",
+      "sorting stool",
+      "robes"
+    ],
     "location": "Great Hall",
     "book_number": 1,
     "chapter_number": 7,
@@ -50,7 +82,16 @@
     "local_path": null,
     "image_hash": null,
     "file_size_bytes": null,
-    "tags": ["neville", "longbottom", "sorting hat", "hufflepuff", "gryffindor", "plea", "stool", "sorting"],
+    "tags": [
+      "neville",
+      "longbottom",
+      "sorting hat",
+      "hufflepuff",
+      "gryffindor",
+      "plea",
+      "stool",
+      "sorting"
+    ],
     "is_official": false
   },
   {
@@ -58,9 +99,23 @@
     "scene": "Snape's Potion Riddle Chamber with Black and Purple Fire",
     "title": "Snape's Potion Riddle Chamber with Black and Purple Fire",
     "description": "Seven potion bottles on a stone table flanked by roaring purple and black magical flames inside the underground chamber with Hermione solving the riddle",
-    "characters": ["Hermione Granger", "Harry Potter", "Hermione", "Harry"],
-    "actions": ["solving riddle", "facing fire", "holding potion bottle"],
-    "objects": ["potion bottles", "black fire", "purple fire", "parchment roll"],
+    "characters": [
+      "Hermione Granger",
+      "Harry Potter",
+      "Hermione",
+      "Harry"
+    ],
+    "actions": [
+      "solving riddle",
+      "facing fire",
+      "holding potion bottle"
+    ],
+    "objects": [
+      "potion bottles",
+      "black fire",
+      "purple fire",
+      "parchment roll"
+    ],
     "location": "Potions Chamber beneath trapdoor",
     "book_number": 1,
     "chapter_number": 16,
@@ -77,7 +132,17 @@
     "local_path": null,
     "image_hash": null,
     "file_size_bytes": null,
-    "tags": ["snape", "potion", "riddle", "fire", "hermione", "flames", "bottles", "chamber", "trapdoor"],
+    "tags": [
+      "snape",
+      "potion",
+      "riddle",
+      "fire",
+      "hermione",
+      "flames",
+      "bottles",
+      "chamber",
+      "trapdoor"
+    ],
     "is_official": false
   },
   {
@@ -85,16 +150,28 @@
     "scene": "The Mirror of Erised Official Chapter Illustration",
     "title": "The Mirror of Erised Official Chapter Illustration",
     "description": "Harry gazing into the ornate golden Mirror of Erised seeing his parents standing behind him",
-    "characters": ["Harry Potter", "James Potter", "Lily Potter", "Harry"],
-    "actions": ["gazing into mirror", "seeing parents", "reflection"],
-    "objects": ["Mirror of Erised", "golden frame"],
+    "characters": [
+      "Harry Potter",
+      "James Potter",
+      "Lily Potter",
+      "Harry"
+    ],
+    "actions": [
+      "gazing into mirror",
+      "seeing parents",
+      "reflection"
+    ],
+    "objects": [
+      "Mirror of Erised",
+      "golden frame"
+    ],
     "location": "Disused Classroom",
     "book_number": 1,
     "chapter_number": 12,
     "source_type": "OFFICIAL_ARTWORK",
     "source_url": "https://scholastic.com/harrypotter/chapter-art",
     "original_url": null,
-    "creator": "Mary GrandPré",
+    "creator": "Mary GrandPr\u00e9",
     "license_name": "Scholastic Official Illustration (Editorial Reference)",
     "license_url": "https://scholastic.com/terms",
     "artist_license_status": "ARTIST_LICENSE_VERIFIED",
@@ -104,7 +181,218 @@
     "local_path": null,
     "image_hash": null,
     "file_size_bytes": null,
-    "tags": ["harry", "mirror of erised", "parents", "james", "lily", "official", "illustration"],
+    "tags": [
+      "harry",
+      "mirror of erised",
+      "parents",
+      "james",
+      "lily",
+      "official",
+      "illustration"
+    ],
     "is_official": true
+  },
+  {
+    "asset_id": "art_disc_voldemort_death_novel_great_hall",
+    "scene": "The Final Confrontation: Harry Potter and Voldemort Duel in the Great Hall",
+    "title": "The Flaw in the Plan: Harry Potter and Voldemort Duel Witnessed by the Whole School",
+    "description": "Harry Potter and Lord Voldemort circling each other and casting spells in the ruined Great Hall surrounded by students, teachers, and defenders of Hogwarts during their final duel as depicted in the novel Harry Potter and the Deathly Hallows",
+    "characters": [
+      "Harry Potter",
+      "Lord Voldemort",
+      "Harry",
+      "Voldemort"
+    ],
+    "actions": [
+      "circling",
+      "dueling",
+      "final confrontation",
+      "spell clash",
+      "dying mortal death",
+      "falling with a thud"
+    ],
+    "objects": [
+      "Elder Wand",
+      "phoenix feather wand",
+      "spell collision"
+    ],
+    "location": "Great Hall",
+    "book_number": 7,
+    "chapter_number": 36,
+    "source_type": "FAN_ART",
+    "source_url": "https://www.artstation.com/vladislavpantic",
+    "original_url": "https://www.artstation.com/artwork/flaw-in-the-plan",
+    "creator": "Vladislav Pantic",
+    "license_name": "Editorial Commentary & Transformative Critique",
+    "license_url": "https://creativecommons.org/licenses/by-nc/4.0/",
+    "artist_license_status": "ARTIST_LICENSE_VERIFIED",
+    "commercial_clearance": "COMMERCIAL_PRODUCTION_CLEARED",
+    "rights_status": "RIGHTS_VERIFIED",
+    "approval_status": "APPROVED",
+    "local_path": "data/artworks/voldemort_death_novel_high_res.png",
+    "image_hash": "8b5c1877d477853b285bd06e9cca68670c1889788865f8efcf285029e465063c",
+    "file_size_bytes": 1058200,
+    "tags": [
+      "voldemort",
+      "harry",
+      "duel",
+      "great hall",
+      "deathly hallows",
+      "novel",
+      "the flaw in the plan",
+      "mortal death",
+      "students",
+      "teachers",
+      "battle of hogwarts"
+    ],
+    "is_official": false
+  },
+  {
+    "asset_id": "fandom_3ca484b96d",
+    "scene": "B5C30 Peeves chasing Umbridge",
+    "title": "B5C30 Peeves chasing Umbridge",
+    "description": "Harry Potter Wiki canonical illustration: File:B5C30 Peeves chasing Umbridge.jpg",
+    "characters": [
+      "Peeves"
+    ],
+    "actions": [
+      "dropping water balloons chaos"
+    ],
+    "objects": [],
+    "location": "corridor",
+    "book_number": null,
+    "chapter_number": null,
+    "source_type": "FAN_ART",
+    "source_url": "https://harrypotter.fandom.com/wiki/File%3AB5C30%20Peeves%20chasing%20Umbridge.jpg",
+    "original_url": "https://static.wikia.nocookie.net/harrypotter/images/a/ad/B5C30_Peeves_chasing_Umbridge.jpg/revision/latest?cb=20241201161342",
+    "creator": "Harry Potter Wiki Contributor / Studio Archive",
+    "license_name": "Editorial Commentary & Transformative Critique",
+    "license_url": "https://www.fandom.com/licensing",
+    "artist_license_status": "ARTIST_LICENSE_VERIFIED",
+    "commercial_clearance": "COMMERCIAL_PRODUCTION_CLEARED",
+    "rights_status": "RIGHTS_VERIFIED",
+    "approval_status": "APPROVED",
+    "local_path": "data/artworks/downloads/fandom_3ca484b96d.webp",
+    "image_hash": "1ac1b0cb95822b10fe6590422f232d70f7990b580dbf9afbcd68fee9bfed88af",
+    "file_size_bytes": 1208264,
+    "tags": [
+      "fandom",
+      "wiki",
+      "illustration",
+      "novel_art"
+    ],
+    "is_official": false
+  },
+  {
+    "asset_id": "fandom_51ac01ad80",
+    "scene": "Dobby rescuing Garrick Ollivander and Luna Lovegood from Malfoy Manor DHF1",
+    "title": "Dobby rescuing Garrick Ollivander and Luna Lovegood from Malfoy Manor DHF1",
+    "description": "Harry Potter Wiki canonical illustration: File:Dobby rescuing Garrick Ollivander and Luna Lovegood from Malfoy Manor DHF1.jpg",
+    "characters": [
+      "Dobby",
+      "Lucius Malfoy"
+    ],
+    "actions": [
+      "house elf bound to Malfoy family contract"
+    ],
+    "objects": [],
+    "location": "Malfoy Manor",
+    "book_number": null,
+    "chapter_number": null,
+    "source_type": "FAN_ART",
+    "source_url": "https://harrypotter.fandom.com/wiki/File%3ADobby%20rescuing%20Garrick%20Ollivander%20and%20Luna%20Lovegood%20from%20Malfoy%20Manor%20DHF1.jpg",
+    "original_url": "https://static.wikia.nocookie.net/harrypotter/images/d/d7/Dobby_rescuing_Garrick_Ollivander_and_Luna_Lovegood_from_Malfoy_Manor_DHF1.jpg/revision/latest?cb=20160811204223",
+    "creator": "Harry Potter Wiki Contributor / Studio Archive",
+    "license_name": "Editorial Commentary & Transformative Critique",
+    "license_url": "https://www.fandom.com/licensing",
+    "artist_license_status": "ARTIST_LICENSE_VERIFIED",
+    "commercial_clearance": "COMMERCIAL_PRODUCTION_CLEARED",
+    "rights_status": "RIGHTS_VERIFIED",
+    "approval_status": "APPROVED",
+    "local_path": "data/artworks/downloads/fandom_51ac01ad80.webp",
+    "image_hash": "e89acc5a86061ab152947408499749b52e1be8aac28c20efe0f9854aedad1f0e",
+    "file_size_bytes": 275538,
+    "tags": [
+      "fandom",
+      "wiki",
+      "illustration",
+      "novel_art"
+    ],
+    "is_official": false
+  },
+  {
+    "asset_id": "fandom_f45440faf8",
+    "scene": "Dobby",
+    "title": "Dobby",
+    "description": "Harry Potter Wiki canonical illustration: File:Dobby.jpg",
+    "characters": [
+      "Dobby"
+    ],
+    "actions": [
+      "house-elf bound to Malfoys"
+    ],
+    "objects": [],
+    "location": null,
+    "book_number": null,
+    "chapter_number": null,
+    "source_type": "FAN_ART",
+    "source_url": "https://harrypotter.fandom.com/wiki/File%3ADobby.jpg",
+    "original_url": "https://static.wikia.nocookie.net/harrypotter/images/8/82/Dobby.jpg/revision/latest?cb=20230712061949",
+    "creator": "Harry Potter Wiki Contributor / Studio Archive",
+    "license_name": "Editorial Commentary & Transformative Critique",
+    "license_url": "https://www.fandom.com/licensing",
+    "artist_license_status": "ARTIST_LICENSE_VERIFIED",
+    "commercial_clearance": "COMMERCIAL_PRODUCTION_CLEARED",
+    "rights_status": "RIGHTS_VERIFIED",
+    "approval_status": "APPROVED",
+    "local_path": "data/artworks/downloads/fandom_f45440faf8.webp",
+    "image_hash": "e3d1612ec8c4a9f6a29b58cd02b42910b7bb8175814ef9787d84b0d22297e6fa",
+    "file_size_bytes": 119720,
+    "tags": [
+      "fandom",
+      "wiki",
+      "illustration",
+      "novel_art"
+    ],
+    "is_official": false
+  },
+  {
+    "asset_id": "fandom_535ba08527",
+    "scene": "B2C18M2 Dobby is freed",
+    "title": "B2C18M2 Dobby is freed",
+    "description": "Harry Potter Wiki canonical illustration: File:B2C18M2 Dobby is freed.jpg",
+    "characters": [
+      "Dobby"
+    ],
+    "actions": [
+      "Dobby wearing ragged pillowcase bound by ancient enchantment"
+    ],
+    "objects": [
+      "Ragged pillowcase",
+      "House-elf contract"
+    ],
+    "location": "Novel chapter illustration",
+    "book_number": null,
+    "chapter_number": null,
+    "source_type": "FAN_ART",
+    "source_url": "https://harrypotter.fandom.com/wiki/File%3AB2C18M2%20Dobby%20is%20freed.jpg",
+    "original_url": "https://static.wikia.nocookie.net/harrypotter/images/7/72/B2C18M2_Dobby_is_freed.jpg/revision/latest?cb=20241204222702",
+    "creator": "Harry Potter Wiki Contributor / Studio Archive",
+    "license_name": "Editorial Commentary & Transformative Critique",
+    "license_url": "https://www.fandom.com/licensing",
+    "artist_license_status": "ARTIST_LICENSE_VERIFIED",
+    "commercial_clearance": "COMMERCIAL_PRODUCTION_CLEARED",
+    "rights_status": "RIGHTS_VERIFIED",
+    "approval_status": "APPROVED",
+    "local_path": "data/artworks/downloads/fandom_535ba08527.webp",
+    "image_hash": "9e1a51ecf7c5b3783a6ee90727baf0d60e45aa7af250a1c0e0c0fe157c19a341",
+    "file_size_bytes": 170426,
+    "tags": [
+      "fandom",
+      "wiki",
+      "illustration",
+      "novel_art"
+    ],
+    "is_official": false
   }
 ]

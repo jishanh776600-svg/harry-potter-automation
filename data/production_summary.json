@@ -1,11 +1,12 @@
 {
-  "action": "PRODUCE_BATCH",
-  "outcome": "SUCCEEDED",
-  "block_reason": "Discovery Big candidate 'hps_disc_deathday_party_b2' failed: Rendering failed: Anti-Loop Violation for hps_disc_deathday_party_b2: Total unique visual coverage (18.00s) is less than narration duration (27.78s). Padding/looping is strictly prohibited; narration must be constrained by available footage.",
-  "requested_count": 1,
-  "produced_count": 1,
-  "initial_stock": 0,
-  "final_stock": 1,
+  "action": "MAINTAIN_BUFFER",
+  "outcome": "FAILED",
+  "block_reason": "Discovery Big candidate 'hps_disc_deathday_party_b2' failed: Rendering failed: Anti-Loop Violation for hps_disc_deathday_party_b2: Total unique visual coverage (18.00s) is less than narration duration (22.70s). Padding/looping is strictly prohibited; narration must be constrained by available footage.; Discovery Big candidate 'hps_disc_dobby_enslaved_malfoys_b2' failed: Rendering failed: FFmpeg render failed for hps_disc_dobby_enslaved_malfoys_b2: [fc#0 @ 000001328fe11900] Stream specifier ':v' in filtergraph description [0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920:(iw-1080)/2:(ih-1920)/2,fps=30,subtitles='data/captions/hps_disc_dobby_enslaved_malfoys_b2.ass':fontsdir='data/fonts',format=yuv420p[vout] matches no streams.\nError binding filtergraph inputs/outputs: Invalid argument\n",
+  "requested_deficit": 6,
+  "produced_count": 0,
+  "initial_stock": 2,
+  "final_stock": 2,
+  "target_stock": 8,
   "voice": "af_bella",
-  "timestamp": "2026-10-02T09:38:37.998724Z"
+  "timestamp": "2026-10-02T13:01:08.101922Z"
 }

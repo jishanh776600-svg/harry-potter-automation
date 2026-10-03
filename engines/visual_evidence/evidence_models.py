@@ -46,6 +46,10 @@ class EvidenceRejectionReason(str, Enum):
     DIRECT_EVIDENCE_INSUFFICIENT = "DIRECT_EVIDENCE_INSUFFICIENT"
     IMAGE_NOT_PERMITTED = "IMAGE_NOT_PERMITTED"
     INTERVAL_EXCEEDED = "INTERVAL_EXCEEDED"
+    CROP_SUBJECT_CLIPPED = "CROP_SUBJECT_CLIPPED"
+    CROP_SAFE_ZONE_VIOLATION = "CROP_SAFE_ZONE_VIOLATION"
+    CROP_MULTI_SUBJECT_LOST = "CROP_MULTI_SUBJECT_LOST"
+    CROP_SUBJECT_OUTSIDE = "CROP_SUBJECT_OUTSIDE"
     NONE = "NONE"
 
 
@@ -188,6 +192,7 @@ class EvidenceValidationResult:
     framing: str = "HYBRID_MODERATE_CROP"
     audit_metadata: Dict[str, Any] = field(default_factory=dict)
     evidence_trace: Dict[str, Any] = field(default_factory=dict)
+    crop_composition: Optional[Dict[str, Any]] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -210,4 +215,5 @@ class EvidenceValidationResult:
             "framing": self.framing,
             "audit_metadata": self.audit_metadata,
             "evidence_trace": self.evidence_trace,
+            "crop_composition": self.crop_composition,
         }

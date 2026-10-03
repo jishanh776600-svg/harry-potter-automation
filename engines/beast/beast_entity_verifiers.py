@@ -36,8 +36,32 @@ CHARACTER_ALIASES: Dict[str, Set[str]] = {
     "kreacher": {"kreacher", "house-elf", "house elf", "house-elves", "house elves"},
     "centaur": {"centaur", "centaurs", "bane", "ronan", "magorian", "firenze"},
     "peeves": {"peeves", "poltergeist"},
-    "lupin": {"lupin", "remus lupin", "professor lupin"},
+    "lupin": {"lupin", "remus lupin", "professor lupin", "remus"},
     "sirius": {"sirius", "sirius black", "padfoot"},
+    "ollivander": {"ollivander", "garrick ollivander", "mr ollivander", "wandmaker"},
+    "dementor": {"dementor", "dementors", "the dementor"},
+    "vernon": {"vernon", "vernon dursley", "uncle vernon", "mr dursley"},
+    "dudley": {"dudley", "dudley dursley"},
+    "petunia": {"petunia", "petunia dursley", "aunt petunia"},
+    "flitwick": {"flitwick", "filius flitwick", "professor flitwick"},
+    "ginny": {"ginny", "ginny weasley"},
+    "george": {"george", "george weasley"},
+    "fred": {"fred", "fred weasley"},
+    "arthur": {"arthur", "arthur weasley", "mr weasley"},
+    "cedric": {"cedric", "cedric diggory", "diggory"},
+    "luna": {"luna", "luna lovegood", "lovegood"},
+    "moody": {"moody", "mad-eye moody", "alastor moody", "mad-eye"},
+    "umbridge": {"umbridge", "dolores umbridge", "professor umbridge"},
+    "slughorn": {"slughorn", "horace slughorn", "professor slughorn"},
+    "filch": {"filch", "argus filch"},
+    "lockhart": {"lockhart", "gilderoy lockhart", "professor lockhart"},
+    "quirrell": {"quirrell", "professor quirrell"},
+    "dobby": {"dobby", "dobby the house-elf", "dobby the house elf"},
+    "fawkes": {"fawkes", "phoenix", "the phoenix"},
+    "basilisk": {"basilisk", "serpent of slytherin", "giant serpent"},
+    "buckbeak": {"buckbeak", "hippogriff"},
+    "thestral": {"thestral", "thestrals"},
+    "pettigrew": {"pettigrew", "peter pettigrew", "wormtail", "scabbers"},
 }
 
 # Object alias mapping
@@ -87,7 +111,9 @@ class BeastEntityVerifiers:
     def _normalize_name(name: str) -> str:
         clean = name.strip().lower()
         for canonical, aliases in CHARACTER_ALIASES.items():
-            if clean in aliases or any(a in clean for a in aliases):
+            if clean in aliases:
+                return canonical
+            if any(re.search(rf"\b{re.escape(a)}\b", clean) for a in aliases):
                 return canonical
         return clean
 
