@@ -1591,6 +1591,8 @@ class ShortsPipeline:
 
             all_eligible_candidates = fresh_ready_files + recovered_candidates
 
+            _detect_candidate_format = ShortsPipeline.detect_candidate_format
+
             # Enforce DISCOVERY_ONLY mode: filter out any NOVEL_STORY candidates
             is_disc_only = os.getenv("DISCOVERY_ONLY", "true").lower() in ("true", "1", "yes")
             if is_disc_only:
@@ -1636,8 +1638,6 @@ class ShortsPipeline:
 
             console.print(f"[bold green][*] Proactively scheduling {eligible_to_schedule} eligible Short(s) into earliest vacant slots across 2-day horizon...[/bold green]")
             scheduled_results = []
-
-            _detect_candidate_format = ShortsPipeline.detect_candidate_format
 
             # Cadence slot preferred formats (STORY FORGE 4 Shorts / day cadence):
             # 02:00 UTC -> NOVEL_STORY
