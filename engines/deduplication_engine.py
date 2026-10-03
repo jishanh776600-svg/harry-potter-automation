@@ -34,7 +34,9 @@ DEDUP_STOPWORDS = {
     # Harry Potter common channel anchors (prevent false cross-short collisions)
     "harry", "potter", "wizarding", "world", "hogwarts", "magic", "magical",
     "chapter", "part", "novel", "stone", "philosopher", "sorcerer",
-    "bella", "voiceover", "canonical", "source"
+    "bella", "voiceover", "canonical", "source", "did", "do", "does", "what",
+    "who", "which", "first", "second", "third", "finally", "discovery", "ron",
+    "hermione", "weasley"
 }
 
 GENERIC_DEDUP_ENTITIES = {
@@ -46,7 +48,10 @@ GENERIC_DEDUP_ENTITIES = {
     "doctor", "doctors", "author", "authors", "university", "science",
     # Production / Audio / Video / Channel generic terms
     "bella", "voiceover", "book", "canonical source", "canonical", "source",
-    "movie", "film", "audio", "footage", "scene", "scenes", "version", "adaptation"
+    "movie", "film", "audio", "footage", "scene", "scenes", "version", "adaptation",
+    "did", "do", "does", "why", "how", "what", "when", "where", "who", "which",
+    "first", "second", "third", "finally", "discovery", "ron", "hermione", "weasley",
+    "harry", "potter", "hogwarts"
 }
 
 # Thematic anchors that link events when exact year matches
