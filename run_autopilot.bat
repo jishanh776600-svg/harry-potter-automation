@@ -1,6 +1,6 @@
 @echo off
-title YouTube Shorts 100%% Autonomous Engine
-cd /d "C:\Users\jisha\OneDrive\Desktop\yt automation"
+title Harry Potter Shorts 100%% Autonomous Engine
+cd /d "%~dp0"
 
 :loop
 echo [%date% %time%] Starting autonomous Shorts daemon... >> autopilot.log

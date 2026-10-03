@@ -1,7 +1,7 @@
 import subprocess
 from pathlib import Path
 
-task_name = "YT_Shorts_Autopilot"
+task_name = "HP_Shorts_Autopilot"
 vbs_path = str((Path(__file__).resolve().parent / "run_silent.vbs").resolve())
 tr_cmd = f'wscript.exe "{vbs_path}"'
 
@@ -25,7 +25,7 @@ if res.stderr:
 # 3. Also add a Startup Folder shortcut as dual-redundancy
 startup_dir = Path.home() / "AppData" / "Roaming" / "Microsoft" / "Windows" / "Start Menu" / "Programs" / "Startup"
 if startup_dir.exists():
-    bat_link = startup_dir / "Start_YT_Autopilot.vbs"
+    bat_link = startup_dir / "Start_HP_Autopilot.vbs"
     with open(bat_link, "w", encoding="utf-8") as f:
         f.write(f'Set WshShell = CreateObject("WScript.Shell")\n')
         f.write(f'WshShell.Run chr(34) & "{vbs_path}" & chr(34), 0\n')
