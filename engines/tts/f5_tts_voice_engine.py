@@ -176,9 +176,11 @@ class F5TTSVoiceEngine:
         deess_gain_db: float = -2.0,
         target_lufs: float = -14.0,
         max_true_peak_db: float = -1.0,
+        max_silence_sec: float = 0.18,
     ) -> Dict[str, Any]:
         """
         Applies professional mastering matching the reference Short's broadcast character:
+        - Excessive pause compression (tightens pauses > 0.18s down to 0.18s)
         - 80 Hz high-pass (sub-rumble removal)
         - De-essing band notch at 6.5 kHz
         - Presence boost (+1.5 dB @ 2.5 kHz) for crispness
@@ -187,6 +189,44 @@ class F5TTSVoiceEngine:
         """
         out_wav_p = Path(processed_wav)
         out_wav_p.parent.mkdir(parents=True, exist_ok=True)
+
+        # 1. Compress excessive pauses
+        raw_p = Path(raw_wav)
+        tightened_raw = raw_p.parent / f"tight_{raw_p.name}"
+        try:
+            data, sr = sf.read(str(raw_p))
+            if data.ndim > 1:
+                data = data[:, 0]
+            thresh = 10 ** (-35.0 / 20.0) * np.max(np.abs(data))
+            win_len = int(sr * 0.01)
+            is_silent = np.zeros(len(data), dtype=bool)
+            for i in range(0, len(data), win_len):
+                c_chunk = data[i:i+win_len]
+                if len(c_chunk) > 0 and np.max(np.abs(c_chunk)) < thresh:
+                    is_silent[i:i+len(c_chunk)] = True
+
+            max_silent_samples = int(sr * max_silence_sec)
+            keep_mask = np.ones(len(data), dtype=bool)
+            in_sil = False
+            sil_start = 0
+            for i in range(len(data)):
+                if is_silent[i]:
+                    if not in_sil:
+                        in_sil = True
+                        sil_start = i
+                else:
+                    if in_sil:
+                        in_sil = False
+                        if (i - sil_start) > max_silent_samples:
+                            keep_mask[sil_start + max_silent_samples : i] = False
+            if in_sil and (len(data) - sil_start) > max_silent_samples:
+                keep_mask[sil_start + max_silent_samples :] = False
+
+            sf.write(str(tightened_raw), data[keep_mask], sr)
+            master_input = str(tightened_raw)
+        except Exception as e:
+            logger.warning(f"Silence compression notice: {e}. Using raw audio.")
+            master_input = raw_wav
 
         filter_chain = (
             f"highpass=f={highpass_hz},"
@@ -198,12 +238,18 @@ class F5TTSVoiceEngine:
 
         cmd_wav = [
             "ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
-            "-i", raw_wav,
+            "-i", master_input,
             "-af", filter_chain,
             "-ar", "44100", "-ac", "1",
             str(out_wav_p.resolve())
         ]
         subprocess.run(cmd_wav, check=True)
+
+        if tightened_raw.exists():
+            try:
+                tightened_raw.unlink(missing_ok=True)
+            except Exception:
+                pass
 
         if processed_mp3:
             out_mp3_p = Path(processed_mp3)
