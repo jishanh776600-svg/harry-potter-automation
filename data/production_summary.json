@@ -1,12 +1,12 @@
 {
   "action": "MAINTAIN_BUFFER",
-  "outcome": "PARTIAL",
-  "block_reason": "Discovery Big candidate 'hps_disc_deathday_party_b2' failed: Rendering failed: No module named 'py_visual_evidence'; Discovery Big candidate '2' failed: No eligible or discoverable DISCOVERY_BIG candidates available; Discovery Big candidate '2' failed: No eligible or discoverable DISCOVERY_BIG candidates available",
-  "requested_deficit": 6,
-  "produced_count": 1,
-  "initial_stock": 2,
-  "final_stock": 3,
+  "outcome": "FAILED",
+  "block_reason": "Discovery Big candidate 'hps_disc_deathday_party_b2' failed: Rendering failed: No module named 'py_visual_evidence'; Discovery Big candidate '1' failed: No eligible or discoverable DISCOVERY_BIG candidates available",
+  "requested_deficit": 7,
+  "produced_count": 0,
+  "initial_stock": 1,
+  "final_stock": 1,
   "target_stock": 8,
   "voice": "af_bella",
-  "timestamp": "2026-10-03T17:47:10.955592Z"
+  "timestamp": "2026-10-03T20:16:18.597898Z"
 }
