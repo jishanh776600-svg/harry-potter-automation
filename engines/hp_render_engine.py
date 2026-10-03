@@ -565,7 +565,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         input_args = []
         filter_parts = []
         for idx, clip_p in enumerate(shot_clips):
-            input_args.extend(["-i", str(clip_p)])
+            input_args.extend(["-threads", "1", "-i", str(clip_p)])
             filter_parts.append(
                 f"[{idx}:v]scale=1080:1920:force_original_aspect_ratio=increase,"
                 f"crop=1080:1920:(iw-1080)/2:(ih-1920)/2,setsar=1,fps=30[v{idx}];"
@@ -722,8 +722,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             if not script:
                 raise ValueError(f"Script {script_id} not found in database.")
 
-            # Query persisted movie shots from Step 9 chronologically by beat and shot index
-            shots = session.query(HPMovieClip).filter_by(script_id=script_id, match_status="ACCEPTED").order_by(HPMovieClip.beat_id.asc(), HPMovieClip.shot_index.asc()).all()
+            # Query persisted movie shots from Step 9 chronologically by integer shot_index
+            shots = session.query(HPMovieClip).filter_by(script_id=script_id, match_status="ACCEPTED").order_by(HPMovieClip.shot_index.asc()).all()
             if not shots:
                 raise ValueError(f"No accepted movie shots found for script {script_id}.")
 
