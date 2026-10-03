@@ -4605,5 +4605,208 @@
     ],
     "unsupported_claims": [],
     "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m1_great_hall_morning_mail_owls_arrival",
+    "movie_id": "hp_movie_1",
+    "movie_number": 1,
+    "scene_id": "m1_scene_great_hall_mail",
+    "start_time": 3242.0,
+    "end_time": 3258.0,
+    "characters_present": [
+      "Hogwarts Students",
+      "Owls"
+    ],
+    "primary_subject": "Owls",
+    "secondary_subjects": [
+      "Hogwarts Students",
+      "Neville Longbottom",
+      "Harry Potter"
+    ],
+    "action": "flock of post owls swoops through Great Hall dropping letters and parcels onto breakfast tables",
+    "target": "Great Hall breakfast tables",
+    "interaction_type": "delivery",
+    "location": "Great Hall",
+    "visible_objects": [
+      "owls",
+      "parcels",
+      "letters",
+      "breakfast tables",
+      "torches"
+    ],
+    "emotional_state": "anticipation",
+    "camera_scale": "WIDE_SHOT",
+    "camera_motion": "tracking",
+    "preceding_event": null,
+    "following_event": "evt_m1_great_hall_neville_opens_remembrall",
+    "dialogue_ref": "Mail's here!",
+    "visual_description": "Flock of school post owls sweeps dramatically into the Great Hall carrying parcels and letters down to seated students.",
+    "observable_claims": [
+      "Owls fly over tables",
+      "Parcels dropped onto tables",
+      "Students looking up"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m1_great_hall_neville_opens_remembrall",
+    "movie_id": "hp_movie_1",
+    "movie_number": 1,
+    "scene_id": "m1_scene_great_hall_mail",
+    "start_time": 3259.0,
+    "end_time": 3267.0,
+    "characters_present": [
+      "Neville Longbottom",
+      "Dean Thomas",
+      "Seamus Finnigan"
+    ],
+    "primary_subject": "Neville Longbottom",
+    "secondary_subjects": [
+      "Dean Thomas",
+      "Seamus Finnigan"
+    ],
+    "action": "unwraps parcel revealing glass Remembrall ball in grey sweater vest",
+    "target": "Remembrall",
+    "interaction_type": "inspection",
+    "location": "Great Hall Gryffindor table",
+    "visible_objects": [
+      "Remembrall",
+      "parcel box",
+      "Gryffindor sweater vest"
+    ],
+    "emotional_state": "curious",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "static",
+    "preceding_event": "evt_m1_great_hall_morning_mail_owls_arrival",
+    "following_event": "evt_m1_great_hall_remembrall_glows_red_smoke",
+    "dialogue_ref": "Hey, look, Neville's got a Remembrall!",
+    "visual_description": "Neville opens brown paper box at Gryffindor breakfast table revealing clear spherical glass Remembrall.",
+    "observable_claims": [
+      "Neville unboxes Remembrall",
+      "Dean and Seamus watch"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m1_great_hall_remembrall_glows_red_smoke",
+    "movie_id": "hp_movie_1",
+    "movie_number": 1,
+    "scene_id": "m1_scene_great_hall_mail",
+    "start_time": 3269.0,
+    "end_time": 3277.5,
+    "characters_present": [
+      "Neville Longbottom",
+      "Hermione Granger"
+    ],
+    "primary_subject": "Neville Longbottom",
+    "secondary_subjects": [
+      "Hermione Granger",
+      "Dean Thomas"
+    ],
+    "action": "close-up of glass Remembrall ball in Neville hand glowing with swirling red smoke",
+    "target": "Remembrall",
+    "interaction_type": "magical_reaction",
+    "location": "Great Hall Gryffindor table",
+    "visible_objects": [
+      "Remembrall",
+      "red smoke",
+      "glass ball"
+    ],
+    "emotional_state": "bewildered",
+    "camera_scale": "CLOSE_UP",
+    "camera_motion": "static",
+    "preceding_event": "evt_m1_great_hall_neville_opens_remembrall",
+    "following_event": "evt_m1_great_hall_students_in_black_robes",
+    "dialogue_ref": "I've read about those. When the smoke turns red, it means you've forgotten something.",
+    "visual_description": "Close-up of glass Remembrall in Neville's hand glowing with vivid crimson smoke, then medium shot of Neville bewildered in grey sweater vest.",
+    "observable_claims": [
+      "Remembrall turns crimson",
+      "Neville holds glowing ball",
+      "Neville wearing grey sweater vest"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m1_great_hall_students_in_black_robes",
+    "movie_id": "hp_movie_1",
+    "movie_number": 1,
+    "scene_id": "m1_scene_great_hall_mail",
+    "start_time": 3278.0,
+    "end_time": 3283.5,
+    "characters_present": [
+      "Harry Potter",
+      "Ron Weasley",
+      "Hermione Granger"
+    ],
+    "primary_subject": "Harry Potter",
+    "secondary_subjects": [
+      "Ron Weasley",
+      "Hermione Granger"
+    ],
+    "action": "sitting at Gryffindor table dressed in full black Hogwarts school robes reading mail",
+    "target": "Daily Prophet newspaper",
+    "interaction_type": "reading",
+    "location": "Great Hall Gryffindor table",
+    "visible_objects": [
+      "black Hogwarts robes",
+      "Daily Prophet",
+      "parchment letter"
+    ],
+    "emotional_state": "focused",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "static",
+    "preceding_event": "evt_m1_great_hall_remembrall_glows_red_smoke",
+    "following_event": null,
+    "dialogue_ref": "Can I borrow this?",
+    "visual_description": "Harry and Ron sit at table wearing proper black school robes over uniform ties reading the Daily Prophet.",
+    "observable_claims": [
+      "Harry and Ron wearing black robes",
+      "Hermione in foreground in black robe"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m1_great_hall_neville_sweater_forgotten_cloak",
+    "movie_id": "hp_movie_1",
+    "movie_number": 1,
+    "scene_id": "m1_scene_great_hall_mail",
+    "start_time": 3274.0,
+    "end_time": 3277.8,
+    "characters_present": [
+      "Neville Longbottom",
+      "Dean Thomas"
+    ],
+    "primary_subject": "Neville Longbottom",
+    "secondary_subjects": [
+      "Dean Thomas"
+    ],
+    "action": "close-up of Neville sitting in knit sweater vest and tie admitting he forgot his cloak",
+    "target": "sweater vest",
+    "interaction_type": "reaction",
+    "location": "Great Hall Gryffindor table",
+    "visible_objects": [
+      "sweater vest",
+      "Gryffindor tie",
+      "collared shirt",
+      "missing robe"
+    ],
+    "emotional_state": "confused",
+    "camera_scale": "CLOSE_UP",
+    "camera_motion": "static",
+    "preceding_event": "evt_m1_great_hall_remembrall_glows_red_smoke",
+    "following_event": null,
+    "dialogue_ref": "The only problem is, I can't remember what I've forgotten.",
+    "visual_description": "Close-up of Neville looking at classmates in his grey sweater vest and tie, having forgotten his black robe cloak.",
+    "observable_claims": [
+      "Neville in sweater vest",
+      "Neville without robe",
+      "Neville holding Remembrall"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
   }
 ]

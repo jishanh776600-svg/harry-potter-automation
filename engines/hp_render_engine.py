@@ -756,6 +756,14 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             voice_id=voice_id
         )
 
+        # HARD DURATION ENFORCEMENT: Target 25s ± 2-3s (Strict range [22.0s, 28.0s])
+        if not (22.0 <= narration_dur <= 28.0):
+            raise ValueError(
+                f"Hard Duration Gate Violation for {script_id}: Narration duration {narration_dur:.2f}s "
+                f"is strictly outside required range [22.0s, 28.0s] (Target: 25s ± 2-3s). "
+                "Script word count must strictly yield 22-28 seconds."
+            )
+
         # 2. Generate ASS Subtitles + Visual PART marker (only for Novel Story)
         ass_path = CAPTIONS_DIR / f"{script_id}.ass"
         self.generate_ass_captions(

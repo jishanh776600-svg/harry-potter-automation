@@ -377,13 +377,25 @@ class HPAutonomousRefillEngine:
                     f"[Refill:Render] Cache miss for {script_id}: Fingerprint mismatch "
                     f"({getattr(render_rec, 'render_fingerprint', None)} != {expected_fp[:8]}). Performing fresh render."
                 )
-            # Step 1: Ensure Movie Visual Shots exist in HPMovieClip
-            accepted_shots_count = session.query(HPMovieClip).filter_by(
+            # Step 1: Ensure Movie Visual Shots exist and are verified in HPMovieClip
+            existing_shots = session.query(HPMovieClip).filter_by(
                 script_id=script_id,
                 match_status="ACCEPTED"
-            ).count()
+            ).all()
 
-            if accepted_shots_count == 0:
+            # STRICT PURGE: Reject and re-resolve if any existing shots used corrupt atmospheric fillers
+            if existing_shots:
+                has_corrupt_shots = any(
+                    getattr(sh, "retrieval_query", "") == "Hogwarts Castle atmospheric transition"
+                    for sh in existing_shots
+                )
+                if has_corrupt_shots:
+                    logger.warning(f"[Refill:Visual] Found corrupt atmospheric placeholder shots for {script_id}. Purging...")
+                    session.query(HPMovieClip).filter_by(script_id=script_id).delete()
+                    session.commit()
+                    existing_shots = []
+
+            if not existing_shots:
                 logger.info(f"[Refill:Visual] Resolving movie shots for {script_id} via MovieRetrievalEngine...")
                 try:
                     retrieval_engine = MovieRetrievalEngine()
@@ -417,6 +429,21 @@ class HPAutonomousRefillEngine:
             except Exception as re:
                 logger.error(f"[Refill:Render] Render error for {script_id}: {re}", exc_info=True)
                 return False, script_id, f"Rendering failed: {re}"
+
+        # HARD DURATION ENFORCEMENT: Target 25s ± 2-3s (Strict range [22.0s, 28.0s])
+        try:
+            import subprocess
+            ffprobe_dur_cmd = [
+                "ffprobe", "-v", "error", "-show_entries", "format=duration",
+                "-of", "default=noprint_wrappers=1:nokey=1", str(video_path)
+            ]
+            ff_res = subprocess.run(ffprobe_dur_cmd, capture_output=True, text=True)
+            v_dur = float(ff_res.stdout.strip()) if ff_res.stdout.strip() else 0.0
+            if not (22.0 <= v_dur <= 28.0):
+                logger.error(f"[Refill:Vault] Video {video_path.name} duration {v_dur:.2f}s violated target [22.0s, 28.0s]. Refusing deposit to 01_READY.")
+                return False, script_id, f"Hard Duration Gate Failed: {v_dur:.2f}s is outside [22.0s, 28.0s] (Target 25s ± 2-3s)"
+        except Exception as dur_err:
+            logger.warning(f"Duration audit notice: {dur_err}")
 
         # Step 3: Cloud Vault Buffer Deposit (01_READY)
         try:

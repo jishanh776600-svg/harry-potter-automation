@@ -981,14 +981,20 @@ class MovieRetrievalEngine:
         Uses distinct high-confidence scene candidates or sub-cuts from focal scenes.
         Enforces strict anti-loop and interval uniqueness.
         """
+        req_characters = [c for c in beat.get("characters", []) if c.lower() not in ("hogwarts", "castle", "hogwarts castle")]
         valid_candidates = [
             c for c in ranked_candidates
             if c.get("score", 0.0) >= MIN_CONFIDENCE_THRESHOLD
         ]
 
         if not valid_candidates:
-            # Visual Confidence Hard-Gate: Zero guessing of incorrect character scenes.
-            # Fall back strictly to verified Atmospheric Hogwarts Establishing Shot.
+            if req_characters:
+                # STRICT SUBJECT INTEGRITY: Zero tolerance for atmospheric filler on character beats
+                raise ValueError(
+                    f"Subject Mismatch Gate Violation for beat '{beat.get('beat_id')}': "
+                    f"No movie scenes verified for required characters {req_characters}. "
+                    "Atmospheric filler is strictly banned for character beats."
+                )
             atm_cand = self.get_atmospheric_fallback_candidate(beat.get("preferred_movie_number"))
             valid_candidates = [atm_cand]
 
@@ -1118,8 +1124,8 @@ class MovieRetrievalEngine:
                     })
                     if used_intervals is not None:
                         used_intervals.append((m_num, c_start, c_end))
-        # Strategy D: If still fewer shots than target_shots_per_beat, fill with verified atmospheric shots
-        if len(shots) < target_shots_per_beat:
+        # Strategy D: If still fewer shots than target_shots_per_beat, ONLY fill with atmospheric if NO characters required
+        if len(shots) < target_shots_per_beat and not req_characters:
             atm_cand = self.get_atmospheric_fallback_candidate(beat.get("preferred_movie_number"))
             m_num = int(atm_cand["movie_number"])
             atm_start = float(atm_cand["start_seconds"])

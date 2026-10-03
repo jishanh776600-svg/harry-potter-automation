@@ -102,20 +102,20 @@ FORBIDDEN_VISUAL_TERMS = [
     "consistory", "pollinations", "midjourney", "dall-e", "stable diffusion"
 ]
 
-MIN_WORD_COUNT = 55
-MAX_WORD_COUNT = 75
-PREFERRED_MIN_WORDS = 60
-PREFERRED_MAX_WORDS = 70
+MIN_WORD_COUNT = 75
+MAX_WORD_COUNT = 88
+PREFERRED_MIN_WORDS = 78
+PREFERRED_MAX_WORDS = 85
 
-NOVEL_STORY_MIN_WORDS = 100
-NOVEL_STORY_MAX_WORDS = 150
-NOVEL_STORY_MIN_DURATION = 45.0
-NOVEL_STORY_MAX_DURATION = 60.0
+NOVEL_STORY_MIN_WORDS = 75
+NOVEL_STORY_MAX_WORDS = 88
+NOVEL_STORY_MIN_DURATION = 22.0
+NOVEL_STORY_MAX_DURATION = 28.0
 
-DISCOVERY_SHORT_MIN_WORDS = 55
-DISCOVERY_SHORT_MAX_WORDS = 75
-DISCOVERY_SHORT_MIN_DURATION = 25.0
-DISCOVERY_SHORT_MAX_DURATION = 30.0
+DISCOVERY_SHORT_MIN_WORDS = 75
+DISCOVERY_SHORT_MAX_WORDS = 88
+DISCOVERY_SHORT_MIN_DURATION = 22.0
+DISCOVERY_SHORT_MAX_DURATION = 28.0
 
 
 @dataclass
@@ -217,6 +217,20 @@ class HarryPotterScriptEngine:
         """
         words = script_text.strip().split()
         word_count = len(words)
+
+        # Ensure visual_beats is a list of dicts
+        normalized_beats = []
+        for i, b in enumerate(visual_beats or []):
+            if isinstance(b, dict):
+                normalized_beats.append(b)
+            elif isinstance(b, str):
+                normalized_beats.append({
+                    "beat_id": f"beat_{i+1}",
+                    "visual_requirement": b,
+                    "narration_text": b,
+                    "characters": []
+                })
+        visual_beats = normalized_beats
 
         c_type_upper = str(candidate_type).upper()
         is_deep_discovery = (c_type_upper == "DEEP_DISCOVERY") or (c_type_upper == "DISCOVERY" and word_count >= 150)
@@ -517,9 +531,9 @@ class HarryPotterScriptEngine:
                 word_count_within_tier_bounds = False
                 reasons.append(f"Check Word Count Failed: {word_count} words outside Deep Discovery target bounds (220-300)")
         elif effective_tier == "MICRO_DISCOVERY":
-            if word_count < 55 or word_count > 85:
+            if word_count < 75 or word_count > 88:
                 word_count_within_tier_bounds = False
-                reasons.append(f"Check Word Count Failed: {word_count} words outside Micro Discovery bounds (55-85)")
+                reasons.append(f"Check Word Count Failed: {word_count} words outside Micro Discovery bounds (75-88 for 25s ± 2-3s)")
 
         # Check M: Discovery Editorial Value Gate (viewer value, anti-recap, explanatory depth)
         editorial_res = DiscoveryNarrativeEngine.evaluate_discovery_editorial_value(
@@ -1313,13 +1327,13 @@ OUTPUT STRICT JSON:
         elif "remembrall" in c_id or "cloak" in c_id:
             # Short 8: Discovery — Neville's Remembrall Cloak Secret (Book 1 Ch 9)
             return {
-                "hook": "Did you know Neville's magical glass ball revealed his secret right on screen?",
-                "development": "An owl drops a Remembrall that fills with red smoke whenever you forget something. Neville looks confused, admitting he cannot remember what he forgot. Notice the other students at the breakfast table! Every single student is wearing their black school robes.",
-                "payoff": "Neville is sitting in his sweater and tie, having completely forgotten his cloak.",
+                "hook": "Did you know Neville Longbottom's Remembrall revealed a secret the movie never said out loud?",
+                "development": "During morning mail in the Great Hall, an owl drops a magical glass ball that glows bright scarlet whenever you forget something. Neville stares at the glowing sphere completely bewildered, admitting he cannot remember what he forgot. But look closely at the breakfast table! Every single classmate is wearing their black school robes.",
+                "payoff": "Neville is sitting in just his sweater and tie, having completely forgotten his school cloak!",
                 "visual_beats": [
                     {
                         "beat_id": "beat_1",
-                        "narration_text": "Did you know Neville's magical glass ball revealed his secret right on screen?",
+                        "narration_text": "Did you know Neville Longbottom's Remembrall revealed a secret the movie never said out loud?",
                         "visual_requirement": "Flock of school owls swooping into the sunny Great Hall carrying letters and packages down to students",
                         "characters": ["Hogwarts Students", "Owls"],
                         "location": "Great Hall breakfast tables",
@@ -1332,7 +1346,7 @@ OUTPUT STRICT JSON:
                     },
                     {
                         "beat_id": "beat_2",
-                        "narration_text": "An owl drops a Remembrall that fills with red smoke whenever you forget something. Neville looks confused, admitting he cannot remember what he forgot.",
+                        "narration_text": "During morning mail in the Great Hall, an owl drops a magical glass ball that glows bright scarlet whenever you forget something. Neville stares at the glowing sphere completely bewildered, admitting he cannot remember what he forgot.",
                         "visual_requirement": "Close-up of Neville holding the clear glass ball as glowing red smoke swirls inside, looking bewildered",
                         "characters": ["Neville Longbottom", "Hermione Granger", "Dean Thomas"],
                         "location": "Gryffindor house table",
@@ -1345,7 +1359,7 @@ OUTPUT STRICT JSON:
                     },
                     {
                         "beat_id": "beat_3",
-                        "narration_text": "Notice the other students at the breakfast table! Every single student is wearing their black school robes.",
+                        "narration_text": "But look closely at the breakfast table! Every single classmate is wearing their black school robes.",
                         "visual_requirement": "Medium shot panning across Harry, Ron, Hermione, and Dean, all dressed in standard black Hogwarts robes",
                         "characters": ["Harry Potter", "Ron Weasley", "Hermione Granger"],
                         "location": "Gryffindor table",
@@ -1358,7 +1372,7 @@ OUTPUT STRICT JSON:
                     },
                     {
                         "beat_id": "beat_4",
-                        "narration_text": "Neville is sitting in his sweater and tie, having completely forgotten his cloak.",
+                        "narration_text": "Neville is sitting in just his sweater and tie, having completely forgotten his school cloak!",
                         "visual_requirement": "Cut back to Neville sitting in just his white collared shirt, vest sweater, and tie, completely missing his black robe",
                         "characters": ["Neville Longbottom"],
                         "location": "Gryffindor table",
@@ -1535,6 +1549,15 @@ OUTPUT STRICT JSON:
                         cleaned = re.sub(r"^```json\s*", "", raw)
                         cleaned = re.sub(r"\s*```$", "", cleaned).strip()
                         parsed = json.loads(cleaned)
+                        if isinstance(parsed, str):
+                            try:
+                                parsed = json.loads(parsed)
+                            except Exception:
+                                pass
+                        if isinstance(parsed, list) and parsed and isinstance(parsed[0], dict):
+                            parsed = parsed[0]
+                        if not isinstance(parsed, dict):
+                            raise ValueError(f"Expected JSON object, got {type(parsed).__name__}")
 
                         full_script = f"{parsed.get('hook', '')} {parsed.get('development', '')} {parsed.get('payoff', '')}".strip()
                         v_beats = parsed.get("visual_beats", [])
@@ -1560,7 +1583,7 @@ OUTPUT STRICT JSON:
                             revision_feedback = eval_res.feedback
 
                     except Exception as call_err:
-                        logger.warning(f"[SCRIPT_GEN] Attempt {attempt} API error: {call_err}")
+                        logger.warning(f"[SCRIPT_GEN] Attempt {attempt} API error: {call_err}", exc_info=True)
                         if "quota" in str(call_err).lower() or "429" in str(call_err):
                             break
 
