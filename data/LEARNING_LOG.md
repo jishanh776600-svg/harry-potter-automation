@@ -364,3 +364,12 @@
 | Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | `category` | **Harry Potter** | 1 | `+0.0%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+## Learning Cycle — 2026-10-03 07:40:22 UTC
+
+- **Mature Videos Evaluated**: 1
+- **Channel Performance Baseline**: 58.21/100
+
+| Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `category` | **Harry Potter** | 1 | `+0.0%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
