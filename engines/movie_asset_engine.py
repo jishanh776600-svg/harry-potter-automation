@@ -424,6 +424,122 @@ class MovieAssetEngine:
         return results
 
     @staticmethod
+    def compute_smart_subject_crop_vf(
+        video_input_path: Path,
+        start_seconds: float,
+        duration_seconds: float,
+        target_width: int = 1080,
+        target_height: int = 1920
+    ) -> str:
+        """
+        Dynamically analyzes character faces and focal subjects/saliency across
+        the clip interval to compute the optimal 9:16 vertical crop window X offset.
+        Prevents characters and faces on the left/right thirds from being chopped in half.
+        """
+        import cv2
+        import numpy as np
+
+        mid_sec = start_seconds + duration_seconds / 2.0
+        cache_dir = PROJECT_ROOT / "data" / "cache"
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        temp_frame = cache_dir / f"probe_{os.getpid()}_{int(start_seconds * 100)}.jpg"
+
+        try:
+            cmd = [
+                "ffmpeg", "-y",
+                "-ss", str(round(mid_sec, 3)),
+                "-i", str(video_input_path),
+                "-vframes", "1",
+                str(temp_frame)
+            ]
+            subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+
+            if not temp_frame.exists():
+                return f"crop=ih*9/16:ih,scale={target_width}:{target_height}"
+
+            img = cv2.imread(str(temp_frame))
+            if img is None:
+                return f"crop=ih*9/16:ih,scale={target_width}:{target_height}"
+
+            src_h, src_w = img.shape[:2]
+            crop_w = int(round(src_h * 9.0 / 16.0))
+            if crop_w % 2 != 0:
+                crop_w += 1
+            crop_w = min(crop_w, src_w)
+
+            ideal_cx = src_w / 2.0
+            detected_type = "center_fallback"
+
+            # 1. Primary: YuNet Deep Learning Face Detector
+            yunet_path = PROJECT_ROOT / "data" / "models" / "face_detection_yunet_2023mar.onnx"
+            if yunet_path.exists():
+                try:
+                    detector = cv2.FaceDetectorYN.create(str(yunet_path), "", (src_w, src_h), score_threshold=0.5)
+                    detector.setInputSize((src_w, src_h))
+                    _, faces = detector.detect(img)
+                    if faces is not None and len(faces) > 0:
+                        valid_faces = [f for f in faces if f[2] >= 25 and f[3] >= 25]
+                        if valid_faces:
+                            # If multiple faces fit within crop_w, center on group
+                            min_fx = min(f[0] for f in valid_faces)
+                            max_fx = max(f[0] + f[2] for f in valid_faces)
+                            if (max_fx - min_fx) <= (crop_w * 0.90):
+                                ideal_cx = (min_fx + max_fx) / 2.0
+                                detected_type = f"face_group_yunet({len(valid_faces)}_faces)"
+                            else:
+                                # Target primary/largest face
+                                best_face = max(valid_faces, key=lambda f: f[2] * f[3])
+                                ideal_cx = best_face[0] + best_face[2] / 2.0
+                                detected_type = f"face_primary_yunet(area={best_face[2]*best_face[3]:.0f},conf={best_face[14]:.2f})"
+                except Exception as e:
+                    logger.debug(f"YuNet detection error: {e}")
+
+            # 2. Secondary: Haar Cascade Fallback
+            if detected_type == "center_fallback":
+                haar_path = PROJECT_ROOT / "data" / "models" / "haarcascade_frontalface_default.xml"
+                if haar_path.exists():
+                    try:
+                        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                        face_cascade = cv2.CascadeClassifier(str(haar_path))
+                        h_faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=4, minSize=(30, 30))
+                        if len(h_faces) > 0:
+                            best_h = max(h_faces, key=lambda f: f[2] * f[3])
+                            ideal_cx = best_h[0] + best_h[2] / 2.0
+                            detected_type = "face_haar_cascade"
+                    except Exception:
+                        pass
+
+            # 3. Tertiary: Visual Saliency & Edge Energy Center-of-Mass (for props, animals, objects)
+            if detected_type == "center_fallback":
+                try:
+                    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                    blurred = cv2.GaussianBlur(gray, (15, 15), 0)
+                    edges = cv2.Canny(blurred, 30, 100)
+                    col_sum = np.sum(edges, axis=0)
+                    if np.sum(col_sum) > 0:
+                        cx = np.sum(np.arange(src_w) * (col_sum / np.sum(col_sum)))
+                        # Only adjust if subject is noticeably off-center
+                        if abs(cx - src_w / 2.0) > 40:
+                            ideal_cx = cx
+                            detected_type = "saliency_energy"
+                except Exception:
+                    pass
+
+            # Calculate safe crop horizontal bounds
+            crop_x = int(round(max(0, min(src_w - crop_w, ideal_cx - crop_w / 2.0))))
+            logger.info(
+                f"[SMART CROP] {video_input_path.name} @ {start_seconds:.1f}s | "
+                f"Mode: {detected_type} | crop_x={crop_x}..{crop_x+crop_w} on {src_w}x{src_h} (ideal_cx={ideal_cx:.1f})"
+            )
+            return f"crop={crop_w}:{src_h}:{crop_x}:0,scale={target_width}:{target_height}:flags=lanczos"
+        finally:
+            if temp_frame.exists():
+                try:
+                    temp_frame.unlink(missing_ok=True)
+                except Exception:
+                    pass
+
+    @staticmethod
     def extract_muted_clip(
         video_input_path: Path,
         start_seconds: float,
@@ -434,14 +550,29 @@ class MovieAssetEngine:
         custom_vf: Optional[str] = None
     ) -> Path:
         """
-        CRITICAL AUDIO MUTING INVARIANT:
+        CRITICAL AUDIO MUTING & INTELLIGENT 9:16 FRAMING INVARIANT:
         Extracts a vertical visual clip strictly without audio (-an).
+        Dynamically applies subject-aware face/saliency cropping to prevent
+        characters from being clipped or sliced in half.
         Verifies via ffprobe that output clip contains ZERO audio streams.
         Raises RuntimeError if audio is present.
         """
         output_clip_path.parent.mkdir(parents=True, exist_ok=True)
 
-        vf = custom_vf if custom_vf else f"crop=ih*9/16:ih,scale={target_width}:{target_height}"
+        if custom_vf:
+            vf = custom_vf
+        else:
+            try:
+                vf = MovieAssetEngine.compute_smart_subject_crop_vf(
+                    video_input_path=video_input_path,
+                    start_seconds=start_seconds,
+                    duration_seconds=duration_seconds,
+                    target_width=target_width,
+                    target_height=target_height
+                )
+            except Exception as e:
+                logger.warning(f"Smart crop failed ({e}), falling back to center crop.")
+                vf = f"crop=ih*9/16:ih,scale={target_width}:{target_height}"
 
         # Explicit FFmpeg command with -an (disable audio) and 9:16 vertical crop
         cmd = [
@@ -483,3 +614,4 @@ class MovieAssetEngine:
 
         logger.info(f"Verified: {output_clip_path.name} is 100% video-only (audio completely muted).")
         return output_clip_path
+
