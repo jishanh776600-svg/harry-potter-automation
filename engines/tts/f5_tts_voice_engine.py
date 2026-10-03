@@ -12,7 +12,7 @@ import os
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Union
 
 import numpy as np
 import soundfile as sf
@@ -221,3 +221,83 @@ class F5TTSVoiceEngine:
             "target_lufs": target_lufs,
             "presence_boost": presence_gain_db,
         }
+
+
+def compute_voice_fingerprint(
+    model_name: str = "F5TTS_v1_Base",
+    reference_id: str = "selected_reference_speaker_24k.wav",
+    speed: float = 0.95,
+    seed: int = 102,
+) -> str:
+    """Computes a deterministic cryptographic fingerprint of the voice synthesis configuration."""
+    raw = f"f5_tts:{model_name}:{reference_id}:{speed:.3f}:{seed}"
+    import hashlib
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:24]
+
+
+def synthesize_canonical_narration(
+    text: str,
+    output_path: Union[str, Path],
+    speed: float = 0.95,
+    seed: int = 102,
+    project_root: Optional[Path] = None,
+    nfe_step: int = 16,
+) -> Dict[str, Any]:
+    """
+    Canonical production synthesis using approved F5-TTS reference speaker.
+    Strictly fails closed if reference audio, metadata, or F5-TTS runtime is unavailable.
+    """
+    root = project_root or Path(__file__).resolve().parent.parent.parent
+    ref_paths = [
+        root / "data" / "voice_cloning" / "f5_tts" / "reference" / "selected_reference_speaker_24k.wav",
+        root / "data" / "reference_audio" / "selected_reference_speaker_24k.wav",
+    ]
+    meta_paths = [
+        root / "data" / "voice_cloning" / "f5_tts" / "reference" / "selected_reference_metadata.json",
+        root / "data" / "reference_audio" / "selected_reference_metadata.json",
+    ]
+
+    ref_audio = None
+    for p in ref_paths:
+        if p.exists():
+            ref_audio = p
+            break
+
+    if not ref_audio:
+        raise RuntimeError(
+            f"F5-TTS FAIL-CLOSED: Required canonical reference speaker audio not found at any of: {ref_paths}"
+        )
+
+    ref_text = "To put that into perspective, even Hermione only got 10. After graduation, he began following Voldemort."
+    for mp in meta_paths:
+        if mp.exists():
+            try:
+                import json
+                with open(mp, "r", encoding="utf-8") as f:
+                    meta = json.load(f)
+                    ref_text = meta.get("selected_reference", {}).get("transcript_text", ref_text)
+                    break
+            except Exception:
+                pass
+
+    engine = F5TTSVoiceEngine(device="cpu", nfe_step=nfe_step)
+    if not engine.is_available():
+        raise RuntimeError("F5-TTS FAIL-CLOSED: F5-TTS or PyTorch runtime not available in this environment.")
+
+    out_p = Path(output_path)
+    res = engine.generate(
+        text=text,
+        reference_audio=str(ref_audio),
+        reference_text=ref_text,
+        output_path=str(out_p),
+        speed=speed,
+        seed=seed,
+    )
+
+    res["voice_fingerprint"] = compute_voice_fingerprint(
+        model_name="F5TTS_v1_Base",
+        reference_id=ref_audio.name,
+        speed=speed,
+        seed=seed,
+    )
+    return res

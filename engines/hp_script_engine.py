@@ -82,7 +82,6 @@ FORBIDDEN_CLICHES = [
     "events rapidly spiraled",
     "you won't believe",
     "believe it or not",
-    "did you know",
     "what happened next",
     "mind-blowing",
     "in a bizarre twist",
@@ -265,15 +264,9 @@ class HarryPotterScriptEngine:
                     "Narrator must NEVER speak part, chapter, book, or episode numbers."
                 )
 
-        # 2. Cliché & Generic AI Filler Check ('did you know' is forbidden throat-clearing in Deep Discovery)
+        # 2. Cliché & Generic AI Filler Check (Curiosity hooks like 'did you know' / 'do you know' are encouraged)
         for cliche in FORBIDDEN_CLICHES:
             if cliche in text_lower:
-                if is_deep_discovery and cliche == "did you know":
-                    cliches_detected.append(cliche)
-                    feedback.append(f"FORBIDDEN THROAT-CLEARING: Detected '{cliche}'. Deep Discovery requires Frame 0 immediate narrative engagement.")
-                    continue
-                if cliche == "did you know" and not is_deep_discovery:
-                    continue
                 cliches_detected.append(cliche)
                 feedback.append(f"FORBIDDEN CLICHÉ: Detected '{cliche}'. Rephrase naturally.")
 
@@ -1379,6 +1372,69 @@ OUTPUT STRICT JSON:
                 ]
             }
 
+        elif "dobby" in c_id or "enslaved" in c_id or "malfoy" in c_id:
+            # Short 9: Discovery — Dobby's Enslavement to the Malfoys (Book 2 Ch 2 & Ch 18)
+            return {
+                "hook": "Do you know why Dobby was actually enslaved to the Malfoys?",
+                "development": "In the films, Lucius treats Dobby as a simple servant. But the novels reveal a much darker magical contract: house-elves are magically bound to ancient wizarding manors. Dobby could not disobey without violently punishing himself.",
+                "payoff": "That is why catching Harry's slimy sock was not just an accident; it shattered an unbreakable ancestral curse.",
+                "visual_beats": [
+                    {
+                        "beat_id": "beat_1",
+                        "narration_text": "Do you know why Dobby was actually enslaved to the Malfoys?",
+                        "visual_requirement": "Dobby the house elf standing on Harry's bed in Privet Drive looking distressed and warning Harry",
+                        "characters": ["Dobby", "Harry Potter"],
+                        "location": "Harry's bedroom Privet Drive",
+                        "action": "Dobby bouncing on bed speaking urgently with bulging eyes",
+                        "objects": ["Pillowcase garment"],
+                        "emotional_context": "Urgent warning and desperate devotion",
+                        "preferred_movie_number": 2,
+                        "source_grounding": "Movie 2, 00:03:20–00:03:45 / Book 2 Chapter 2",
+                        "retrieval_hints": ["Dobby", "bedroom", "Privet Drive", "warning", "bed"]
+                    },
+                    {
+                        "beat_id": "beat_2",
+                        "narration_text": "In the films, Lucius treats Dobby as a simple servant.",
+                        "visual_requirement": "Lucius Malfoy walking imperiously with his snake-headed cane looking sneeringly down",
+                        "characters": ["Lucius Malfoy"],
+                        "location": "Hogwarts corridor",
+                        "action": "Lucius walking arrogantly holding silver snake cane",
+                        "objects": ["Snake cane", "Dark robes"],
+                        "emotional_context": "Arrogant malice and cruel superiority",
+                        "preferred_movie_number": 2,
+                        "source_grounding": "Movie 2, 02:21:25–02:21:50 / Book 2 Chapter 18",
+                        "retrieval_hints": ["Lucius Malfoy", "snake cane", "corridor", "Malfoy"]
+                    },
+                    {
+                        "beat_id": "beat_3",
+                        "narration_text": "But the novels reveal a much darker magical contract: house-elves are magically bound to ancient wizarding manors. Dobby could not disobey without violently punishing himself.",
+                        "visual_requirement": "Canonical Mary GrandPré novel chapter illustration of Dobby the house-elf",
+                        "characters": ["Dobby"],
+                        "location": "Novel chapter illustration",
+                        "action": "Dobby wearing ragged pillowcase bound by ancient enchantment",
+                        "objects": ["Ragged pillowcase", "House-elf contract"],
+                        "emotional_context": "Tragic magical enslavement and ancient wizarding law",
+                        "preferred_movie_number": 2,
+                        "is_novel_only": True,
+                        "source_grounding": "Book 2 Chapter 2 & Chapter 3",
+                        "retrieval_hints": ["Dobby illustration", "Mary GrandPre", "novel art", "house-elf"]
+                    },
+                    {
+                        "beat_id": "beat_4",
+                        "narration_text": "That is why catching Harry's slimy sock was not just an accident; it shattered an unbreakable ancestral curse.",
+                        "visual_requirement": "Dobby holding up the sock in sheer wonderment realizing he is free, blasting Lucius backward",
+                        "characters": ["Dobby", "Lucius Malfoy", "Harry Potter"],
+                        "location": "Hogwarts hallway",
+                        "action": "Dobby holding up sock overjoyed, snapping fingers to blast Lucius down stairs",
+                        "objects": ["Sock", "Wand"],
+                        "emotional_context": "Triumph, magical liberation, and epic justice",
+                        "preferred_movie_number": 2,
+                        "source_grounding": "Movie 2, 02:25:10–02:25:45 / Book 2 Chapter 18",
+                        "retrieval_hints": ["Dobby sock", "Dobby free", "Lucius blasted", "sock"]
+                    }
+                ]
+            }
+
         # Generic novel fallback
         words = candidate.story_event_summary.split()[:40]
         event_str = " ".join(words)
@@ -1435,7 +1491,8 @@ OUTPUT STRICT JSON:
         self,
         candidate: Union[NovStoryCandidate, DiscoveryCandidate],
         db: Session,
-        max_attempts: int = 3
+        max_attempts: int = 3,
+        use_deterministic: bool = False
     ) -> HarryPotterScript:
         """
         Generates, validates, and persists a HarryPotterScript for a given candidate.
@@ -1456,7 +1513,7 @@ OUTPUT STRICT JSON:
         revision_feedback: List[str] = []
 
         # Attempt AI Generation Loop
-        if GEMINI_API_KEY:
+        if GEMINI_API_KEY and not use_deterministic:
             try:
                 gemini_client = get_gemini_client()
                 for attempt in range(1, max_attempts + 1):
@@ -1551,7 +1608,8 @@ OUTPUT STRICT JSON:
                 "preferred_movie_number": b.get("preferred_movie_number", candidate.book_number),
                 "source_grounding": b.get("source_grounding", ""),
                 "retrieval_hints": b.get("retrieval_hints", []),
-                "visual_source_policy": "MOVIE_FOOTAGE_ONLY"
+                "is_novel_only": b.get("is_novel_only", False),
+                "visual_source_policy": "HYBRID_TRUTHFUL" if b.get("is_novel_only") else "MOVIE_FOOTAGE_ONLY"
             })
 
         # Calculate visual PART marker (VISUAL ONLY — NEVER SPOKEN)

@@ -4147,8 +4147,8 @@
     "movie_id": "hp_movie_8",
     "movie_number": 8,
     "scene_id": "m8_scene_voldemort_death_ash",
-    "start_time": 6605.0,
-    "end_time": 6640.0,
+    "start_time": 6586.0,
+    "end_time": 6595.0,
     "characters_present": [
       "Lord Voldemort",
       "Harry Potter"
@@ -4377,6 +4377,231 @@
       "Harry looking through window",
       "Empty bare room without furniture",
       "Dust in sunlight"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m2_privet_dobby_jumps_on_bed_warning",
+    "movie_id": "hp_movie_2",
+    "movie_number": 2,
+    "scene_id": "m2_scene_bedroom_dobby_intro",
+    "start_time": 200.0,
+    "end_time": 285.0,
+    "characters_present": [
+      "Harry Potter",
+      "Dobby"
+    ],
+    "primary_subject": "Dobby",
+    "secondary_subjects": [
+      "Harry Potter"
+    ],
+    "action": "bounces on bed warning Harry about dark plot at Hogwarts",
+    "target": "Harry Potter",
+    "interaction_type": "warning",
+    "location": "Harry bedroom Privet Drive",
+    "visible_objects": [
+      "bed",
+      "lamp",
+      "pillowcase"
+    ],
+    "emotional_state": "distressed_urgent",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "static",
+    "preceding_event": null,
+    "following_event": "evt_m2_dursley_dobby_drops_pudding_cake",
+    "dialogue_ref": "Dobby has come to tell you... Harry Potter must not go back to Hogwarts school of Witchcraft and Wizardry.",
+    "visual_description": "Dobby the house-elf stands and jumps on Harry bed in ragged pillowcase, passionately warning him.",
+    "observable_claims": [
+      "Dobby on bed",
+      "Harry listening",
+      "Dobby in pillowcase"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m2_privet_dobby_punishes_himself_head",
+    "movie_id": "hp_movie_2",
+    "movie_number": 2,
+    "scene_id": "m2_scene_bedroom_dobby_punish",
+    "start_time": 252.0,
+    "end_time": 275.0,
+    "characters_present": [
+      "Harry Potter",
+      "Dobby"
+    ],
+    "primary_subject": "Dobby",
+    "secondary_subjects": [
+      "Harry Potter"
+    ],
+    "action": "punishes himself by banging head against wall and wardrobe",
+    "target": "himself",
+    "interaction_type": "self_punishment",
+    "location": "Harry bedroom Privet Drive",
+    "visible_objects": [
+      "wardrobe",
+      "bed",
+      "desk lamp"
+    ],
+    "emotional_state": "guilty_frantic",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "tracking",
+    "preceding_event": "evt_m2_privet_dobby_jumps_on_bed_warning",
+    "following_event": null,
+    "dialogue_ref": "Bad Dobby! Bad Dobby!",
+    "visual_description": "Dobby repeatedly slams his head against the door and wardrobe in self-punishment for speaking ill of his master.",
+    "observable_claims": [
+      "Dobby bangs head",
+      "Harry tries to quiet him"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m2_privet_dobby_lamp_head_hit",
+    "movie_id": "hp_movie_2",
+    "movie_number": 2,
+    "scene_id": "m2_scene_bedroom_dobby_lamp",
+    "start_time": 324.0,
+    "end_time": 345.0,
+    "characters_present": [
+      "Harry Potter",
+      "Dobby"
+    ],
+    "primary_subject": "Dobby",
+    "secondary_subjects": [
+      "Harry Potter"
+    ],
+    "action": "seizes desk lamp and beats himself around the head",
+    "target": "himself",
+    "interaction_type": "self_punishment",
+    "location": "Harry bedroom Privet Drive",
+    "visible_objects": [
+      "desk lamp",
+      "Harry hands"
+    ],
+    "emotional_state": "frantic",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "static",
+    "preceding_event": "evt_m2_privet_dobby_punishes_himself_head",
+    "following_event": "evt_m2_dursley_dobby_drops_pudding_cake",
+    "dialogue_ref": "Bad Dobby! Bad Dobby!",
+    "visual_description": "Dobby grabs Harry desk lamp and violently whacks himself over the head while Harry desperately tries to wrench it away.",
+    "observable_claims": [
+      "Dobby holding lamp",
+      "Harry wrestling lamp away"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m2_privet_dobby_cake_levitates",
+    "movie_id": "hp_movie_2",
+    "movie_number": 2,
+    "scene_id": "m2_scene_kitchen_cake",
+    "start_time": 430.0,
+    "end_time": 465.0,
+    "characters_present": [
+      "Harry Potter",
+      "Dobby"
+    ],
+    "primary_subject": "Dobby",
+    "secondary_subjects": [
+      "Harry Potter"
+    ],
+    "action": "levitates pudding cake threatening Harry",
+    "target": "Harry Potter",
+    "interaction_type": "threat",
+    "location": "4 Privet Drive kitchen",
+    "visible_objects": [
+      "cake",
+      "snapping fingers"
+    ],
+    "emotional_state": "conflicted",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "static",
+    "preceding_event": "evt_m2_privet_dobby_lamp_head_hit",
+    "following_event": "evt_m2_dursley_dobby_drops_pudding_cake",
+    "dialogue_ref": "Harry Potter must say he is not going back to school.",
+    "visual_description": "Dobby hovers the large cream pudding cake in the air, defying Harry.",
+    "observable_claims": [
+      "Dobby in kitchen",
+      "cake floating"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m2_hogwarts_lucius_revealed_as_master",
+    "movie_id": "hp_movie_2",
+    "movie_number": 2,
+    "scene_id": "m2_scene_malfoy_master_corridor",
+    "start_time": 8485.0,
+    "end_time": 8520.0,
+    "characters_present": [
+      "Lucius Malfoy",
+      "Dobby",
+      "Harry Potter",
+      "Albus Dumbledore"
+    ],
+    "primary_subject": "Lucius Malfoy",
+    "secondary_subjects": [
+      "Dobby"
+    ],
+    "action": "walks imperiously kicking Dobby forward while holding silver snake cane",
+    "target": "Dobby",
+    "interaction_type": "abuse",
+    "location": "Hogwarts Corridor outside Dumbledore Office",
+    "visible_objects": [
+      "silver snake cane",
+      "velvet robes",
+      "Dobby pillowcase"
+    ],
+    "emotional_state": "arrogant",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "tracking",
+    "visual_description": "Lucius Malfoy walking imperiously with his snake-headed cane looking sneeringly down as Dobby cringes at his heels.",
+    "observable_claims": [
+      "Lucius Malfoy with snake cane",
+      "Dobby cowering"
+    ],
+    "unsupported_claims": [],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_m2_hogwarts_dobby_freed_sock_lucius_blasted",
+    "movie_id": "hp_movie_2",
+    "movie_number": 2,
+    "scene_id": "m2_scene_dobby_freed",
+    "start_time": 8705.0,
+    "end_time": 8760.0,
+    "characters_present": [
+      "Dobby",
+      "Lucius Malfoy",
+      "Harry Potter"
+    ],
+    "primary_subject": "Dobby",
+    "secondary_subjects": [
+      "Lucius Malfoy",
+      "Harry Potter"
+    ],
+    "action": "holds up sock in wonderment realizing freedom and snaps fingers blasting Lucius backward down stairs",
+    "target": "Lucius Malfoy",
+    "interaction_type": "magical_blast",
+    "location": "Hogwarts Corridor",
+    "visible_objects": [
+      "slimy sock",
+      "Tom Riddle diary",
+      "Lucius wand"
+    ],
+    "emotional_state": "triumphant",
+    "camera_scale": "MEDIUM_SHOT",
+    "camera_motion": "tracking",
+    "visual_description": "Dobby holding up the sock in sheer wonderment realizing he is free, blasting Lucius backward down corridor.",
+    "observable_claims": [
+      "Dobby holding sock",
+      "Lucius blasted backward"
     ],
     "unsupported_claims": [],
     "confidence": 1.0

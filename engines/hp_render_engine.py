@@ -234,7 +234,7 @@ class HPRenderEngine:
                     synthesize_canonical_narration(
                         text=clean_text,
                         output_path=raw_f5_wav,
-                        speed=1.06,
+                        speed=0.95,
                         seed=102,
                         nfe_step=16
                     )
@@ -257,7 +257,7 @@ class HPRenderEngine:
                 from engines.tts_engine import TTSEngine
                 tts_engine = TTSEngine()
                 
-                speed = 1.05
+                speed = 0.95
                 sent_pause = 0.20
                 clause_pause = 0.08
 
@@ -553,55 +553,54 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         Assembles rapid movie shot clips into seamless 1080x1920 @ 30 FPS video,
         burns in ASS subtitles and visual PART marker, and multiplexes master AAC audio.
         """
-        # Create temporary concat list for video shots
-        concat_txt = RENDERS_OUTPUT_DIR / f"concat_{script_id}.txt"
-        with open(concat_txt, "w", encoding="utf-8") as f:
-            for clip_p in shot_clips:
-                # Use forward slashes for FFmpeg concat demuxer
-                clean_path = str(clip_p.resolve()).replace("\\", "/")
-                f.write(f"file '{clean_path}'\n")
-
         # Relative subtitle path avoids Windows drive letter colon issues in FFmpeg filtergraph
         try:
+
             clean_sub = str(ass_subtitles_path.resolve().relative_to(Path.cwd().resolve())).replace("\\", "/")
         except Exception:
             clean_sub = str(ass_subtitles_path.resolve()).replace("\\", "/").replace(":", "\\\\:")
 
-        # Build FFmpeg command:
-        # - Concat video clips
-        # - Scale & center-crop to 1080x1920 (guarantees strict 9:16 vertical)
-        # - Burn-in ASS subtitles (subtitles filter)
-        # - Frame rate: 30 FPS
-        # - Trim video to match total audio duration
-        # - Encode H.264 (preset fast, crf 20) + AAC audio (192k)
+        # Build FFmpeg command with filter_complex concat:
+        # Handles clips with different framerates (e.g. 23.976 movie vs 30 parchment)
+        input_args = []
+        filter_parts = []
+        for idx, clip_p in enumerate(shot_clips):
+            input_args.extend(["-i", str(clip_p)])
+            filter_parts.append(
+                f"[{idx}:v]scale=1080:1920:force_original_aspect_ratio=increase,"
+                f"crop=1080:1920:(iw-1080)/2:(ih-1920)/2,setsar=1,fps=30[v{idx}];"
+            )
+
+        concat_labels = "".join(f"[v{idx}]" for idx in range(len(shot_clips)))
+        filter_parts.append(f"{concat_labels}concat=n={len(shot_clips)}:v=1:a=0[vconcat];")
+        filter_parts.append(
+            f"[vconcat]subtitles='{clean_sub}':fontsdir='data/fonts',format=yuv420p[vout]"
+        )
+        full_filter = "".join(filter_parts)
+
+        audio_idx = len(shot_clips)
         cmd = [
             "ffmpeg", "-y", "-loglevel", "error",
-            "-f", "concat", "-safe", "0", "-i", str(concat_txt),
+            *input_args,
             "-i", str(master_audio_wav),
-            "-filter_complex", (
-                f"[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
-                f"crop=1080:1920:(iw-1080)/2:(ih-1920)/2,"
-                f"fps=30,"
-                f"subtitles='{clean_sub}':fontsdir='data/fonts',"
-                f"format=yuv420p[vout]"
-            ),
+            "-filter_complex", full_filter,
             "-map", "[vout]",
-            "-map", "1:a",
+            "-map", f"{audio_idx}:a",
             "-c:v", "libx264", "-preset", "fast", "-crf", "20",
             "-c:a", "aac", "-b:a", "192k",
             "-t", f"{total_duration:.2f}",
             str(output_mp4)
         ]
 
-        logger.info(f"Rendering final Short for {script_id} -> {output_mp4.name}...")
+        logger.info(f"Rendering final Short for {script_id} -> {output_mp4.name} ({len(shot_clips)} shots)...")
         res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        concat_txt.unlink(missing_ok=True)
 
         if res.returncode != 0:
             raise RuntimeError(f"FFmpeg render failed for {script_id}: {res.stderr[-400:]}")
 
         logger.info(f"Render complete: {output_mp4.name} ({output_mp4.stat().st_size} bytes)")
         return output_mp4
+
 
     # --------------------------------------------------------------------------
     # 5. AUTOMATED 20-POINT TECHNICAL QA
@@ -723,10 +722,11 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             if not script:
                 raise ValueError(f"Script {script_id} not found in database.")
 
-            # Query persisted movie shots from Step 9
-            shots = session.query(HPMovieClip).filter_by(script_id=script_id, match_status="ACCEPTED").order_by(HPMovieClip.shot_index.asc()).all()
+            # Query persisted movie shots from Step 9 chronologically by beat and shot index
+            shots = session.query(HPMovieClip).filter_by(script_id=script_id, match_status="ACCEPTED").order_by(HPMovieClip.beat_id.asc(), HPMovieClip.shot_index.asc()).all()
             if not shots:
                 raise ValueError(f"No accepted movie shots found for script {script_id}.")
+
 
             content_type = script.content_type
             voice_id = LOCKED_VOICE_ID  # Authoritative locked production voice (f5_cloned_narrator_v1)
@@ -813,9 +813,36 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                     raise FileNotFoundError(
                         f"Cannot render {script_id}: Artwork not available for {sh.beat_id}."
                     )
+            elif getattr(sh, "visual_source", "MOVIE_DIRECT") == "NOVEL_PARCHMENT":
+                # Novel parchment quote card clip
+                from engines.novel_parchment_engine import NovelParchmentEngine
+                parch_eng = NovelParchmentEngine()
+                parch_clip = self.clips_dir / f"{script_id}_{sh.beat_id}_parchment.mp4"
+                quote = getattr(sh, "matched_text", "") or ""
+                b_title = getattr(script, "book_title", "Harry Potter")
+                c_title = getattr(script, "chapter_title", "Canon Novel")
+                b_num = getattr(script, "book_number", 7)
+                c_num = getattr(script, "chapter_number", 36)
+                parch_eng.render_parchment_clip(
+                    book_title=b_title,
+                    chapter_title=c_title,
+                    quote_text=quote,
+                    duration_seconds=sh.duration_seconds,
+                    book_number=b_num,
+                    chapter_number=c_num,
+                    output_clip_path=parch_clip
+                )
+                shot_files.append(parch_clip)
+                with self.Session() as session:
+                    rec = session.query(HPMovieClip).filter_by(id=sh.id).first()
+                    if rec:
+                        rec.file_path = str(parch_clip)
+                        rec.file_size_bytes = parch_clip.stat().st_size
+                        session.commit()
             else:
                 # Materialize shot clip using MovieRetrievalEngine
                 movie_file, _, _ = self.retrieval_engine.resolve_movie_file(sh.movie_number, allow_download=True)
+
                 if movie_file and movie_file.exists():
                     clip_meta = self.retrieval_engine.extract_rapid_shot(
                         shot={
@@ -849,17 +876,22 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         if len(unique_shot_paths) != len(shot_files):
             raise ValueError(f"Anti-Loop Violation for {script_id}: Repeated clip detected in shot list!")
 
-        # Check timestamp intervals for overlap
-        intervals = [(sh.clip_start_seconds, sh.clip_end_seconds) for sh in shots]
-        sorted_intervals = sorted(intervals, key=lambda x: x[0])
-        for i in range(len(sorted_intervals) - 1):
-            curr_end = sorted_intervals[i][1]
-            next_start = sorted_intervals[i + 1][0]
-            if curr_end - next_start > 0.5:
-                raise ValueError(
-                    f"Anti-Loop Violation for {script_id}: Substantially overlapping timestamp windows detected: "
-                    f"[{sorted_intervals[i][0]:.1f}, {curr_end:.1f}] and [{next_start:.1f}, {sorted_intervals[i+1][1]:.1f}]"
-                )
+        # Check timestamp intervals for overlap among movie footage shots
+        movie_intervals = [(sh.movie_number, sh.clip_start_seconds, sh.clip_end_seconds) for sh in shots if sh.movie_number and sh.movie_number > 0 and getattr(sh, "visual_source", "MOVIE_DIRECT") in ("MOVIE_DIRECT", "ATMOSPHERIC_ESTABLISHING")]
+        by_movie = {}
+        for m_num, st, en in movie_intervals:
+            by_movie.setdefault(m_num, []).append((st, en))
+        for m_num, m_ints in by_movie.items():
+            sorted_ints = sorted(m_ints, key=lambda x: x[0])
+            for i in range(len(sorted_ints) - 1):
+                curr_end = sorted_ints[i][1]
+                next_start = sorted_ints[i + 1][0]
+                if curr_end - next_start > 0.5:
+                    raise ValueError(
+                        f"Anti-Loop Violation for {script_id} Movie {m_num}: Substantially overlapping timestamp windows: "
+                        f"[{sorted_ints[i][0]:.1f}, {curr_end:.1f}] and [{next_start:.1f}, {sorted_ints[i+1][1]:.1f}]"
+                    )
+
 
         total_unique_shot_dur = sum(sh.duration_seconds for sh in shots)
         if total_unique_shot_dur < narration_dur - 0.5:
