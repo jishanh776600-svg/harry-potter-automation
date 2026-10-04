@@ -1,11 +1,12 @@
 {
-  "action": "PRODUCE_BATCH",
-  "outcome": "SUCCEEDED",
-  "block_reason": null,
-  "requested_count": 1,
-  "produced_count": 1,
-  "initial_stock": 0,
+  "action": "MAINTAIN_BUFFER",
+  "outcome": "FAILED",
+  "block_reason": "Discovery Big candidate '1' failed: No eligible or discoverable DISCOVERY_BIG candidates available; Discovery Big candidate '1' failed: No eligible or discoverable DISCOVERY_BIG candidates available",
+  "requested_deficit": 7,
+  "produced_count": 0,
+  "initial_stock": 1,
   "final_stock": 1,
+  "target_stock": 8,
   "voice": "af_bella",
-  "timestamp": "2026-10-04T10:38:44.389436Z"
+  "timestamp": "2026-10-04T13:32:37.822459Z"
 }
