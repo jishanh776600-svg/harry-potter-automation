@@ -1,12 +1,12 @@
 {
   "action": "MAINTAIN_BUFFER",
   "outcome": "FAILED",
-  "block_reason": "Discovery Big candidate 'hps_disc_deathday_party_b2' failed: Rendering failed: No module named 'py_visual_evidence'; Discovery Big candidate '1' failed: No eligible or discoverable DISCOVERY_BIG candidates available",
-  "requested_deficit": 7,
+  "block_reason": "Discovery Big candidate 'hps_disc_deathday_party_b2' failed: Rendering failed: No module named 'py_visual_evidence'; Discovery Big candidate 'hps_disc_dobby_enslaved_malfoys_b2' failed: Rendering failed: Hard Duration Gate Violation for hps_disc_dobby_enslaved_malfoys_b2: Narration duration 20.93s is strictly outside required range [22.0s, 28.0s] (Target: 25s \u00b1 2-3s). Script word count must strictly yield 22-28 seconds.",
+  "requested_deficit": 8,
   "produced_count": 0,
-  "initial_stock": 1,
-  "final_stock": 1,
+  "initial_stock": 0,
+  "final_stock": 0,
   "target_stock": 8,
   "voice": "af_bella",
-  "timestamp": "2026-10-03T20:16:18.597898Z"
+  "timestamp": "2026-10-04T00:17:58.078843Z"
 }
