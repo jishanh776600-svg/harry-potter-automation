@@ -301,6 +301,65 @@ class UploadEngine:
         cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
         return cleaned.strip()
 
+    @staticmethod
+    def sanitize_public_title(title: str) -> str:
+        """
+        Strips internal build codes (B1, B2, B3, PART 01, Discovery, etc.) from public YouTube titles
+        and formats them cleanly for viewer curiosity.
+        """
+        if not title:
+            return ""
+        import re
+        cleaned = title
+        # Remove build slugs like B1, B2, B3, B4, B5, B6, B7
+        cleaned = re.sub(r"\bB[1-7]\b", "", cleaned, flags=re.IGNORECASE)
+        # Remove internal candidate classifications
+        cleaned = re.sub(r"\b(Discovery|NovStory|Candidate)\b", "", cleaned, flags=re.IGNORECASE)
+        # Remove part markers like [PART 01], PART 02
+        cleaned = re.sub(r"\[PART\s*\d+\]", "", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\bPART\s*\d+\b", "", cleaned, flags=re.IGNORECASE)
+        # Clean up repeated separators or dangling pipes/dashes
+        cleaned = re.sub(r"\s*[\|\-:]\s*([\|\-:]\s*)+", " | ", cleaned)
+        cleaned = re.sub(r"^\s*[\|\-:]+\s*", "", cleaned)
+        cleaned = re.sub(r"\s*[\|\-:]+\s*$", "", cleaned)
+        cleaned = re.sub(r"\s{2,}", " ", cleaned).strip()
+        # Ensure #Shorts is present
+        if "#Shorts" not in cleaned and "#shorts" not in cleaned:
+            cleaned = f"{cleaned} #Shorts"
+        return cleaned.strip()
+
+    @staticmethod
+    def post_engagement_comment(youtube, video_id: str, title: str = "") -> Optional[str]:
+        """
+        Posts an engaging seed question to prompt viewer debate and trigger algorithm comment velocity.
+        """
+        try:
+            questions = [
+                "Which book-only detail do you wish they kept in the movies? Let us know below! 👇",
+                "Did you notice this detail the first time you watched the movies? Tell us below! 👇",
+                "What is your favorite hidden secret in Harry Potter? Drop your thoughts below! 👇",
+                "Be honest: would you have survived this in the wizarding world? Let us know! 👇"
+            ]
+            import random
+            comment_text = random.choice(questions)
+            body = {
+                "snippet": {
+                    "videoId": video_id,
+                    "topLevelComment": {
+                        "snippet": {
+                            "textOriginal": comment_text
+                        }
+                    }
+                }
+            }
+            res = youtube.commentThreads().insert(part="snippet", body=body).execute()
+            comment_id = res.get("id")
+            logger.info(f"[ENGAGEMENT] Successfully posted seed discussion comment {comment_id} on video {video_id}")
+            return comment_id
+        except Exception as e:
+            logger.warning(f"[ENGAGEMENT] Notice posting comment on video {video_id}: {e}")
+            return None
+
     def recover_orphaned_upload(
         self,
         youtube,
@@ -592,16 +651,25 @@ class UploadEngine:
                 db.commit()
                 return record
 
-            # Sanitize description: strictly viewer-facing, zero internal IDs
+            # Sanitize description & title: strictly viewer-facing, zero internal IDs or build slugs
             clean_description = self.sanitize_public_description(metadata.get("description", ""))
+            clean_title = self.sanitize_public_title(metadata.get("title", ""))
+
+            tags_list = metadata.get("tags") or [
+                "Harry Potter", "Wizarding World", "Hogwarts", "Harry Potter Lore",
+                "Harry Potter Facts", "Movie Facts", "Shorts", "Harry Potter Shorts",
+                "Deleted Scenes", "Book vs Movie", "Harry Potter Secrets"
+            ]
+            if isinstance(tags_list, str):
+                tags_list = [t.strip() for t in tags_list.split(",") if t.strip()]
 
             # YouTube API requires privacyStatus='private' when publishAt is set.
-            # The tags field is completely omitted for all new uploads.
             body = {
                 "snippet": {
-                    "title": metadata["title"][:100],
+                    "title": clean_title[:100],
                     "description": clean_description[:5000],
-                    "categoryId": "27"  # Education
+                    "categoryId": "24",  # Entertainment (was 27 Education)
+                    "tags": tags_list[:15]
                 },
                 "status": {
                     "privacyStatus": "private",
@@ -610,7 +678,7 @@ class UploadEngine:
                 }
             }
 
-            logger.info(f"[YOUTUBE_API] Uploading video '{metadata['title']}' (5MB chunks) with scheduled publishAt={publish_at_str}...")
+            logger.info(f"[YOUTUBE_API] Uploading video '{clean_title}' (5MB chunks) with category 24 & tags with scheduled publishAt={publish_at_str}...")
             media = MediaFileUpload(
                 str(video_path),
                 mimetype="video/mp4",
@@ -704,14 +772,13 @@ class UploadEngine:
             if not actual_publish_at:
                 logger.warning(f"Video {yt_id} publishAt verification returned null, but upload completed with private status.")
 
-            clean_desc = self.sanitize_public_description(metadata.get("description", ""))
             record = UploadRecord(
                 id=upload_id,
                 job_id=job.id,
                 youtube_video_id=yt_id,
-                title=metadata["title"],
-                description=clean_desc,
-                tags="",
+                title=clean_title,
+                description=clean_description,
+                tags=",".join(tags_list[:15]),
                 privacy_status="private",
                 scheduled_publish_at=publish_at_utc,
                 published_at=None,
@@ -721,6 +788,12 @@ class UploadEngine:
             db.add(record)
             job.state = JobState.SCHEDULED.value
             db.commit()
+
+            # Post seed engagement question to trigger comment velocity
+            try:
+                self.post_engagement_comment(youtube, yt_id, clean_title)
+            except Exception as comm_err:
+                logger.warning(f"Could not post initial engagement comment: {comm_err}")
 
             logger.info(f"[+] SCHEDULED YOUTUBE SHORT VERIFIED: ID {yt_id} -> Will release automatically on YouTube at {publish_at_str}")
             return record
