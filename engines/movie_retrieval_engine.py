@@ -676,12 +676,16 @@ class MovieRetrievalEngine:
             canonical_obj = canonical_event or candidate.get("canonical_event_obj")
             if canonical_obj:
                 ev_text = f"{getattr(canonical_obj, 'primary_subject', '')} {getattr(canonical_obj, 'action', '')} {getattr(canonical_obj, 'visual_description', '')}".lower()
-                req_words = set(re.findall(r"[a-zA-Z]{4,}", str(beat.get("visual_requirement", "")).lower()))
-                action_words = set(re.findall(r"[a-zA-Z]{4,}", str(beat.get("action", "")).lower()))
-                overlap = sum(1 for w in req_words.union(action_words) if w in ev_text)
-                sem_score = min(25.0, 15.0 + overlap * 3.0)
             else:
-                sem_score = 25.0
+                ev_text = str(candidate.get("expanded_context", "") + " " + candidate.get("text", "")).lower()
+
+            req_words = set(re.findall(r"[a-zA-Z]{4,}", str(beat.get("visual_requirement", "")).lower()))
+            action_words = set(re.findall(r"[a-zA-Z]{4,}", str(beat.get("action", "")).lower()))
+            nar_words = set(re.findall(r"[a-zA-Z]{4,}", str(beat.get("narration_text", "")).lower()))
+            all_beat_words = req_words.union(action_words).union(nar_words)
+            overlap = sum(1 for w in all_beat_words if w in ev_text)
+            candidate["semantic_overlap"] = overlap
+            sem_score = min(25.0, 15.0 + overlap * 2.0)
         else:
             rank = float(candidate.get("relevance_rank", 0.0))
             rank_pts = max(0.0, min(10.0, 10.0 - abs(rank) * 1.0))
@@ -981,7 +985,7 @@ class MovieRetrievalEngine:
             )
             for c in candidates
         ]
-        scored.sort(key=lambda x: x["score"], reverse=True)
+        scored.sort(key=lambda x: (x["score"], x.get("semantic_overlap", 0)), reverse=True)
         return scored
 
     # --------------------------------------------------------------------------

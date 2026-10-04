@@ -170,15 +170,29 @@ class VisualFeedbackEngine:
             {
                 "id": "vfb_anchor_m1_doorstep_baby_harry",
                 "movie_number": 1,
-                "start_seconds": 25.0,
-                "end_seconds": 55.0,
-                "actual_character": "Albus Dumbledore, Minerva McGonagall, Aunt Petunia Doorstep",
+                "start_seconds": 110.0,
+                "end_seconds": 135.0,
+                "actual_character": "Albus Dumbledore, Minerva McGonagall, Aunt Petunia Discussion",
                 "intended_character": "Petunia Dursley",
                 "prohibited_characters": [],
                 "verdict": "VERIFIED_CANONICAL_MATCH",
-                "rejection_reason": "Verified canonical footage of Dumbledore placing baby Harry on Aunt Petunia's doorstep at 4 Privet Drive with the protective letter.",
+                "rejection_reason": "Verified canonical footage of Dumbledore and McGonagall discussing Aunt Petunia and why Harry must be left at 4 Privet Drive.",
                 "penalty_score": 0.0,
                 "beat_concept": "Dumbledore explains Dursleys / Blood Protection / Privet Drive Doorstep",
+                "source": "CANONICAL_CURATION"
+            },
+            {
+                "id": "vfb_anchor_m1_doorstep_letter_baby_harry",
+                "movie_number": 1,
+                "start_seconds": 220.0,
+                "end_seconds": 236.0,
+                "actual_character": "Albus Dumbledore, Baby Harry Potter, Dursley Letter",
+                "intended_character": "Petunia Dursley",
+                "prohibited_characters": [],
+                "verdict": "VERIFIED_CANONICAL_MATCH",
+                "rejection_reason": "Verified canonical close-up of Dumbledore placing the protective letter addressed to Mr and Mrs V. Dursley 4 Privet Drive onto baby Harry.",
+                "penalty_score": 0.0,
+                "beat_concept": "Dumbledore leaves letter on doorstep / Blood Protection Charm",
                 "source": "CANONICAL_CURATION"
             },
             {
@@ -196,18 +210,34 @@ class VisualFeedbackEngine:
                 "source": "CANONICAL_CURATION"
             },
             {
-                "id": "vfb_anchor_m7_petunia_leaving_privet_drive",
-                "movie_number": 7,
-                "start_seconds": 88.0,
-                "end_seconds": 105.0,
+                "id": "vfb_anchor_m1_petunia_lily_resentment",
+                "movie_number": 1,
+                "start_seconds": 972.0,
+                "end_seconds": 992.0,
                 "actual_character": "Petunia Dursley (Fiona Shaw close-up)",
                 "intended_character": "Petunia Dursley",
                 "prohibited_characters": [],
                 "verdict": "VERIFIED_CANONICAL_MATCH",
-                "rejection_reason": "Verified canonical close-up of Petunia Dursley standing inside the empty living room of 4 Privet Drive reflecting on leaving.",
+                "rejection_reason": "Verified canonical close-up of Petunia Dursley (Fiona Shaw) delivering her iconic monologue expressing bitter resentment towards Lily Potter and magic.",
                 "penalty_score": 0.0,
-                "beat_concept": "Petunia Dursley / Dursleys leaving / Reluctant Guardian",
+                "beat_concept": "Petunia Dursley / Lily Potter Resentment / Reluctant Guardian",
                 "source": "CANONICAL_CURATION"
+            },
+            {
+                "id": "vfb_m7_hermione_bedroom_not_petunia",
+                "movie_number": 7,
+                "start_seconds": 75.0,
+                "end_seconds": 110.0,
+                "actual_character": "Hermione Granger / Vernon Dursley Car Trunk",
+                "intended_character": "Petunia Dursley",
+                "prohibited_characters": [
+                    "Petunia Dursley", "Petunia", "Aunt Petunia"
+                ],
+                "verdict": "CHARACTER_MISMATCH",
+                "rejection_reason": "Hermione Granger wiping memories in bedroom followed by Vernon loading car trunk. Petunia does not appear in theatrical cut here.",
+                "penalty_score": -10000.0,
+                "beat_concept": "Petunia Dursley",
+                "source": "FORENSIC_QA_INSPECTION"
             }
         ]
 
@@ -254,7 +284,7 @@ class VisualFeedbackEngine:
         """
         if prohibited_characters is None:
             prohibited_characters = []
-        if intended_character and intended_character not in prohibited_characters:
+        if intended_character and intended_character not in prohibited_characters and verdict != "VERIFIED_CANONICAL_MATCH":
             prohibited_characters.append(intended_character)
         if tags is None:
             tags = []

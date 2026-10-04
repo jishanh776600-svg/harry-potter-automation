@@ -23,7 +23,7 @@
     "penalty_score": -10000.0,
     "source": "FORENSIC_QA_INSPECTION",
     "tags": [],
-    "created_at": "2026-10-04T16:23:36.896481"
+    "created_at": "2026-10-04T16:14:04.913433"
   },
   {
     "id": "vfb_m7_empty_car_driveway_pavement",
@@ -46,7 +46,7 @@
     "penalty_score": -10000.0,
     "source": "FORENSIC_QA_INSPECTION",
     "tags": [],
-    "created_at": "2026-10-04T16:23:36.919874"
+    "created_at": "2026-10-04T16:14:04.920435"
   },
   {
     "id": "vfb_m7_xenophilius_printing_press",
@@ -69,7 +69,7 @@
     "penalty_score": -10000.0,
     "source": "FORENSIC_QA_INSPECTION",
     "tags": [],
-    "created_at": "2026-10-04T16:23:36.937340"
+    "created_at": "2026-10-04T16:14:04.927435"
   },
   {
     "id": "vfb_universal_bellatrix_mismatch_hero",
@@ -92,26 +92,7 @@
     "penalty_score": -10000.0,
     "source": "FORENSIC_QA_INSPECTION",
     "tags": [],
-    "created_at": "2026-10-04T16:23:36.950975"
-  },
-  {
-    "id": "vfb_anchor_m1_doorstep_baby_harry",
-    "movie_number": 1,
-    "start_seconds": 25.0,
-    "end_seconds": 55.0,
-    "actual_character": "Albus Dumbledore, Minerva McGonagall, Aunt Petunia Doorstep",
-    "intended_character": "Petunia Dursley",
-    "prohibited_characters": [
-      "Petunia Dursley"
-    ],
-    "script_id": null,
-    "beat_concept": "Dumbledore explains Dursleys / Blood Protection / Privet Drive Doorstep",
-    "verdict": "VERIFIED_CANONICAL_MATCH",
-    "rejection_reason": "Verified canonical footage of Dumbledore placing baby Harry on Aunt Petunia's doorstep at 4 Privet Drive with the protective letter.",
-    "penalty_score": 0.0,
-    "source": "CANONICAL_CURATION",
-    "tags": [],
-    "created_at": "2026-10-04T16:23:36.960551"
+    "created_at": "2026-10-04T16:14:04.947398"
   },
   {
     "id": "vfb_anchor_m1_privet_drive_letters",
@@ -130,25 +111,78 @@
     "penalty_score": 0.0,
     "source": "CANONICAL_CURATION",
     "tags": [],
-    "created_at": "2026-10-04T16:23:36.976011"
+    "created_at": "2026-10-04T16:14:04.960172"
   },
   {
-    "id": "vfb_anchor_m7_petunia_leaving_privet_drive",
-    "movie_number": 7,
-    "start_seconds": 88.0,
-    "end_seconds": 105.0,
+    "id": "vfb_anchor_m1_petunia_lily_resentment",
+    "movie_number": 1,
+    "start_seconds": 972.0,
+    "end_seconds": 992.0,
     "actual_character": "Petunia Dursley (Fiona Shaw close-up)",
     "intended_character": "Petunia Dursley",
-    "prohibited_characters": [
-      "Petunia Dursley"
-    ],
+    "prohibited_characters": [],
     "script_id": null,
-    "beat_concept": "Petunia Dursley / Dursleys leaving / Reluctant Guardian",
+    "beat_concept": "Petunia Dursley / Lily Potter Resentment / Reluctant Guardian",
     "verdict": "VERIFIED_CANONICAL_MATCH",
-    "rejection_reason": "Verified canonical close-up of Petunia Dursley standing inside the empty living room of 4 Privet Drive reflecting on leaving.",
+    "rejection_reason": "Verified canonical close-up of Petunia Dursley (Fiona Shaw) delivering her iconic monologue expressing bitter resentment towards Lily Potter and magic.",
     "penalty_score": 0.0,
     "source": "CANONICAL_CURATION",
     "tags": [],
-    "created_at": "2026-10-04T16:23:36.986348"
+    "created_at": "2026-10-04T16:52:09.120083"
+  },
+  {
+    "id": "vfb_m7_hermione_bedroom_not_petunia",
+    "movie_number": 7,
+    "start_seconds": 75.0,
+    "end_seconds": 110.0,
+    "actual_character": "Hermione Granger / Vernon Dursley Car Trunk",
+    "intended_character": "Petunia Dursley",
+    "prohibited_characters": [
+      "Petunia Dursley",
+      "Petunia",
+      "Aunt Petunia"
+    ],
+    "script_id": null,
+    "beat_concept": "Petunia Dursley",
+    "verdict": "CHARACTER_MISMATCH",
+    "rejection_reason": "Hermione Granger wiping memories in bedroom followed by Vernon loading car trunk. Petunia does not appear in theatrical cut here.",
+    "penalty_score": -10000.0,
+    "source": "FORENSIC_QA_INSPECTION",
+    "tags": [],
+    "created_at": "2026-10-04T16:52:09.133029"
+  },
+  {
+    "id": "vfb_anchor_m1_doorstep_letter_baby_harry",
+    "movie_number": 1,
+    "start_seconds": 220.0,
+    "end_seconds": 236.0,
+    "actual_character": "Albus Dumbledore, Baby Harry Potter, Dursley Letter",
+    "intended_character": "Petunia Dursley",
+    "prohibited_characters": [],
+    "script_id": null,
+    "beat_concept": "Dumbledore leaves letter on doorstep / Blood Protection Charm",
+    "verdict": "VERIFIED_CANONICAL_MATCH",
+    "rejection_reason": "Verified canonical close-up of Dumbledore placing the protective letter addressed to Mr and Mrs V. Dursley 4 Privet Drive onto baby Harry.",
+    "penalty_score": 0.0,
+    "source": "CANONICAL_CURATION",
+    "tags": [],
+    "created_at": "2026-10-04T17:01:15.015678"
+  },
+  {
+    "id": "vfb_anchor_m1_doorstep_baby_harry",
+    "movie_number": 1,
+    "start_seconds": 110.0,
+    "end_seconds": 135.0,
+    "actual_character": "Albus Dumbledore, Minerva McGonagall, Aunt Petunia Discussion",
+    "intended_character": "Petunia Dursley",
+    "prohibited_characters": [],
+    "script_id": null,
+    "beat_concept": "Dumbledore explains Dursleys / Blood Protection / Privet Drive Doorstep",
+    "verdict": "VERIFIED_CANONICAL_MATCH",
+    "rejection_reason": "Verified canonical footage of Dumbledore and McGonagall discussing Aunt Petunia and why Harry must be left at 4 Privet Drive.",
+    "penalty_score": 0.0,
+    "source": "CANONICAL_CURATION",
+    "tags": [],
+    "created_at": "2026-10-04T17:01:28.494747"
   }
 ]

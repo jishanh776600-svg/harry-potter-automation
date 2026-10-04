@@ -689,14 +689,16 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         c7 = 12.0 <= dur <= 35.0
         qa_report["details"]["duration_within_bounds"] = c7
 
-        # 8. Black screen detection
+        # 8. Black screen detection (Disallow continuous black screen >= 1.5s)
         black_cmd = [
             "ffmpeg", "-i", str(video_path),
-            "-vf", "blackdetect=d=0.8:pic_th=0.98",
+            "-vf", "blackdetect=d=1.5:pic_th=0.98",
             "-an", "-f", "null", "-"
         ]
         b_res = subprocess.run(black_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        c8 = "black_start:0" not in b_res.stderr or "black_duration" not in b_res.stderr
+        durations = [float(m) for m in re.findall(r"black_duration:([0-9.]+)", b_res.stderr)]
+        max_black = max(durations) if durations else 0.0
+        c8 = max_black < 1.5
         qa_report["details"]["no_continuous_black_screen"] = c8
 
         # 9. Master Loudness measurement (LUFS)
@@ -749,10 +751,21 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             if not script:
                 raise ValueError(f"Script {script_id} not found in database.")
 
-            # Query persisted movie shots from Step 9 chronologically by integer shot_index
-            shots = session.query(HPMovieClip).filter_by(script_id=script_id, match_status="ACCEPTED").order_by(HPMovieClip.shot_index.asc()).all()
+            # Query persisted movie shots from Step 9 chronologically by beat and shot index
+            shots = session.query(HPMovieClip).filter_by(script_id=script_id, match_status="ACCEPTED").order_by(HPMovieClip.beat_id.asc(), HPMovieClip.shot_index.asc()).all()
             if not shots:
                 raise ValueError(f"No accepted movie shots found for script {script_id}.")
+
+            def _beat_sort_key(s):
+                b_num = 0
+                if s.beat_id and s.beat_id.startswith("beat_"):
+                    try:
+                        b_num = int(s.beat_id.split("_")[1])
+                    except ValueError:
+                        pass
+                return (b_num, s.shot_index or 0)
+
+            shots = sorted(shots, key=_beat_sort_key)
 
 
             content_type = script.content_type
