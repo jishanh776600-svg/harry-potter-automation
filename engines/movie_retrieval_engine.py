@@ -1096,6 +1096,45 @@ class MovieRetrievalEngine:
         shots = []
         shot_idx = 1
 
+        # Strategy 0: Curated Master Character Shot Bank (Pre-Verified Rapid Cuts)
+        from core.character_shot_bank import find_curated_character_shots
+        concept_query = f"{beat.get('visual_requirement', '')} {beat.get('action', '')} {beat.get('narration_text', '')}"
+        curated_shots = find_curated_character_shots(
+            query_concept=concept_query,
+            characters=req_characters,
+            count=target_shots_per_beat
+        )
+        if curated_shots and len(curated_shots) >= target_shots_per_beat:
+            logger.info(f"Using {len(curated_shots)} pre-verified shots from CharacterShotBank for beat {beat.get('beat_id')}")
+            for s_idx, cs in enumerate(curated_shots[:target_shots_per_beat], 1):
+                c_start = float(cs["start_seconds"])
+                c_end = float(cs["end_seconds"])
+                shot_dur = float(cs["duration_seconds"])
+                cand_stub = {
+                    "movie_number": cs["movie_number"],
+                    "movie_title": f"Movie {cs['movie_number']}",
+                    "start_seconds": c_start,
+                    "end_seconds": c_end,
+                    "text": cs["description"],
+                    "matched_query": cs["description"],
+                    "characters": cs.get("characters", req_characters),
+                    "score": 99.0
+                }
+                shots.append({
+                    "shot_id": f"shot_{s_idx}",
+                    "shot_index": s_idx,
+                    "candidate": cand_stub,
+                    "source_start_seconds": c_start,
+                    "source_end_seconds": c_end,
+                    "clip_start_seconds": c_start,
+                    "clip_end_seconds": c_end,
+                    "duration_seconds": shot_dur,
+                    "sub_role": cs.get("shot_type", "FOCAL_ACTION")
+                })
+                if used_intervals is not None:
+                    used_intervals.append((cs["movie_number"], c_start, c_end))
+            return shots
+
         # Strategy A: If top candidate is high confidence and long enough (>= 4.0s),
         # decompose it directly into cohesive sequential shots to avoid jarring scene jumps.
         top_cand = valid_candidates[0]
@@ -1375,6 +1414,14 @@ class MovieRetrievalEngine:
         width = video_streams[0].get("width", 1080) if video_streams else 1080
         height = video_streams[0].get("height", 1920) if video_streams else 1920
 
+        # Visual Frame Gate verification (Computer Vision subject presence & quality)
+        from core.visual_frame_gate import VisualFrameGate
+        gate = VisualFrameGate()
+        req_chars = shot.get("candidate", {}).get("characters") or []
+        is_gate_ok, gate_reason, gate_stats = gate.verify_clip(output_path, required_characters=req_chars)
+        if not is_gate_ok:
+            logger.warning(f"VisualFrameGate verification failed for {output_filename}: {gate_reason} (Stats: {gate_stats})")
+
         return {
             "file_path": str(output_path),
             "file_name": output_filename,
@@ -1386,7 +1433,10 @@ class MovieRetrievalEngine:
             "clip_start_seconds": clip_start,
             "clip_end_seconds": shot["clip_end_seconds"],
             "duration_seconds": clip_dur,
-            "extraction_status": "VERIFIED_MUTED"
+            "extraction_status": "VERIFIED_MUTED",
+            "visual_gate_status": "PASS" if is_gate_ok else "FAIL",
+            "visual_gate_reason": gate_reason,
+            "visual_gate_stats": gate_stats
         }
 
     # --------------------------------------------------------------------------

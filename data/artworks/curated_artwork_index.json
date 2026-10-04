@@ -394,5 +394,141 @@
       "novel_art"
     ],
     "is_official": false
+  },
+  {
+    "asset_id": "fandom_ebdcf86cce",
+    "scene": "COGS Scene 19 Fantastic Beasts book",
+    "title": "COGS Scene 19 Fantastic Beasts book",
+    "description": "Harry Potter Wiki canonical illustration: File:COGS Scene 19 Fantastic Beasts book.jpg",
+    "characters": [],
+    "actions": [
+      "Harry Potter scene from Movie 5 establishing context"
+    ],
+    "objects": [],
+    "location": null,
+    "book_number": null,
+    "chapter_number": null,
+    "source_type": "FAN_ART",
+    "source_url": "https://harrypotter.fandom.com/wiki/File%3ACOGS%20Scene%2019%20Fantastic%20Beasts%20book.jpg",
+    "original_url": "https://static.wikia.nocookie.net/harrypotter/images/5/5b/COGS_Scene_19_Fantastic_Beasts_book.jpg/revision/latest?cb=20200807005103",
+    "creator": "Harry Potter Wiki Contributor / Studio Archive",
+    "license_name": "Editorial Commentary & Transformative Critique",
+    "license_url": "https://www.fandom.com/licensing",
+    "artist_license_status": "ARTIST_LICENSE_VERIFIED",
+    "commercial_clearance": "COMMERCIAL_PRODUCTION_CLEARED",
+    "rights_status": "RIGHTS_VERIFIED",
+    "approval_status": "APPROVED",
+    "local_path": "data/artworks/downloads/fandom_ebdcf86cce.webp",
+    "image_hash": "8e0ca21087c55f65a4385448c5db5d27a287c59e77f4f49354df62ac62d340d9",
+    "file_size_bytes": 99938,
+    "tags": [
+      "fandom",
+      "wiki",
+      "illustration",
+      "novel_art"
+    ],
+    "is_official": false
+  },
+  {
+    "asset_id": "fandom_9cfe85b454",
+    "scene": "4 Privet Drive 1 - PAS",
+    "title": "4 Privet Drive 1 - PAS",
+    "description": "Harry Potter Wiki canonical illustration: File:4 Privet Drive 1 - PAS.png",
+    "characters": [],
+    "actions": [
+      "Dumbledore Privet Drive protection"
+    ],
+    "objects": [],
+    "location": null,
+    "book_number": null,
+    "chapter_number": null,
+    "source_type": "FAN_ART",
+    "source_url": "https://harrypotter.fandom.com/wiki/File%3A4%20Privet%20Drive%201%20-%20PAS.png",
+    "original_url": "https://static.wikia.nocookie.net/harrypotter/images/3/39/4_Privet_Drive_1_-_PAS.png/revision/latest?cb=20201128220155",
+    "creator": "Harry Potter Wiki Contributor / Studio Archive",
+    "license_name": "Editorial Commentary & Transformative Critique",
+    "license_url": "https://www.fandom.com/licensing",
+    "artist_license_status": "ARTIST_LICENSE_VERIFIED",
+    "commercial_clearance": "COMMERCIAL_PRODUCTION_CLEARED",
+    "rights_status": "RIGHTS_VERIFIED",
+    "approval_status": "APPROVED",
+    "local_path": "data/artworks/downloads/fandom_9cfe85b454.webp",
+    "image_hash": "9dd912e0cadea7dde61d8bde4ef4b0e0286e44cd0ec7aa81842d84fcbb616183",
+    "file_size_bytes": 171018,
+    "tags": [
+      "fandom",
+      "wiki",
+      "illustration",
+      "novel_art"
+    ],
+    "is_official": false
+  },
+  {
+    "asset_id": "fandom_d7b21615bb",
+    "scene": "B4C35M1 MoodyAtBottomOfChest Moment",
+    "title": "B4C35M1 MoodyAtBottomOfChest Moment",
+    "description": "Harry Potter Wiki canonical illustration: File:B4C35M1 MoodyAtBottomOfChest Moment.jpg",
+    "characters": [],
+    "actions": [
+      "Harry Potter character reaction or emotional moment"
+    ],
+    "objects": [],
+    "location": null,
+    "book_number": null,
+    "chapter_number": null,
+    "source_type": "FAN_ART",
+    "source_url": "https://harrypotter.fandom.com/wiki/File%3AB4C35M1%20MoodyAtBottomOfChest%20Moment.jpg",
+    "original_url": "https://static.wikia.nocookie.net/harrypotter/images/2/2b/B4C35M1_MoodyAtBottomOfChest_Moment.jpg/revision/latest?cb=20201109215343",
+    "creator": "Harry Potter Wiki Contributor / Studio Archive",
+    "license_name": "Editorial Commentary & Transformative Critique",
+    "license_url": "https://www.fandom.com/licensing",
+    "artist_license_status": "ARTIST_LICENSE_VERIFIED",
+    "commercial_clearance": "COMMERCIAL_PRODUCTION_CLEARED",
+    "rights_status": "RIGHTS_VERIFIED",
+    "approval_status": "APPROVED",
+    "local_path": "data/artworks/downloads/fandom_d7b21615bb.webp",
+    "image_hash": "8d5c2e79f128b5b236a47209fff7cd9a6f8a84f7e50f1c4a0f689c1122b79134",
+    "file_size_bytes": 176906,
+    "tags": [
+      "fandom",
+      "wiki",
+      "illustration",
+      "novel_art"
+    ],
+    "is_official": false
+  },
+  {
+    "asset_id": "fandom_a95bfff103",
+    "scene": "Patronus - Snape - Doe - PAS",
+    "title": "Patronus - Snape - Doe - PAS",
+    "description": "Harry Potter Wiki canonical illustration: File:Patronus - Snape - Doe - PAS.png",
+    "characters": [],
+    "actions": [
+      "Snape Patronus doe silver"
+    ],
+    "objects": [],
+    "location": null,
+    "book_number": null,
+    "chapter_number": null,
+    "source_type": "FAN_ART",
+    "source_url": "https://harrypotter.fandom.com/wiki/File%3APatronus%20-%20Snape%20-%20Doe%20-%20PAS.png",
+    "original_url": "https://static.wikia.nocookie.net/harrypotter/images/6/6f/Patronus_-_Snape_-_Doe_-_PAS.png/revision/latest?cb=20211218200403",
+    "creator": "Harry Potter Wiki Contributor / Studio Archive",
+    "license_name": "Editorial Commentary & Transformative Critique",
+    "license_url": "https://www.fandom.com/licensing",
+    "artist_license_status": "ARTIST_LICENSE_VERIFIED",
+    "commercial_clearance": "COMMERCIAL_PRODUCTION_CLEARED",
+    "rights_status": "RIGHTS_VERIFIED",
+    "approval_status": "APPROVED",
+    "local_path": "data/artworks/downloads/fandom_a95bfff103.webp",
+    "image_hash": "3035213dc2932814825dc39b35579d03e1a71b30d8af4c1f8b635bcefe9d4fb1",
+    "file_size_bytes": 49468,
+    "tags": [
+      "fandom",
+      "wiki",
+      "illustration",
+      "novel_art"
+    ],
+    "is_official": false
   }
 ]
