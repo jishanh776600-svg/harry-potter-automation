@@ -709,19 +709,61 @@ class DriveVaultEngine:
             raise FileNotFoundError(f"Local staging file {clean_name} not found in any vault folder.")
 
         drive = self.get_drive_service()
-
         from googleapiclient.http import MediaIoBaseDownload
+        from googleapiclient.errors import HttpError
+        import socket, ssl, time, random
 
-        request = drive.files().get_media(fileId=file_id)
-        with open(local_dest_path, "wb") as f:
-            downloader = MediaIoBaseDownload(f, request, chunksize=1024 * 1024 * 5)
-            done = False
-            while not done:
-                status, done = downloader.next_chunk()
-                if status:
-                    logger.debug(f"Downloading from Drive: {int(status.progress() * 100)}%")
+        # Retrieve authoritative Drive metadata for byte-for-byte integrity verification
+        expected_size = None
+        try:
+            f_meta = drive.files().get(fileId=file_id, fields="size, name").execute()
+            if f_meta and f_meta.get("size"):
+                expected_size = int(f_meta["size"])
+        except Exception as meta_err:
+            logger.warning(f"Could not retrieve Drive file size for verification: {meta_err}")
 
-        logger.info(f"[+] Downloaded Drive file {file_id} to {local_dest_path} ({local_dest_path.stat().st_size} bytes)")
+        max_download_passes = 3
+        for d_pass in range(1, max_download_passes + 1):
+            try:
+                request = drive.files().get_media(fileId=file_id)
+                with open(local_dest_path, "wb") as f:
+                    downloader = MediaIoBaseDownload(f, request, chunksize=1024 * 1024 * 5)
+                    done = False
+                    max_chunk_retries = 5
+                    while not done:
+                        chunk_done = False
+                        for chunk_attempt in range(1, max_chunk_retries + 1):
+                            try:
+                                status, done = downloader.next_chunk()
+                                if status:
+                                    logger.debug(f"Downloading from Drive: {int(status.progress() * 100)}%")
+                                chunk_done = True
+                                break
+                            except (HttpError, socket.error, ssl.SSLError, OSError) as chunk_err:
+                                backoff = min(30.0, (2 ** chunk_attempt) + random.uniform(0.1, 1.0))
+                                logger.warning(f"Drive chunk download glitch ({chunk_err}). Retrying in {backoff:.1f}s...")
+                                time.sleep(backoff)
+                        if not chunk_done:
+                            raise ConnectionError(f"Drive chunk download failed after {max_chunk_retries} retries.")
+
+                actual_size = local_dest_path.stat().st_size
+                if expected_size and actual_size != expected_size:
+                    logger.warning(
+                        f"[DOWNLOAD_INTEGRITY_MISMATCH] Pass {d_pass}/{max_download_passes}: "
+                        f"Actual {actual_size} bytes != Expected {expected_size} bytes. Retrying download..."
+                    )
+                    local_dest_path.unlink(missing_ok=True)
+                    continue
+
+                logger.info(f"[+] Downloaded Drive file {file_id} to {local_dest_path} ({actual_size} bytes, verified)")
+                return local_dest_path
+
+            except Exception as dl_err:
+                logger.warning(f"Download pass {d_pass} failed: {dl_err}")
+                if d_pass == max_download_passes:
+                    raise dl_err
+                time.sleep(3.0)
+
         return local_dest_path
 
     def move_file_in_vault(self, file_id: str, from_folder: str, to_folder: str, _from_gateway: bool = False, filename: Optional[str] = None) -> Dict[str, Any]:
