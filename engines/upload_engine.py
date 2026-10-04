@@ -229,6 +229,7 @@ class UploadEngine:
 
         # Semantic Deduplication Gate: verifies candidate story is not a semantic duplicate of existing catalog
         try:
+            from core.models import Topic
             from engines.deduplication_engine import DeduplicationRouter
             dedup_engine = DeduplicationRouter()
             desc = metadata.get("description", "") or ""

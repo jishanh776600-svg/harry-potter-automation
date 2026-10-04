@@ -474,6 +474,8 @@ class HPAutonomousRefillEngine:
 
         # Step 3: Cloud Vault Buffer Deposit (01_READY)
         try:
+            if script:
+                script = session.merge(script)
             fmt_tag = getattr(script, "format", None)
             if not fmt_tag:
                 if content_type == "novel_story":
