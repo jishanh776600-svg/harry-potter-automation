@@ -273,14 +273,70 @@ class UploadEngine:
         return True, "All 16 publication safety gates passed successfully"
 
     @staticmethod
-    def sanitize_public_description(description: str) -> str:
+    def generate_seo_description(
+        title: str,
+        topic: Optional[str] = None,
+        source_reference: Optional[str] = None,
+        key_characters: Optional[List[str]] = None
+    ) -> str:
         """
-        Strips internal production identifiers (job IDs, run IDs, manifest IDs,
-        event IDs, UUIDs, telemetry tokens) from public YouTube descriptions.
+        Engine-level Professional YouTube Shorts SEO Description Generator.
+        Replaces raw script dumps with high-converting search-optimized metadata:
+        - Engaging curiosity hook
+        - Key search topics & lore keywords
+        - Channel branding & call to action
+        - High-density discoverability hashtags
+        - Standard Fair Use disclaimer
         """
+        import re
+        clean_t = re.sub(r"#\w+", "", title)
+        clean_t = re.sub(r"\s*\|\s*Harry Potter.*", "", clean_t, flags=re.IGNORECASE).strip()
+        clean_t = clean_t.replace(" | ", " - ").strip()
+        if not clean_t:
+            clean_t = "Hidden Harry Potter Lore Secret"
+
+        lines = [
+            f"⚡ Did you catch this subtle detail? {clean_t}!",
+            "",
+            "Explore the hidden lore, book vs movie differences, and secret details of the Wizarding World that even hardcore Potterheads often overlook.",
+            "",
+            "🔔 Subscribe to Story Forge for daily Harry Potter lore discoveries, movie secrets, and deleted scene breakdowns!",
+            "",
+            "✨ Topics & Lore Keywords:",
+            f"• {clean_t}",
+            "• Harry Potter Movie Details & Hidden Easter Eggs",
+            "• Hogwarts Secrets & Wizarding World Canon Lore",
+            "• J.K. Rowling Book vs Movie Differences",
+            "",
+            "#HarryPotter #Shorts #WizardingWorld #Hogwarts #MovieFacts #HarryPotterLore #HogwartsSecrets",
+            "",
+            "---",
+            "Disclaimer: Content created for commentary, criticism, and fan lore analysis under Fair Use principles. All movie footage, imagery, and related characters are trademarks of Warner Bros. Entertainment Inc. and J.K. Rowling."
+        ]
+        return "\n".join(lines).strip()
+
+    @classmethod
+    def sanitize_public_description(cls, description: str, title: Optional[str] = None) -> str:
+        """
+        Engine-level Description Sanitizer:
+        1. Strips internal production identifiers (job IDs, run IDs, telemetry, etc.).
+        2. Detects raw script dumps / voiceover artifacts and automatically replaces them
+           with clean, high-ranking professional SEO metadata.
+        """
+        if not description and title:
+            return cls.generate_seo_description(title=title)
         if not description:
             return ""
+
         import re
+        # Check if description is a dumped voiceover script
+        is_dumped_script = any(sig in description.lower() for sig in [
+            "voiceover by", "af_bella", "narrator_v1", "f5_cloned", "canonical source:"
+        ]) or (title and len(description.split()) > 35 and not any(k in description.lower() for k in ["topics & lore", "subscribe", "disclaimer", "story forge"]))
+
+        if is_dumped_script and title:
+            return cls.generate_seo_description(title=title)
+
         # Remove bracketed tags like [JOB_ID: ...]
         cleaned = re.sub(
             r"\[(JOB_ID|RUN_ID|MANIFEST_ID|EVENT_ID|PIPELINE_ID|DRIVE_ID|VAULT_ID)[^\]]*\]",
@@ -288,9 +344,7 @@ class UploadEngine:
             description,
             flags=re.IGNORECASE
         )
-        # Remove standalone internal ID tokens
         cleaned = re.sub(r"\b(job|upl|manrec|man|rnd|evt)_[a-zA-Z0-9_-]+\b", "", cleaned)
-        # Remove standard UUIDs
         cleaned = re.sub(
             r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b",
             "",

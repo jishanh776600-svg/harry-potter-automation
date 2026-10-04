@@ -185,21 +185,15 @@ def resolve_vault_file_metadata(candidate: Dict[str, Any], db: Optional[Session]
                     else:
                         title = f"{topic_clean} | Harry Potter Discovery #Shorts"
 
-                desc_parts = []
-                if hp_script.hook:
-                    desc_parts.append(hp_script.hook)
-                if hp_script.development:
-                    desc_parts.append(hp_script.development)
-                if hp_script.payoff:
-                    desc_parts.append(hp_script.payoff)
-
-                desc_body = "\n\n".join(desc_parts)
-                source_note = f"Canonical Source: {hp_script.book_title} ({hp_script.source_reference})\nVoiceover by Bella (af_bella)"
-                full_desc = f"{desc_body}\n\n{source_note}\n\n#HarryPotter #WizardingWorld #Shorts #Hogwarts"
+                full_desc = UploadEngine.generate_seo_description(
+                    title=title,
+                    topic=clean_hps_id.replace("hps_disc_", "").replace("_", " "),
+                    source_reference=f"{hp_script.book_title} ({hp_script.source_reference})" if hp_script.book_title else None
+                )
 
                 return {
                     "title": title[:100],
-                    "description": sanitize(full_desc)[:5000],
+                    "description": full_desc[:5000],
                     "tags": [],
                     "script_id": hp_script.id
                 }
