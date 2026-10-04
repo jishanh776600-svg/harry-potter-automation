@@ -161,10 +161,47 @@ class VisualFrameGate:
         if avg_brightness < self.min_brightness:
             return False, f"REJECTED_FRAME_TOO_DARK (avg brightness {avg_brightness:.1f} < {self.min_brightness})", stats
 
-        # Check 2: Character presence gate
+        # Check 2: Character presence and deep facial identity gate
         req_chars = [c for c in (required_characters or []) if c.lower() not in ("hogwarts", "castle", "hogwarts castle")]
         if req_chars:
             if not any_face:
                 return False, f"REJECTED_NO_CHARACTER_FACE (Required {req_chars}, but 0 human faces detected in clip)", stats
+
+            # Deep Face Recognition Verification (SFace Embedding Verification)
+            try:
+                from core.character_face_engine import CharacterFaceEngine
+                face_engine = CharacterFaceEngine()
+
+                # Re-inspect decoded frames for specific character identity
+                cap_id = cv2.VideoCapture(str(clip_p))
+                matched_chars = set()
+                best_id_score = 0.0
+
+                for s_idx in sample_indices:
+                    cap_id.set(cv2.CAP_PROP_POS_FRAMES, s_idx)
+                    ret, fr = cap_id.read()
+                    if ret and fr is not None:
+                        for rc in req_chars:
+                            v_res = face_engine.verify_character_in_frame(fr, rc)
+                            if v_res.get("best_score", 0.0) > best_id_score:
+                                best_id_score = v_res.get("best_score", 0.0)
+                            if v_res.get("is_present") and v_res.get("status") == "PASS":
+                                matched_chars.add(rc)
+                cap_id.release()
+
+                stats["character_id_score"] = round(best_id_score, 3)
+                stats["verified_characters"] = list(matched_chars)
+
+                # If face engine has indexed embeddings for this character and no match occurred:
+                indexed_req_chars = [
+                    rc for rc in req_chars
+                    if face_engine.verify_character_in_frame(np.zeros((10, 10, 3), dtype=np.uint8), rc).get("status") != "UNINDEXED_CHARACTER_BYPASS"
+                ]
+
+                if indexed_req_chars and not matched_chars:
+                    return False, f"REJECTED_IDENTITY_MISMATCH (Required {indexed_req_chars}, but face embeddings did not match (best score: {best_id_score:.3f}))", stats
+
+            except Exception as fe_err:
+                logger.debug(f"Face recognition identity check notice: {fe_err}")
 
         return True, "ACCEPTED_VISUAL_GATE_VERIFIED", stats
