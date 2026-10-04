@@ -1,12 +1,12 @@
 {
   "action": "MAINTAIN_BUFFER",
-  "outcome": "PARTIAL",
-  "block_reason": "Discovery Big candidate '2' failed: No eligible or discoverable DISCOVERY_BIG candidates available; Discovery Big candidate '2' failed: No eligible or discoverable DISCOVERY_BIG candidates available",
+  "outcome": "FAILED",
+  "block_reason": "Discovery Big candidate 'hps_disc_dobby_enslaved_malfoys_b2' failed: Drive deposit failed: EOF occurred in violation of protocol (_ssl.c:2427); Discovery Big candidate '1' failed: No eligible or discoverable DISCOVERY_BIG candidates available",
   "requested_deficit": 8,
-  "produced_count": 1,
+  "produced_count": 0,
   "initial_stock": 0,
-  "final_stock": 1,
+  "final_stock": 4,
   "target_stock": 8,
   "voice": "af_bella",
-  "timestamp": "2026-10-04T12:53:27.843274Z"
+  "timestamp": "2026-10-04T15:02:46.431040Z"
 }

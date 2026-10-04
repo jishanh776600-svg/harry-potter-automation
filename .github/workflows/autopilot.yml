@@ -11,12 +11,10 @@ on:
     # Wakes runner early, claims video from Drive, pre-verifies FFmpeg & metadata, sleeps until exact :00.00 sharp
     - cron: '50 1,7,13,19 * * *'
     
-    # Tier 2: Exact Slot-Time Release & Redundancy: 02:00, 08:00, 14:00, 20:00 UTC
-    - cron: '0 2,8,14,20 * * *'
-    
-    # Tier 3: High-Frequency 15-Minute Autonomous Watchdog:
-    # Catches up any network/runner failure within minutes (exits in 3s if slots already fulfilled)
-    - cron: '*/15 * * * *'
+    # Tier 2: Safe 6-Minute Autonomous Watchdog & Catchup:
+    # Safely above GitHub's 5-min threshold (:00, :06, :12, :18, :24, :30, :36, :42, :48, :54).
+    # Catches up any network/cloud glitch within 6 minutes (exits in ~3s if slots already fulfilled).
+    - cron: '*/6 * * * *'
   workflow_dispatch: # Allows manual on-demand publishing from GitHub Web / Mobile
 
 permissions:
