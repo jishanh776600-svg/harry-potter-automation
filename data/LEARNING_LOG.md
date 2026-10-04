@@ -465,7 +465,19 @@
 - **Target Duration**: 24.0s
 - **Subtype Weights**: {"DISCOVERY_BOOK_MOVIE_DIFFERENCE": 1.0, "DISCOVERY_OMITTED_SCENE": 1.0, "DISCOVERY_CHARACTER_ORIGIN": 1.0, "DISCOVERY_LORE_DEEP_DIVE": 1.0, "DISCOVERY_BEHIND_THE_SCENES": 1.0, "DISCOVERY_FORESHADOWING_PROPHECY": 1.0, "DISCOVERY_MAGICAL_OBJECT": 1.0, "DISCOVERY_MOVIE_DETAIL": 1.0}
 
-## Learning Cycle — 2026-10-03 22:43:36 UTC
+### [HP Learning Cycle #68] 2026-10-03 21:00:15 UTC
+- **Trigger/Reason**: Closed-loop performance adaptation from mature snapshots
+- **Content Mix**: Novel Story: 50.0% | Discovery: 50.0%
+- **Target Duration**: 24.0s
+- **Subtype Weights**: {"DISCOVERY_BOOK_MOVIE_DIFFERENCE": 1.0, "DISCOVERY_OMITTED_SCENE": 1.0, "DISCOVERY_CHARACTER_ORIGIN": 1.0, "DISCOVERY_LORE_DEEP_DIVE": 1.0, "DISCOVERY_BEHIND_THE_SCENES": 1.0, "DISCOVERY_FORESHADOWING_PROPHECY": 1.0, "DISCOVERY_MAGICAL_OBJECT": 1.0, "DISCOVERY_MOVIE_DETAIL": 1.0}
+
+### [HP Learning Cycle #69] 2026-10-03 21:13:33 UTC
+- **Trigger/Reason**: Closed-loop performance adaptation from mature snapshots
+- **Content Mix**: Novel Story: 50.0% | Discovery: 50.0%
+- **Target Duration**: 24.0s
+- **Subtype Weights**: {"DISCOVERY_BOOK_MOVIE_DIFFERENCE": 1.0, "DISCOVERY_OMITTED_SCENE": 1.0, "DISCOVERY_CHARACTER_ORIGIN": 1.0, "DISCOVERY_LORE_DEEP_DIVE": 1.0, "DISCOVERY_BEHIND_THE_SCENES": 1.0, "DISCOVERY_FORESHADOWING_PROPHECY": 1.0, "DISCOVERY_MAGICAL_OBJECT": 1.0, "DISCOVERY_MOVIE_DETAIL": 1.0}
+
+## Learning Cycle — 2026-10-04 00:55:21 UTC
 
 - **Mature Videos Evaluated**: 1
 - **Channel Performance Baseline**: 58.21/100
@@ -474,19 +486,73 @@
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | `category` | **Harry Potter** | 1 | `+0.0%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
 
-### [HP Learning Cycle #68] 2026-10-04 00:11:29 UTC
+### [HP Learning Cycle #70] 2026-10-04 00:55:43 UTC
 - **Trigger/Reason**: Closed-loop performance adaptation from mature snapshots
 - **Content Mix**: Novel Story: 50.0% | Discovery: 50.0%
 - **Target Duration**: 24.0s
 - **Subtype Weights**: {"DISCOVERY_BOOK_MOVIE_DIFFERENCE": 1.0, "DISCOVERY_OMITTED_SCENE": 1.0, "DISCOVERY_CHARACTER_ORIGIN": 1.0, "DISCOVERY_LORE_DEEP_DIVE": 1.0, "DISCOVERY_BEHIND_THE_SCENES": 1.0, "DISCOVERY_FORESHADOWING_PROPHECY": 1.0, "DISCOVERY_MAGICAL_OBJECT": 1.0, "DISCOVERY_MOVIE_DETAIL": 1.0}
 
-### [HP Learning Cycle #68] 2026-10-04 07:30:35 UTC
+## Learning Cycle — 2026-10-04 01:14:17 UTC
+
+- **Mature Videos Evaluated**: 1
+- **Channel Performance Baseline**: 58.21/100
+
+| Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `category` | **Harry Potter** | 1 | `+0.0%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+### [HP Learning Cycle #71] 2026-10-04 01:14:41 UTC
 - **Trigger/Reason**: Closed-loop performance adaptation from mature snapshots
 - **Content Mix**: Novel Story: 50.0% | Discovery: 50.0%
 - **Target Duration**: 24.0s
 - **Subtype Weights**: {"DISCOVERY_BOOK_MOVIE_DIFFERENCE": 1.0, "DISCOVERY_OMITTED_SCENE": 1.0, "DISCOVERY_CHARACTER_ORIGIN": 1.0, "DISCOVERY_LORE_DEEP_DIVE": 1.0, "DISCOVERY_BEHIND_THE_SCENES": 1.0, "DISCOVERY_FORESHADOWING_PROPHECY": 1.0, "DISCOVERY_MAGICAL_OBJECT": 1.0, "DISCOVERY_MOVIE_DETAIL": 1.0}
 
-## Learning Cycle — 2026-10-04 07:49:44 UTC
+## Learning Cycle — 2026-10-04 01:32:45 UTC
+
+- **Mature Videos Evaluated**: 1
+- **Channel Performance Baseline**: 58.21/100
+
+| Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `category` | **Harry Potter** | 1 | `+0.0%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+### [HP Learning Cycle #72] 2026-10-04 01:33:07 UTC
+- **Trigger/Reason**: Closed-loop performance adaptation from mature snapshots
+- **Content Mix**: Novel Story: 50.0% | Discovery: 50.0%
+- **Target Duration**: 24.0s
+- **Subtype Weights**: {"DISCOVERY_BOOK_MOVIE_DIFFERENCE": 1.0, "DISCOVERY_OMITTED_SCENE": 1.0, "DISCOVERY_CHARACTER_ORIGIN": 1.0, "DISCOVERY_LORE_DEEP_DIVE": 1.0, "DISCOVERY_BEHIND_THE_SCENES": 1.0, "DISCOVERY_FORESHADOWING_PROPHECY": 1.0, "DISCOVERY_MAGICAL_OBJECT": 1.0, "DISCOVERY_MOVIE_DETAIL": 1.0}
+
+## Learning Cycle — 2026-10-04 01:51:20 UTC
+
+- **Mature Videos Evaluated**: 1
+- **Channel Performance Baseline**: 58.21/100
+
+| Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `category` | **Harry Potter** | 1 | `+0.0%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+### [HP Learning Cycle #73] 2026-10-04 01:51:41 UTC
+- **Trigger/Reason**: Closed-loop performance adaptation from mature snapshots
+- **Content Mix**: Novel Story: 50.0% | Discovery: 50.0%
+- **Target Duration**: 24.0s
+- **Subtype Weights**: {"DISCOVERY_BOOK_MOVIE_DIFFERENCE": 1.0, "DISCOVERY_OMITTED_SCENE": 1.0, "DISCOVERY_CHARACTER_ORIGIN": 1.0, "DISCOVERY_LORE_DEEP_DIVE": 1.0, "DISCOVERY_BEHIND_THE_SCENES": 1.0, "DISCOVERY_FORESHADOWING_PROPHECY": 1.0, "DISCOVERY_MAGICAL_OBJECT": 1.0, "DISCOVERY_MOVIE_DETAIL": 1.0}
+
+## Learning Cycle — 2026-10-04 02:45:06 UTC
+
+- **Mature Videos Evaluated**: 1
+- **Channel Performance Baseline**: 58.21/100
+
+| Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `category` | **Harry Potter** | 1 | `+0.0%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+### [HP Learning Cycle #74] 2026-10-04 02:45:32 UTC
+- **Trigger/Reason**: Closed-loop performance adaptation from mature snapshots
+- **Content Mix**: Novel Story: 50.0% | Discovery: 50.0%
+- **Target Duration**: 24.0s
+- **Subtype Weights**: {"DISCOVERY_BOOK_MOVIE_DIFFERENCE": 1.0, "DISCOVERY_OMITTED_SCENE": 1.0, "DISCOVERY_CHARACTER_ORIGIN": 1.0, "DISCOVERY_LORE_DEEP_DIVE": 1.0, "DISCOVERY_BEHIND_THE_SCENES": 1.0, "DISCOVERY_FORESHADOWING_PROPHECY": 1.0, "DISCOVERY_MAGICAL_OBJECT": 1.0, "DISCOVERY_MOVIE_DETAIL": 1.0}
+
+## Learning Cycle — 2026-10-04 10:29:23 UTC
 
 - **Mature Videos Evaluated**: 1
 - **Channel Performance Baseline**: 58.18/100
@@ -494,3 +560,21 @@
 | Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | `category` | **Harry Potter** | 1 | `+0.0%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+### [HP Learning Cycle #75] 2026-10-04 10:29:44 UTC
+- **Trigger/Reason**: Closed-loop performance adaptation from mature snapshots
+- **Content Mix**: Novel Story: 50.0% | Discovery: 50.0%
+- **Target Duration**: 24.0s
+- **Subtype Weights**: {"DISCOVERY_BOOK_MOVIE_DIFFERENCE": 1.0, "DISCOVERY_OMITTED_SCENE": 1.0, "DISCOVERY_CHARACTER_ORIGIN": 1.0, "DISCOVERY_LORE_DEEP_DIVE": 1.0, "DISCOVERY_BEHIND_THE_SCENES": 1.0, "DISCOVERY_FORESHADOWING_PROPHECY": 1.0, "DISCOVERY_MAGICAL_OBJECT": 1.0, "DISCOVERY_MOVIE_DETAIL": 1.0}
+
+### [HP Learning Cycle #76] 2026-10-04 10:32:07 UTC
+- **Trigger/Reason**: Closed-loop performance adaptation from mature snapshots
+- **Content Mix**: Novel Story: 50.0% | Discovery: 50.0%
+- **Target Duration**: 24.0s
+- **Subtype Weights**: {"DISCOVERY_BOOK_MOVIE_DIFFERENCE": 1.0, "DISCOVERY_OMITTED_SCENE": 1.0, "DISCOVERY_CHARACTER_ORIGIN": 1.0, "DISCOVERY_LORE_DEEP_DIVE": 1.0, "DISCOVERY_BEHIND_THE_SCENES": 1.0, "DISCOVERY_FORESHADOWING_PROPHECY": 1.0, "DISCOVERY_MAGICAL_OBJECT": 1.0, "DISCOVERY_MOVIE_DETAIL": 1.0}
+
+### [HP Learning Cycle #77] 2026-10-04 10:37:48 UTC
+- **Trigger/Reason**: Closed-loop performance adaptation from mature snapshots
+- **Content Mix**: Novel Story: 50.0% | Discovery: 50.0%
+- **Target Duration**: 24.0s
+- **Subtype Weights**: {"DISCOVERY_BOOK_MOVIE_DIFFERENCE": 1.0, "DISCOVERY_OMITTED_SCENE": 1.0, "DISCOVERY_CHARACTER_ORIGIN": 1.0, "DISCOVERY_LORE_DEEP_DIVE": 1.0, "DISCOVERY_BEHIND_THE_SCENES": 1.0, "DISCOVERY_FORESHADOWING_PROPHECY": 1.0, "DISCOVERY_MAGICAL_OBJECT": 1.0, "DISCOVERY_MOVIE_DETAIL": 1.0}

@@ -1051,10 +1051,10 @@ class MovieRetrievalEngine:
                 src_end = float(cand["end_seconds"])
                 m_num = int(cand["movie_number"])
 
-                # Check anti-loop interval overlap
+                # Check anti-loop interval overlap (strict 0.5s margin matching HPRenderEngine)
                 if used_intervals:
                     overlap = any(
-                        (u_movie == m_num and max(src_start, u_start) < min(src_end, u_end) - 1.0)
+                        (u_movie == m_num and max(src_start, u_start) < min(src_end, u_end) - 0.5)
                         for (u_movie, u_start, u_end) in used_intervals
                     )
                     if overlap:
@@ -1124,6 +1124,7 @@ class MovieRetrievalEngine:
                     })
                     if used_intervals is not None:
                         used_intervals.append((m_num, c_start, c_end))
+                    last_end = c_end
         # Strategy D: If still fewer shots than target_shots_per_beat, ONLY fill with atmospheric if NO characters required
         if len(shots) < target_shots_per_beat and not req_characters:
             atm_cand = self.get_atmospheric_fallback_candidate(beat.get("preferred_movie_number"))
