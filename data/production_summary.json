@@ -1,12 +1,12 @@
 {
   "action": "MAINTAIN_BUFFER",
-  "outcome": "PARTIAL",
-  "block_reason": "Discovery Big candidate '2' failed: No eligible or discoverable DISCOVERY_BIG candidates available; Discovery Big candidate '2' failed: No eligible or discoverable DISCOVERY_BIG candidates available",
-  "requested_deficit": 8,
-  "produced_count": 1,
-  "initial_stock": 0,
+  "outcome": "FAILED",
+  "block_reason": "Discovery Big candidate '1' failed: No eligible or discoverable DISCOVERY_BIG candidates available; Discovery Big candidate '1' failed: No eligible or discoverable DISCOVERY_BIG candidates available",
+  "requested_deficit": 7,
+  "produced_count": 0,
+  "initial_stock": 1,
   "final_stock": 1,
   "target_stock": 8,
   "voice": "af_bella",
-  "timestamp": "2026-10-04T18:11:43.374377Z"
+  "timestamp": "2026-10-04T20:33:16.701082Z"
 }
