@@ -103,6 +103,8 @@ class MovieRetrievalEngine:
         self.semantic_event_engine = EventSemanticVisualEngine()
         from engines.movie_event.retrieval_engine import MovieEventRetrievalEngine
         self.movie_event_retrieval_engine = MovieEventRetrievalEngine()
+        from engines.visual_feedback_engine import VisualFeedbackEngine
+        self.feedback_engine = VisualFeedbackEngine(db_path=self.db_path)
 
     # --------------------------------------------------------------------------
     # 1. VISUAL BEAT QUERY BUILDER
@@ -244,6 +246,53 @@ class MovieRetrievalEngine:
                 "visual_description": summary,
                 "score": 99.0
             }
+
+        # Round 00B: Inject verified canonical anchors from VisualFeedbackEngine if characters match
+        beat_chars = list(beat.get("characters", []))
+        if not beat_chars:
+            raw_t = str(beat.get("narration_text") or beat.get("text") or beat.get("visual_requirement") or "")
+            for kc in KNOWN_CHARACTERS:
+                if re.search(r"\b" + re.escape(kc) + r"\b", raw_t, re.IGNORECASE):
+                    if kc not in beat_chars:
+                        beat_chars.append(kc)
+
+        for c_name in beat_chars:
+            anchors = self.feedback_engine.get_verified_canonical_anchors(c_name, movie_number=preferred_m)
+            if not anchors and preferred_m is not None:
+                anchors = self.feedback_engine.get_verified_canonical_anchors(c_name, movie_number=None)
+            for anc in anchors:
+                m_num = anc["movie_number"]
+                st_sec = float(anc["start_seconds"])
+                end_sec = float(anc["end_seconds"])
+                chunk_id = f"vfb_anchor_m{m_num}_{int(st_sec)}"
+                if chunk_id not in candidates_by_id:
+                    meta = get_movie_by_number(m_num)
+                    v_filename = meta["video_filename"] if meta else f"hp_movie_{m_num}.mp4"
+                    v_drive_id = meta["video_drive_id"] if meta else ""
+                    desc = anc.get("description", f"Verified canonical scene for {c_name}")
+                    candidates_by_id[chunk_id] = {
+                        "chunk_id": chunk_id,
+                        "movie_number": m_num,
+                        "movie_title": f"Harry Potter Movie {m_num}",
+                        "start_seconds": st_sec,
+                        "end_seconds": end_sec,
+                        "start_timecode": f"{int(st_sec//60):02d}:{int(st_sec%60):02d}",
+                        "end_timecode": f"{int(end_sec//60):02d}:{int(end_sec%60):02d}",
+                        "duration_seconds": max(1.5, end_sec - st_sec),
+                        "text": f"{desc} {c_name}",
+                        "expanded_context": desc,
+                        "video_filename": v_filename,
+                        "video_drive_id": v_drive_id,
+                        "relevance_rank": -2.5,
+                        "matched_query": f"[CANONICAL_ANCHOR: {c_name}]",
+                        "is_canonical": True,
+                        "primary_subject": c_name,
+                        "characters_present": [c_name],
+                        "secondary_subjects": [],
+                        "action": desc,
+                        "visual_description": desc,
+                        "score": 98.0
+                    }
 
         # Round 0A: Inject ground-truth canonical event directly if provided
         if canonical_event:
@@ -674,16 +723,25 @@ class MovieRetrievalEngine:
                 if matches_char:
                     char_score = 20.0
                 elif candidate.get("is_atmospheric_fallback"):
-                    char_score = 15.0
+                    char_score = 0.0
                 else:
-                    char_score = 0.0  # Character mismatch!
+                    char_score = -100.0  # Hard Character Mismatch Disqualification!
+                    candidate["is_disqualified"] = True
+                    candidate["disqualification_reason"] = f"Character Mismatch: Scene features {[ec for ec in ev_chars if ec]} instead of required {beat_chars}"
             elif candidate.get("characters_present"):
                 cand_chars = [c.lower() for c in candidate.get("characters_present", [])]
                 cand_chars.append(str(candidate.get("primary_subject", "")).lower())
                 matches_char = any(any(bc.lower() in cc or cc in bc.lower() for cc in cand_chars) for bc in beat_chars)
-                char_score = 20.0 if matches_char else 15.0
+                if matches_char:
+                    char_score = 20.0
+                else:
+                    char_score = -100.0  # Hard Character Mismatch Disqualification!
+                    candidate["is_disqualified"] = True
+                    candidate["disqualification_reason"] = f"Character Mismatch: Scene features {cand_chars} instead of required {beat_chars}"
             else:
-                char_score = 20.0
+                char_score = -50.0
+                candidate["is_disqualified"] = True
+                candidate["disqualification_reason"] = f"Character Mismatch: Scene lacks verified presence of required {beat_chars}"
         else:
             char_points = 0.0
             primary_char = beat_chars[0].lower()
@@ -698,14 +756,12 @@ class MovieRetrievalEngine:
                 sec_tokens = [t for t in re.split(r"\s+", sec_char) if len(t) >= 4]
                 if sec_char in combined_text or any(t in combined_text for t in sec_tokens):
                     char_points = 12.0
+            else:
+                char_points = -100.0
+                candidate["is_disqualified"] = True
+                candidate["disqualification_reason"] = f"Character Mismatch: Candidate lacks required {beat_chars}"
 
-            # Adversarial character check in dialogue
-            adversarial_chars = ["snape", "severus", "malfoy", "draco", "voldemort", "bellatrix", "umbridge", "vernon", "dursley"]
-            has_adversary = any(ac in combined_text for ac in adversarial_chars if ac not in primary_char)
-            if has_adversary and primary_char not in combined_text:
-                char_points = max(0.0, char_points - 15.0)
-
-            char_score = min(20.0, char_points)
+            char_score = char_points
 
         # ----------------------------------------------------------------------
         # C. Character Prominence / Framing (0 - 15 pts)
@@ -851,6 +907,24 @@ class MovieRetrievalEngine:
         total_score = sem_score + char_score + prom_score + action_score + react_score + scale_score + temp_score - loop_penalty
         total_score = round(max(0.0, min(100.0, total_score)), 2)
 
+        # ----------------------------------------------------------------------
+        # I. Visual Feedback Memory Enforcement Gate (Self-Learning Memory)
+        # ----------------------------------------------------------------------
+        feedback_penalty, feedback_reason = self.feedback_engine.get_penalty_for_candidate(
+            movie_number=c_movie,
+            start_seconds=c_start,
+            end_seconds=c_end,
+            required_characters=beat_chars,
+            beat_concept=str(beat.get("visual_requirement", ""))
+        )
+        if feedback_penalty < 0:
+            if feedback_penalty <= -1000.0:
+                total_score = 0.0
+                candidate["is_disqualified"] = True
+                candidate["disqualification_reason"] = feedback_reason
+            else:
+                total_score = max(0.0, total_score + feedback_penalty)
+
         # Reasoning explanation
         reasoning = (
             f"Scale: {cand_scale.value} (Target: {target_scale.value}, match: {scale_score}/10). "
@@ -859,6 +933,8 @@ class MovieRetrievalEngine:
         )
         if loop_penalty > 0:
             reasoning += " REJECTED BY ANTI-LOOP (timestamp overlap with previous shot)."
+        if feedback_penalty < 0:
+            reasoning += f" REJECTED BY VISUAL FEEDBACK MEMORY ({feedback_reason})."
 
         score_details = {
             "semantic_relevance": round(sem_score, 1),
@@ -963,6 +1039,9 @@ class MovieRetrievalEngine:
         if not m_num or m_num < 1 or m_num > 8:
             return False, "REJECTED", "NON_CANONICAL_MOVIE_NUMBER"
 
+        if candidate.get("is_disqualified"):
+            return False, "REJECTED_BY_FEEDBACK_MEMORY", candidate.get("disqualification_reason", "Disqualified by feedback memory")
+
         score = float(candidate.get("score", 0.0))
         if score >= threshold:
             return True, "ACCEPTED", "HIGH_CONFIDENCE_MOVIE_MATCH"
@@ -987,9 +1066,16 @@ class MovieRetrievalEngine:
         Enforces strict anti-loop and interval uniqueness.
         """
         req_characters = [c for c in beat.get("characters", []) if c.lower() not in ("hogwarts", "castle", "hogwarts castle")]
+        if not req_characters:
+            raw_t = str(beat.get("narration_text") or beat.get("text") or beat.get("visual_requirement") or "")
+            for kc in KNOWN_CHARACTERS:
+                if re.search(r"\b" + re.escape(kc) + r"\b", raw_t, re.IGNORECASE):
+                    if kc.lower() not in ("hogwarts", "castle") and kc not in req_characters:
+                        req_characters.append(kc)
+
         valid_candidates = [
             c for c in ranked_candidates
-            if c.get("score", 0.0) >= MIN_CONFIDENCE_THRESHOLD
+            if c.get("score", 0.0) >= MIN_CONFIDENCE_THRESHOLD and not c.get("is_disqualified", False)
         ]
 
         if not valid_candidates:

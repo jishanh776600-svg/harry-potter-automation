@@ -1,0 +1,154 @@
+[
+  {
+    "id": "vfb_m7_hedwig_battle_not_petunia",
+    "movie_number": 7,
+    "start_seconds": 815.0,
+    "end_seconds": 840.0,
+    "actual_character": "Hedwig / Death Eaters / Bellatrix Pursuit",
+    "intended_character": "Petunia Dursley",
+    "prohibited_characters": [
+      "Petunia Dursley",
+      "Petunia",
+      "Aunt Petunia",
+      "Vernon Dursley",
+      "Dursleys",
+      "Privet Drive",
+      "Blood Protection Charm",
+      "Sacrificial Protection"
+    ],
+    "script_id": null,
+    "beat_concept": "Petunia Dursley Blood Protection",
+    "verdict": "CHARACTER_MISMATCH",
+    "rejection_reason": "Aerial battle showing Hedwig death and Death Eaters. Completely lacks Petunia Dursley or Privet Drive.",
+    "penalty_score": -10000.0,
+    "source": "FORENSIC_QA_INSPECTION",
+    "tags": [],
+    "created_at": "2026-10-04T16:23:36.896481"
+  },
+  {
+    "id": "vfb_m7_empty_car_driveway_pavement",
+    "movie_number": 7,
+    "start_seconds": 108.0,
+    "end_seconds": 130.0,
+    "actual_character": "Empty Car Trunk & Driveway Pavement Texture",
+    "intended_character": "Petunia Dursley",
+    "prohibited_characters": [
+      "Petunia Dursley",
+      "Petunia",
+      "Lily Potter",
+      "Albus Dumbledore",
+      "Harry Potter"
+    ],
+    "script_id": null,
+    "beat_concept": "Petunia / Harry / Dumbledore",
+    "verdict": "LOW_RELEVANCE_BLACKOUT",
+    "rejection_reason": "Empty car trunk and pavement texture with zero character face presence. Visually disconnected from narration.",
+    "penalty_score": -10000.0,
+    "source": "FORENSIC_QA_INSPECTION",
+    "tags": [],
+    "created_at": "2026-10-04T16:23:36.919874"
+  },
+  {
+    "id": "vfb_m7_xenophilius_printing_press",
+    "movie_number": 7,
+    "start_seconds": 3600.0,
+    "end_seconds": 4350.0,
+    "actual_character": "Xenophilius Lovegood",
+    "intended_character": "Petunia Dursley",
+    "prohibited_characters": [
+      "Petunia Dursley",
+      "Vernon Dursley",
+      "Dursleys",
+      "Albus Dumbledore",
+      "Privet Drive"
+    ],
+    "script_id": null,
+    "beat_concept": "Dursley / Dumbledore beats",
+    "verdict": "CHARACTER_MISMATCH",
+    "rejection_reason": "Shows Xenophilius Lovegood inside the Lovegood home; prohibited for any Dursley or Dumbledore beats.",
+    "penalty_score": -10000.0,
+    "source": "FORENSIC_QA_INSPECTION",
+    "tags": [],
+    "created_at": "2026-10-04T16:23:36.937340"
+  },
+  {
+    "id": "vfb_universal_bellatrix_mismatch_hero",
+    "movie_number": 7,
+    "start_seconds": 780.0,
+    "end_seconds": 810.0,
+    "actual_character": "Bellatrix Lestrange",
+    "intended_character": "Petunia Dursley",
+    "prohibited_characters": [
+      "Petunia Dursley",
+      "Lily Potter",
+      "Hermione Granger",
+      "Ginny Weasley",
+      "Molly Weasley"
+    ],
+    "script_id": null,
+    "beat_concept": "Petunia Dursley",
+    "verdict": "CHARACTER_MISMATCH",
+    "rejection_reason": "Close-up of Bellatrix Lestrange screaming; prohibited for Petunia or Lily beats.",
+    "penalty_score": -10000.0,
+    "source": "FORENSIC_QA_INSPECTION",
+    "tags": [],
+    "created_at": "2026-10-04T16:23:36.950975"
+  },
+  {
+    "id": "vfb_anchor_m1_doorstep_baby_harry",
+    "movie_number": 1,
+    "start_seconds": 25.0,
+    "end_seconds": 55.0,
+    "actual_character": "Albus Dumbledore, Minerva McGonagall, Aunt Petunia Doorstep",
+    "intended_character": "Petunia Dursley",
+    "prohibited_characters": [
+      "Petunia Dursley"
+    ],
+    "script_id": null,
+    "beat_concept": "Dumbledore explains Dursleys / Blood Protection / Privet Drive Doorstep",
+    "verdict": "VERIFIED_CANONICAL_MATCH",
+    "rejection_reason": "Verified canonical footage of Dumbledore placing baby Harry on Aunt Petunia's doorstep at 4 Privet Drive with the protective letter.",
+    "penalty_score": 0.0,
+    "source": "CANONICAL_CURATION",
+    "tags": [],
+    "created_at": "2026-10-04T16:23:36.960551"
+  },
+  {
+    "id": "vfb_anchor_m1_privet_drive_letters",
+    "movie_number": 1,
+    "start_seconds": 660.0,
+    "end_seconds": 700.0,
+    "actual_character": "Petunia Dursley, Vernon Dursley, Harry Potter",
+    "intended_character": "Petunia Dursley",
+    "prohibited_characters": [
+      "Petunia Dursley"
+    ],
+    "script_id": null,
+    "beat_concept": "Petunia Dursley / Privet Drive / Living Room",
+    "verdict": "VERIFIED_CANONICAL_MATCH",
+    "rejection_reason": "Verified canonical footage of Aunt Petunia and Uncle Vernon inside 4 Privet Drive with letters flooding the living room.",
+    "penalty_score": 0.0,
+    "source": "CANONICAL_CURATION",
+    "tags": [],
+    "created_at": "2026-10-04T16:23:36.976011"
+  },
+  {
+    "id": "vfb_anchor_m7_petunia_leaving_privet_drive",
+    "movie_number": 7,
+    "start_seconds": 88.0,
+    "end_seconds": 105.0,
+    "actual_character": "Petunia Dursley (Fiona Shaw close-up)",
+    "intended_character": "Petunia Dursley",
+    "prohibited_characters": [
+      "Petunia Dursley"
+    ],
+    "script_id": null,
+    "beat_concept": "Petunia Dursley / Dursleys leaving / Reluctant Guardian",
+    "verdict": "VERIFIED_CANONICAL_MATCH",
+    "rejection_reason": "Verified canonical close-up of Petunia Dursley standing inside the empty living room of 4 Privet Drive reflecting on leaving.",
+    "penalty_score": 0.0,
+    "source": "CANONICAL_CURATION",
+    "tags": [],
+    "created_at": "2026-10-04T16:23:36.986348"
+  }
+]

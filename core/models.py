@@ -1065,6 +1065,32 @@ class HPRender(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
 
+class VisualFeedbackRecord(Base):
+    """
+    Persistent self-learning visual memory model.
+    Stores human corrections, automated perceptual rejections, character mismatch penalties,
+    and verified canonical anchor clips so the retrieval engine never repeats visual mistakes.
+    """
+    __tablename__ = "visual_feedback_records"
+
+    id = Column(String(64), primary_key=True)
+    movie_number = Column(Integer, nullable=False, index=True)
+    start_seconds = Column(Float, nullable=False)
+    end_seconds = Column(Float, nullable=False)
+    actual_character = Column(String(255), nullable=True)  # e.g. "Bellatrix Lestrange", "Empty Pavement"
+    intended_character = Column(String(255), nullable=True)  # e.g. "Petunia Dursley", "Lily Potter"
+    prohibited_characters_json = Column(Text, default="[]", nullable=False)  # JSON list
+    script_id = Column(String(128), nullable=True, index=True)
+    beat_concept = Column(String(255), nullable=True)
+    verdict = Column(String(64), default="REJECTED_MISMATCH", nullable=False, index=True)
+    rejection_reason = Column(Text, nullable=False)
+    penalty_score = Column(Float, default=-10000.0, nullable=False)
+    source = Column(String(64), default="HUMAN_SUPERVISION", nullable=False)
+    tags_json = Column(Text, default="[]", nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 def migrate_discovery_schema(db_path: Optional[Any] = None) -> None:
     """
     Safely and idempotently adds missing Deep Discovery narrative columns

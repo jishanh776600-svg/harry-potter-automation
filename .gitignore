@@ -55,6 +55,7 @@ data/assets/
 data/captions/
 data/bgm/
 data/vault_ready/
+data/inspection_frames/
 data/reference_analysis/*.wav
 data/reference_analysis/*.mp3
 data/reference_analysis/*.mp4

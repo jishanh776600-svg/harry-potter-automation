@@ -1614,7 +1614,6 @@ OUTPUT STRICT JSON:
         else:
             est_duration = round(word_count / 3.15, 1)
 
-        # Ensure visual beats have MOVIE_FOOTAGE_ONLY policy
         raw_beats = script_data.get("visual_beats", [])
         clean_beats = []
         for idx, b in enumerate(raw_beats, 1):
@@ -1622,18 +1621,28 @@ OUTPUT STRICT JSON:
                 b = {"visual_requirement": b, "narration_text": b}
             elif not isinstance(b, dict):
                 b = {}
+
+            chars = list(b.get("characters", []))
+            if not chars:
+                from engines.movie_retrieval_engine import KNOWN_CHARACTERS
+                text_to_scan = f"{b.get('narration_text', '')} {b.get('visual_requirement', '')} {full_text}"
+                for kc in KNOWN_CHARACTERS:
+                    if re.search(r"\b" + re.escape(kc) + r"\b", text_to_scan, re.IGNORECASE):
+                        if kc not in chars:
+                            chars.append(kc)
+
             clean_beats.append({
                 "beat_id": b.get("beat_id", f"beat_{idx}"),
                 "narration_text": b.get("narration_text", ""),
                 "visual_requirement": b.get("visual_requirement", ""),
-                "characters": b.get("characters", []),
+                "characters": chars,
                 "location": b.get("location", ""),
                 "action": b.get("action", ""),
                 "objects": b.get("objects", []),
                 "emotional_context": b.get("emotional_context", "dramatic"),
                 "preferred_movie_number": b.get("preferred_movie_number", candidate.book_number),
                 "source_grounding": b.get("source_grounding", ""),
-                "retrieval_hints": b.get("retrieval_hints", []),
+                "retrieval_hints": b.get("retrieval_hints", chars),
                 "is_novel_only": b.get("is_novel_only", False),
                 "visual_source_policy": "HYBRID_TRUTHFUL" if b.get("is_novel_only") else "MOVIE_FOOTAGE_ONLY"
             })
