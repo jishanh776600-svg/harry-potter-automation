@@ -1832,7 +1832,23 @@ class ShortsPipeline:
                     eligible_candidates = [f for f in eligible_candidates if f["id"] == target_file_id]
 
                 if not eligible_candidates:
-                    console.print("[bold red][!] No valid eligible Shorts in 01_READY to publish! Buffer empty.[/bold red]")
+                    console.print("[bold yellow][!] 01_READY buffer is empty for due slot! Triggering emergency on-demand production...[/bold yellow]")
+                    try:
+                        from engines.hp_autonomous_refill import HPAutonomousRefillEngine
+                        refill_eng = HPAutonomousRefillEngine(drive_engine=self.drive_engine, voice_id="f5_cloned_narrator_v1")
+                        refill_telemetry = refill_eng.run_refill_cycle(force_batch_count=1)
+                        if refill_telemetry.status in ("SUCCEEDED", "PARTIAL") and refill_telemetry.videos_deposited > 0:
+                            console.print("[bold green][+] Emergency production succeeded! Re-evaluating 01_READY buffer...[/bold green]")
+                            ready_files = self.drive_engine.list_files_in_folder("01_READY")
+                            eligible_candidates = [
+                                rf for rf in ready_files
+                                if is_valid_ready_short(rf, db=db, allow_test_artifacts=self.upload_engine._is_test_mode())[0]
+                            ]
+                    except Exception as emergency_err:
+                        logger.error(f"Emergency production failed: {emergency_err}")
+
+                if not eligible_candidates:
+                    console.print("[bold red][!] Still no valid eligible Shorts in 01_READY after emergency refill attempt. Halting slot.[/bold red]")
                     break
 
                 chosen_file = eligible_candidates[0]

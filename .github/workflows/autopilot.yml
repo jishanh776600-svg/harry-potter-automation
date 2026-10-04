@@ -7,9 +7,11 @@ name: YouTube Shorts Cloud Publisher
 
 on:
   schedule:
-    # 4 scheduled publishing slots daily:
-    # 02:00 UTC (07:30 AM IST) | 08:00 UTC (01:30 PM IST) | 14:00 UTC (07:30 PM IST) | 20:00 UTC (01:30 AM IST)
-    - cron: '0 2,8,14,20 * * *'
+    # Autonomous 30-Minute Watchdog & Slot Publisher:
+    # 1. Fires at exact daily slots (02:00, 08:00, 14:00, 20:00 UTC) to publish immediately.
+    # 2. Runs every 30 minutes to catch up any missed/failed slots with zero latency.
+    # 3. Exits in ~3 seconds with zero quota burn if all due slots are already satisfied.
+    - cron: '*/30 * * * *'
   workflow_dispatch: # Allows manual on-demand publishing from GitHub Web / Mobile
 
 permissions:

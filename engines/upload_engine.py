@@ -31,6 +31,37 @@ class UploadEngine:
         fallback = PROJECT_ROOT / "token.json"
         return fallback
 
+    def get_authorized_youtube_client(self):
+        """
+        Retrieves fully authorized YouTube API v3 client with proactive token refresh,
+        automatic persistence of refreshed tokens, and channel isolation verification.
+        """
+        from google.oauth2.credentials import Credentials
+        from google.auth.transport.requests import Request
+        from googleapiclient.discovery import build
+
+        token_path = self._get_token_path()
+        if not token_path.exists():
+            raise FileNotFoundError(f"OAuth token not found at {token_path}. Run authentication setup.")
+
+        creds = Credentials.from_authorized_user_file(str(token_path))
+        if not creds.valid:
+            if creds.expired and creds.refresh_token:
+                logger.info("[AUTH] YouTube OAuth token expired. Proactively refreshing...")
+                creds.refresh(Request())
+                try:
+                    with open(token_path, "w", encoding="utf-8") as f:
+                        f.write(creds.to_json())
+                    logger.info("[AUTH] Refreshed OAuth token persisted successfully.")
+                except Exception as save_err:
+                    logger.warning(f"[AUTH] Could not persist refreshed token: {save_err}")
+            else:
+                raise PermissionError(f"[AUTH_ERROR] YouTube OAuth token invalid and cannot be refreshed from {token_path}.")
+
+        youtube = build("youtube", "v3", credentials=creds)
+        self.verify_channel_authorization(youtube=youtube)
+        return youtube
+
     def validate_media_integrity(self, video_path: Union[str, Path]) -> None:
         """
         Strict pre-upload media integrity guard:
@@ -666,14 +697,7 @@ class UploadEngine:
             import http.client
             import ssl
 
-            token_path = self._get_token_path()
-            if not token_path.exists():
-                raise FileNotFoundError(f"OAuth token not found at {token_path}. Run authentication setup.")
-
-            creds = Credentials.from_authorized_user_file(str(token_path))
-            youtube = build("youtube", "v3", credentials=creds)
-            # HARD CHANNEL ISOLATION GUARD: Verify YouTube channel matches Harry Potter channel
-            self.verify_channel_authorization(youtube=youtube)
+            youtube = self.get_authorized_youtube_client()
 
             # Crash-Safe Pre-Upload Check: Search channel to prevent double uploads if prior run crashed post-upload
             orphan_id, orphan_reason = self.recover_orphaned_upload(
@@ -1135,13 +1159,7 @@ class UploadEngine:
         import http.client
         import ssl
 
-        token_path = self._get_token_path()
-        if not token_path.exists():
-            raise FileNotFoundError(f"OAuth token not found at {token_path}. Run authentication setup.")
-
-        creds = Credentials.from_authorized_user_file(str(token_path))
-        youtube = build("youtube", "v3", credentials=creds)
-        self.verify_channel_authorization(youtube=youtube)
+        youtube = self.get_authorized_youtube_client()
 
         clean_description = self.sanitize_public_description(metadata.get("description", ""))
         clean_title = self.sanitize_public_title(metadata.get("title", ""))
