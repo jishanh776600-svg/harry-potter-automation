@@ -182,6 +182,10 @@ def resolve_vault_file_metadata(candidate: Dict[str, Any], db: Optional[Session]
                         title = "Why Neville Begged NOT to Be in Gryffindor | Harry Potter #Shorts"
                     elif "Peeves" in topic_clean:
                         title = "The Poltergeist Deleted from the Movies | Harry Potter #Shorts"
+                    elif "Dursleys" in topic_clean or "Dumbledore Explains Dursleys" in topic_clean:
+                        title = "Why Harry REALLY Had to Stay with the Dursleys | Harry Potter #Shorts"
+                    elif "Patronus" in topic_clean or "Prince" in topic_clean:
+                        title = "The Secret Meaning Behind Snape's Patronus | Harry Potter #Shorts"
                     else:
                         title = f"{topic_clean} | Harry Potter Discovery #Shorts"
 

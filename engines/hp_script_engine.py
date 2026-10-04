@@ -1618,6 +1618,10 @@ OUTPUT STRICT JSON:
         raw_beats = script_data.get("visual_beats", [])
         clean_beats = []
         for idx, b in enumerate(raw_beats, 1):
+            if isinstance(b, str):
+                b = {"visual_requirement": b, "narration_text": b}
+            elif not isinstance(b, dict):
+                b = {}
             clean_beats.append({
                 "beat_id": b.get("beat_id", f"beat_{idx}"),
                 "narration_text": b.get("narration_text", ""),
