@@ -1913,7 +1913,25 @@ class ShortsPipeline:
                     self.drive_engine.move_file_in_vault(file_id, from_folder="02_PROCESSING", to_folder="01_READY")
                     continue
 
-                # 3. PERSISTENT RETRY LOOP WITH 2-MINUTE BREAK
+                # 3. Precision Sleep Gate: If pre-warmed early (e.g. at :50), sleep until exact :00.00
+                unfulfilled_slots = due_slots[total_booked_today:] if total_booked_today < len(due_slots) else due_slots
+                target_slot = unfulfilled_slots[slot_idx] if slot_idx < len(unfulfilled_slots) else None
+                if target_slot:
+                    wait_sec = (target_slot - datetime.utcnow()).total_seconds()
+                    if wait_sec > 2:
+                        console.print(Panel.fit(
+                            f"[bold cyan]=== Precision Pre-Warm Primed ===[/bold cyan]\n"
+                            f"Asset: [bold white]{title}[/bold white]\n"
+                            f"Status: [bold green]100% Pre-Validated & Loaded on Runner SSD[/bold green]\n"
+                            f"Target Slot: [bold yellow]{target_slot.strftime('%Y-%m-%d %H:%M:%S UTC')}[/bold yellow]\n"
+                            f"Precision Sleep: [bold magenta]Counting down {int(wait_sec)}s until exact release moment...[/bold magenta]",
+                            border_style="cyan"
+                        ))
+                        import time
+                        time.sleep(wait_sec)
+                        console.print(f"[bold green][*] Release moment arrived ({datetime.utcnow().strftime('%H:%M:%S UTC')})! Firing live YouTube push...[/bold green]")
+
+                # 4. PERSISTENT RETRY LOOP WITH 2-MINUTE BREAK
                 attempt = 1
                 upload_rec = None
                 while True:

@@ -7,11 +7,16 @@ name: YouTube Shorts Cloud Publisher
 
 on:
   schedule:
-    # Autonomous 30-Minute Watchdog & Slot Publisher:
-    # 1. Fires at exact daily slots (02:00, 08:00, 14:00, 20:00 UTC) to publish immediately.
-    # 2. Runs every 30 minutes to catch up any missed/failed slots with zero latency.
-    # 3. Exits in ~3 seconds with zero quota burn if all due slots are already satisfied.
-    - cron: '*/30 * * * *'
+    # Tier 1: Precision Pre-Warm (10 min before slots): 01:50, 07:50, 13:50, 19:50 UTC
+    # Wakes runner early, claims video from Drive, pre-verifies FFmpeg & metadata, sleeps until exact :00.00 sharp
+    - cron: '50 1,7,13,19 * * *'
+    
+    # Tier 2: Exact Slot-Time Release & Redundancy: 02:00, 08:00, 14:00, 20:00 UTC
+    - cron: '0 2,8,14,20 * * *'
+    
+    # Tier 3: High-Frequency 15-Minute Autonomous Watchdog:
+    # Catches up any network/runner failure within minutes (exits in 3s if slots already fulfilled)
+    - cron: '*/15 * * * *'
   workflow_dispatch: # Allows manual on-demand publishing from GitHub Web / Mobile
 
 permissions:
