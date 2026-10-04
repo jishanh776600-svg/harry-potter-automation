@@ -272,7 +272,7 @@ class F5TTSVoiceEngine:
 def compute_voice_fingerprint(
     model_name: str = "F5TTS_v1_Base",
     reference_id: str = "selected_reference_speaker_24k.wav",
-    speed: float = 0.95,
+    speed: float = 1.00,
     seed: int = 102,
 ) -> str:
     """Computes a deterministic cryptographic fingerprint of the voice synthesis configuration."""
@@ -284,7 +284,7 @@ def compute_voice_fingerprint(
 def synthesize_canonical_narration(
     text: str,
     output_path: Union[str, Path],
-    speed: float = 0.95,
+    speed: float = 1.00,
     seed: int = 102,
     project_root: Optional[Path] = None,
     nfe_step: int = 16,

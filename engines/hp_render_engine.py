@@ -234,7 +234,7 @@ class HPRenderEngine:
                     synthesize_canonical_narration(
                         text=clean_text,
                         output_path=raw_f5_wav,
-                        speed=0.95,
+                        speed=1.00,  # 5% speed increase from baseline 0.95
                         seed=102,
                         nfe_step=16
                     )
@@ -257,7 +257,7 @@ class HPRenderEngine:
                 from engines.tts_engine import TTSEngine
                 tts_engine = TTSEngine()
                 
-                speed = 0.95
+                speed = 1.00  # 5% speed increase from baseline 0.95
                 sent_pause = 0.20
                 clause_pause = 0.08
 
