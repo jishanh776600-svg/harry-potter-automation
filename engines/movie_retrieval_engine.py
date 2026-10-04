@@ -91,9 +91,14 @@ class MovieRetrievalEngine:
         self.movies_dir.mkdir(parents=True, exist_ok=True)
         self.clips_dir.mkdir(parents=True, exist_ok=True)
 
-        self.engine = create_engine(f"sqlite:///{self.db_path}")
-        Base.metadata.create_all(self.engine)
-        self.Session = sessionmaker(bind=self.engine)
+        if db_path is None or db_path == DB_PATH:
+            from core.database import engine, SessionLocal
+            self.engine = engine
+            self.Session = SessionLocal
+        else:
+            self.engine = create_engine(f"sqlite:///{self.db_path}")
+            Base.metadata.create_all(self.engine)
+            self.Session = sessionmaker(bind=self.engine)
         self.asset_engine = MovieAssetEngine()
         self.semantic_event_engine = EventSemanticVisualEngine()
         from engines.movie_event.retrieval_engine import MovieEventRetrievalEngine

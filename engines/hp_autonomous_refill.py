@@ -445,9 +445,13 @@ class HPAutonomousRefillEngine:
                 video_path = Path(render_summary["video_path"])
             except Exception as re:
                 logger.error(f"[Refill:Render] Render error for {script_id}: {re}", exc_info=True)
-                script.qa_status = "FAILED"
-                script.status = "QUARANTINED"
-                session.commit()
+                try:
+                    script.qa_status = "FAILED"
+                    script.status = "QUARANTINED"
+                    session.commit()
+                except Exception as c_err:
+                    session.rollback()
+                    logger.warning(f"Notice rolling back session after render error: {c_err}")
                 return False, script_id, f"Rendering failed: {re}"
 
         # HARD DURATION ENFORCEMENT: Target 25s ± 2-3s (Strict range [22.0s, 28.0s])

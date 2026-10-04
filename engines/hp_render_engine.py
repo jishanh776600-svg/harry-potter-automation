@@ -112,9 +112,14 @@ class HPRenderEngine:
 
     def __init__(self, db_path: Optional[Path] = None):
         self.db_path = db_path or DB_PATH
-        self.engine = create_engine(f"sqlite:///{self.db_path}")
-        Base.metadata.create_all(self.engine)
-        self.Session = sessionmaker(bind=self.engine)
+        if db_path is None or db_path == DB_PATH:
+            from core.database import engine, SessionLocal
+            self.engine = engine
+            self.Session = SessionLocal
+        else:
+            self.engine = create_engine(f"sqlite:///{self.db_path}")
+            Base.metadata.create_all(self.engine)
+            self.Session = sessionmaker(bind=self.engine)
         self.retrieval_engine = MovieRetrievalEngine(db_path=self.db_path)
 
     # --------------------------------------------------------------------------
