@@ -216,10 +216,19 @@ class HPRenderEngine:
             chosen_voice = LOCKED_VOICE_ID
 
         # BRANCH 1: F5-TTS Approved Cloned Voice (conditioned on reference speaker)
+        text_hash = hashlib.sha256(clean_text.encode("utf-8")).hexdigest()
+        hash_file = out_wav.with_suffix(".text_hash")
+        is_audio_cached = (
+            out_wav.exists()
+            and out_wav.stat().st_size > 1000
+            and hash_file.exists()
+            and hash_file.read_text(encoding="utf-8").strip() == text_hash
+        )
+
         if chosen_voice in ("f5_cloned_narrator_v1", "f5_tts", "cloned_narrator") or chosen_voice.startswith("f5_"):
             raw_f5_wav = VOICE_DIR / f"raw_f5_{script_id}.wav"
-            if out_wav.exists() and out_wav.stat().st_size > 1000:
-                logger.info(f"Reusing verified mastered narration at {out_wav}")
+            if is_audio_cached:
+                logger.info(f"Reusing verified mastered narration matching script text at {out_wav}")
                 try:
                     from engines.caption_engine import CaptionEngine
                     ce = CaptionEngine()
@@ -228,6 +237,11 @@ class HPRenderEngine:
                     logger.warning(f"Whisper word boundary notice: {e}")
                     words = []
             else:
+                if out_wav.exists():
+                    try:
+                        out_wav.unlink()
+                    except Exception:
+                        pass
                 try:
                     from engines.tts.f5_tts_voice_engine import F5TTSVoiceEngine, synthesize_canonical_narration
                     logger.info(f"Synthesizing narration via F5-TTS cloned voice for script '{script_id}'...")
@@ -244,6 +258,10 @@ class HPRenderEngine:
                         target_lufs=-14.0,
                         max_true_peak_db=-1.0
                     )
+                    try:
+                        hash_file.write_text(text_hash, encoding="utf-8")
+                    except Exception:
+                        pass
                     from engines.caption_engine import CaptionEngine
                     ce = CaptionEngine()
                     words = ce.transcribe_words(str(out_wav))
@@ -271,6 +289,10 @@ class HPRenderEngine:
                 )
                 if not ok or not out_wav.exists():
                     raise RuntimeError(f"Kokoro synthesis failed for script {script_id} with voice {chosen_voice}")
+                try:
+                    hash_file.write_text(text_hash, encoding="utf-8")
+                except Exception:
+                    pass
                 
                 # Extract word boundaries via CaptionEngine (faster-whisper)
                 try:

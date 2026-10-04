@@ -248,16 +248,16 @@ class HarryPotterScriptEngine:
             max_words = DISCOVERY_SHORT_MAX_WORDS
             min_duration = DISCOVERY_SHORT_MIN_DURATION
             max_duration = DISCOVERY_SHORT_MAX_DURATION
-            target_speech_rate = 2.5
+            target_speech_rate = 3.15  # Calibrated for Bella / Cloned Narrator at 1.00x speed
             estimated_duration = round(word_count / target_speech_rate, 1)
         else:
-            # NOVEL_STORY defaults: strictly 45 to 60 seconds (100 to 150 words at ~2.4 wps)
+            # NOVEL_STORY defaults: strictly 22 to 28 seconds (75 to 88 words at ~3.15 wps)
             min_words = NOVEL_STORY_MIN_WORDS
             max_words = NOVEL_STORY_MAX_WORDS
             min_duration = NOVEL_STORY_MIN_DURATION
             max_duration = NOVEL_STORY_MAX_DURATION
-            target_speech_rate = 2.4
-            estimated_duration = round(word_count / 2.4, 1)
+            target_speech_rate = 3.15
+            estimated_duration = round(word_count / 3.15, 1)
 
         feedback = []
         cliches_detected = []
@@ -650,7 +650,7 @@ MANDATORY STORYTELLING RULES:
    - If the novel contains a detail the movies never showed, focus your storytelling on what the movies ACTUALLY show!
 
 4. HARD INVARIANTS:
-   - WORD COUNT: Exactly 110 to 140 spoken words (HARD BOUNDS: 100 to 150 words for 45–60s duration).
+   - WORD COUNT: Exactly 75 to 85 spoken words (STRICT PROGRAMMATIC RANGE: 75 to 88 words for 22.0s-28.0s duration; target 25s).
    - STANDALONE: Must make 100% complete sense on its own.
    - NEVER speak "part 1", "chapter 1", "episode 1", or any numbering.
    - NEVER use clickbait clichés ("will shock you", "you won't believe", "mind-blowing").
@@ -713,7 +713,7 @@ MANDATORY SCRIPT STRUCTURE:
 4. DIFFERENCE & PAYOFF: The exact contrast and why this difference matters.
 
 RULES:
-- Word count: 58 to 70 spoken words.
+- Word count: Exactly 75 to 85 spoken words (STRICT PROGRAMMATIC RANGE: 75 to 88 words for 22.0s-28.0s duration; target 25s).
 - First substantive sentence must communicate the subject and difference.
 - Avoid narrative story transitions ("Meanwhile", "Later", "The next morning", "He then").
 - Visual Beats: 3-4 beats. Classify each beat as DIRECT or CONTEXTUAL in visual_requirement.
@@ -771,7 +771,7 @@ MANDATORY SCRIPT STRUCTURE:
 4. PAYOFF: Why the omission matters or what fans missed.
 
 RULES:
-- Word count: 58 to 70 spoken words.
+- Word count: Exactly 75 to 85 spoken words (STRICT PROGRAMMATIC RANGE: 75 to 88 words for 22.0s-28.0s duration; target 25s).
 - Classify visual beats as DIRECT or CONTEXTUAL.
 {feedback_str}
 OUTPUT STRICT JSON:
@@ -811,7 +811,7 @@ MANDATORY SCRIPT STRUCTURE:
 4. PAYOFF: Why it was cut or what happened to the footage.
 
 RULES:
-- Word count: 58 to 70 spoken words.
+- Word count: Exactly 75 to 85 spoken words (STRICT PROGRAMMATIC RANGE: 75 to 88 words for 22.0s-28.0s duration; target 25s).
 - Visual classification must be CONTEXTUAL (since behind-the-scenes facts cannot be directly shown in movie scenes).
 {feedback_str}
 OUTPUT STRICT JSON:
@@ -851,7 +851,7 @@ MANDATORY SCRIPT STRUCTURE:
 4. PAYOFF: Why it is fascinating or what it explains.
 
 RULES:
-- Word count: 58 to 70 spoken words.
+- Word count: Exactly 75 to 85 spoken words (STRICT PROGRAMMATIC RANGE: 75 to 88 words for 22.0s-28.0s duration; target 25s).
 - Visual classification: DIRECT if visible on screen, CONTEXTUAL if lore/background.
 {feedback_str}
 OUTPUT STRICT JSON:
@@ -1389,13 +1389,13 @@ OUTPUT STRICT JSON:
         elif "dobby" in c_id or "enslaved" in c_id or "malfoy" in c_id:
             # Short 9: Discovery — Dobby's Enslavement to the Malfoys (Book 2 Ch 2 & Ch 18)
             return {
-                "hook": "Do you know why Dobby was actually enslaved to the Malfoys?",
-                "development": "In the films, Lucius treats Dobby as a simple servant. But the novels reveal a much darker magical contract: house-elves are magically bound to ancient wizarding manors. Dobby could not disobey without violently punishing himself.",
-                "payoff": "That is why catching Harry's slimy sock was not just an accident; it shattered an unbreakable ancestral curse.",
+                "hook": "Do you know the dark reason why Dobby was actually enslaved to the Malfoys?",
+                "development": "In the films, Lucius Malfoy treats Dobby like an ordinary mistreated house servant. But the original books reveal a terrifying magical contract. House-elves are magically bound to ancient wizarding manors through an unbreakable blood curse. Dobby could never disobey any direct command without being forced to brutally punish himself.",
+                "payoff": "That is why catching Harry's hidden sock was so historic. It broke an ancient family curse and gave Dobby his freedom forever.",
                 "visual_beats": [
                     {
                         "beat_id": "beat_1",
-                        "narration_text": "Do you know why Dobby was actually enslaved to the Malfoys?",
+                        "narration_text": "Do you know the dark reason why Dobby was actually enslaved to the Malfoys?",
                         "visual_requirement": "Dobby the house elf standing on Harry's bed in Privet Drive looking distressed and warning Harry",
                         "characters": ["Dobby", "Harry Potter"],
                         "location": "Harry's bedroom Privet Drive",
@@ -1408,7 +1408,7 @@ OUTPUT STRICT JSON:
                     },
                     {
                         "beat_id": "beat_2",
-                        "narration_text": "In the films, Lucius treats Dobby as a simple servant.",
+                        "narration_text": "In the films, Lucius Malfoy treats Dobby like an ordinary mistreated house servant.",
                         "visual_requirement": "Lucius Malfoy walking imperiously with his snake-headed cane looking sneeringly down",
                         "characters": ["Lucius Malfoy"],
                         "location": "Hogwarts corridor",
@@ -1421,21 +1421,20 @@ OUTPUT STRICT JSON:
                     },
                     {
                         "beat_id": "beat_3",
-                        "narration_text": "But the novels reveal a much darker magical contract: house-elves are magically bound to ancient wizarding manors. Dobby could not disobey without violently punishing himself.",
-                        "visual_requirement": "Canonical Mary GrandPré novel chapter illustration of Dobby the house-elf",
-                        "characters": ["Dobby"],
-                        "location": "Novel chapter illustration",
-                        "action": "Dobby wearing ragged pillowcase bound by ancient enchantment",
-                        "objects": ["Ragged pillowcase", "House-elf contract"],
-                        "emotional_context": "Tragic magical enslavement and ancient wizarding law",
+                        "narration_text": "But the original books reveal a terrifying magical contract. House-elves are magically bound to ancient wizarding manors through an unbreakable blood curse. Dobby could never disobey any direct command without being forced to brutally punish himself.",
+                        "visual_requirement": "Dobby cowering fearfully behind Lucius Malfoy trembling in hallway",
+                        "characters": ["Dobby", "Lucius Malfoy"],
+                        "location": "Hogwarts hallway",
+                        "action": "House-elf cowering and trembling in terror behind cruel master",
+                        "objects": ["Ragged pillowcase"],
+                        "emotional_context": "Tragic magical enslavement and fear",
                         "preferred_movie_number": 2,
-                        "is_novel_only": True,
-                        "source_grounding": "Book 2 Chapter 2 & Chapter 3",
-                        "retrieval_hints": ["Dobby illustration", "Mary GrandPre", "novel art", "house-elf"]
+                        "source_grounding": "Movie 2, 02:22:00–02:22:30 / Book 2 Chapter 18",
+                        "retrieval_hints": ["Dobby cowering", "Malfoy", "hallway", "house-elf"]
                     },
                     {
                         "beat_id": "beat_4",
-                        "narration_text": "That is why catching Harry's slimy sock was not just an accident; it shattered an unbreakable ancestral curse.",
+                        "narration_text": "That is why catching Harry's hidden sock was so historic. It broke an ancient family curse and gave Dobby his freedom forever.",
                         "visual_requirement": "Dobby holding up the sock in sheer wonderment realizing he is free, blasting Lucius backward",
                         "characters": ["Dobby", "Lucius Malfoy", "Harry Potter"],
                         "location": "Hogwarts hallway",
@@ -1613,7 +1612,7 @@ OUTPUT STRICT JSON:
         if c_type in ("deep_discovery", "discovery") and word_count >= 150:
             est_duration = round(word_count / 3.55, 1)
         else:
-            est_duration = round(word_count / 2.5, 1)
+            est_duration = round(word_count / 3.15, 1)
 
         # Ensure visual beats have MOVIE_FOOTAGE_ONLY policy
         raw_beats = script_data.get("visual_beats", [])

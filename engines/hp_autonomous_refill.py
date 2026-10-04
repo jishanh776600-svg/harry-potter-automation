@@ -229,6 +229,16 @@ class HPAutonomousRefillEngine:
 
         script = existing_query.order_by(HarryPotterScript.created_at.asc()).first()
         if script:
+            words = (script.full_text or "").strip().split()
+            wc = script.word_count or len(words)
+            if wc < 75 or wc > 88:
+                logger.warning(f"[Refill:Pool] Script {script.id} has invalid word count ({wc} not in [75, 88]). Quarantining...")
+                script.qa_status = "FAILED"
+                script.status = "QUARANTINED"
+                session.commit()
+                full_exclusions.add(script.id)
+                return self._get_or_create_candidate_script(session, content_type, full_exclusions)
+
             # Quality & integrity check: scripts with empty visual beats cannot be rendered
             v_beats = []
             try:
@@ -383,14 +393,18 @@ class HPAutonomousRefillEngine:
                 match_status="ACCEPTED"
             ).all()
 
-            # STRICT PURGE: Reject and re-resolve if any existing shots used corrupt atmospheric fillers
+            # STRICT PURGE: Reject and re-resolve if any existing shots used corrupt atmospheric fillers or point to missing files
             if existing_shots:
                 has_corrupt_shots = any(
                     getattr(sh, "retrieval_query", "") == "Hogwarts Castle atmospheric transition"
                     for sh in existing_shots
                 )
-                if has_corrupt_shots:
-                    logger.warning(f"[Refill:Visual] Found corrupt atmospheric placeholder shots for {script_id}. Purging...")
+                has_missing_files = any(
+                    not sh.file_path or not Path(sh.file_path).exists()
+                    for sh in existing_shots
+                )
+                if has_corrupt_shots or has_missing_files:
+                    logger.warning(f"[Refill:Visual] Found invalid/missing placeholder shots for {script_id}. Purging...")
                     session.query(HPMovieClip).filter_by(script_id=script_id).delete()
                     session.commit()
                     existing_shots = []
@@ -423,11 +437,17 @@ class HPAutonomousRefillEngine:
                 render_summary = render_engine.render_launch_short(script_id=script_id)
                 if not render_summary.get("qa_report", {}).get("passed", False):
                     qa_details = render_summary.get("qa_report", {}).get("details", {})
+                    script.qa_status = "FAILED"
+                    script.status = "QUARANTINED"
+                    session.commit()
                     return False, script_id, f"Technical QA verification failed: {qa_details}"
 
                 video_path = Path(render_summary["video_path"])
             except Exception as re:
                 logger.error(f"[Refill:Render] Render error for {script_id}: {re}", exc_info=True)
+                script.qa_status = "FAILED"
+                script.status = "QUARANTINED"
+                session.commit()
                 return False, script_id, f"Rendering failed: {re}"
 
         # HARD DURATION ENFORCEMENT: Target 25s ± 2-3s (Strict range [22.0s, 28.0s])
@@ -441,6 +461,9 @@ class HPAutonomousRefillEngine:
             v_dur = float(ff_res.stdout.strip()) if ff_res.stdout.strip() else 0.0
             if not (22.0 <= v_dur <= 28.0):
                 logger.error(f"[Refill:Vault] Video {video_path.name} duration {v_dur:.2f}s violated target [22.0s, 28.0s]. Refusing deposit to 01_READY.")
+                script.qa_status = "FAILED"
+                script.status = "QUARANTINED"
+                session.commit()
                 return False, script_id, f"Hard Duration Gate Failed: {v_dur:.2f}s is outside [22.0s, 28.0s] (Target 25s ± 2-3s)"
         except Exception as dur_err:
             logger.warning(f"Duration audit notice: {dur_err}")
