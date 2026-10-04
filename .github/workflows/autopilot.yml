@@ -22,6 +22,7 @@ concurrency:
 jobs:
   publish_scheduled_short:
     runs-on: ubuntu-latest
+    timeout-minutes: 360
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -115,9 +116,12 @@ jobs:
         run: |
           python -m core.database_sync download
 
-      - name: Claim and Schedule Ready Shorts from Google Drive Vault
+      - name: Claim and Publish Due Shorts from Google Drive Vault (with 2-Min Retry Loop)
         run: |
-          python main.py --schedule-ready
+          until python main.py --publish-due --retry-interval 120; do
+            echo "[CLOUD WATCHDOG] Upload execution interrupted or failed. Retrying in 120 seconds..."
+            sleep 120
+          done
 
       - name: Upload & Synchronize Database to Cloud Vault
         if: always()

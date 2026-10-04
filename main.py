@@ -1702,6 +1702,283 @@ class ShortsPipeline:
                 db.close()
             lock.release()
 
+    def publish_due_slots(
+        self,
+        db: Optional[Session] = None,
+        target_file_id: Optional[str] = None,
+        retry_interval_sec: int = 120,
+        max_retries: Optional[int] = None,
+        force: bool = False
+    ) -> Dict[str, Any]:
+        """
+        CANONICAL AUTONOMOUS LIVE DUE PUBLISHER WITH 2-MINUTE RETRY LOOP:
+        Evaluates publication slots for today (02:00, 08:00, 14:00, 20:00 UTC).
+        If a slot is due or past due and unfulfilled:
+        - Claims an eligible video from Google Drive Vault (01_READY)
+        - Uploads directly to YouTube as PUBLIC (firing real-time VideoPublishedEvent for Shorts Feed seed pooling)
+        - IF THE UPLOAD FAILS FOR ANY REASON (network drop, API rate limit, transient 500/503):
+          Enters a persistent retry loop: waits 2 minutes (retry_interval_sec=120) and retries
+          indefinitely until successful!
+        - Transitions video from 02_PROCESSING to 03_PUBLISHED in Google Drive Vault upon verified success.
+        """
+        lock = CompositeLock(
+            name="publisher",
+            command_name="publish-due",
+            drive_engine=getattr(self, "drive_engine", None),
+            cloud_lock_name="cloud_publisher",
+        )
+        if not lock.acquire():
+            info = lock.get_lock_info()
+            owner_pid = info.get("pid") if info else "unknown"
+            cmd = info.get("command") if info else "unknown"
+            console.print(f"[bold yellow][!] Publisher lock currently held by PID {owner_pid} ('{cmd}'). Exiting cleanly.[/bold yellow]")
+            return {"status": "LOCK_HELD", "published_count": 0}
+
+        close_db = False
+        if db is None:
+            db = getattr(self, "SessionLocal", SessionLocal)()
+            close_db = True
+
+        console.print(Panel.fit("[bold green]Starting Autonomous Due Slot Publisher (Live Public Push + 2-Min Retry Loop)[/bold green]", border_style="green"))
+
+        try:
+            # 1. Reconcile prior scheduled uploads (check if any became public on YouTube)
+            try:
+                reconciled_jobs = self.upload_engine.reconcile_scheduled_uploads(db)
+                if reconciled_jobs:
+                    console.print(f"[bold green][+] Reconciled {len(reconciled_jobs)} previously scheduled Short(s) to PUBLISHED status.[/bold green]")
+                    processing_files = self.drive_engine.list_files_in_folder("02_PROCESSING")
+                    for rec_item in reconciled_jobs:
+                        for pf in processing_files:
+                            props = pf.get("properties", {}) or {}
+                            if props.get("job_id") == rec_item["job_id"] or rec_item["job_id"] in pf.get("name", ""):
+                                try:
+                                    vault_transition_to_published(
+                                        file_id=pf["id"],
+                                        youtube_video_id=rec_item.get("youtube_video_id", ""),
+                                        db=db,
+                                        drive_engine=self.drive_engine,
+                                        job_id=rec_item["job_id"],
+                                        caller="main.publish_due_slots.reconcile"
+                                    )
+                                except Exception as gt_err:
+                                    logger.warning(f"[RECONCILE_GATEWAY_HOLD] Gateway refused transition for {pf['id']}: {gt_err}")
+            except Exception as rec_err:
+                logger.warning(f"Reconciliation check notice: {rec_err}")
+
+            # 2. Slot Due Audit for Today (02:00, 08:00, 14:00, 20:00 UTC)
+            from config.constants import get_business_day_bounds_utc, DAILY_SHORTS_LIMIT, PUBLISHING_SLOTS_UTC
+            from datetime import time as dtime
+            today_start, today_end = get_business_day_bounds_utc()
+            now_utc = datetime.utcnow()
+            today_date = now_utc.date()
+
+            today_slot_times = [
+                datetime.combine(today_date, dtime(hour, minute))
+                for hour, minute, _ in PUBLISHING_SLOTS_UTC
+            ]
+
+            published_today = db.query(UploadRecord).filter(
+                UploadRecord.status.in_(["PUBLISHED", "SUCCESS"]),
+                UploadRecord.published_at >= today_start,
+                UploadRecord.published_at < today_end
+            ).count()
+
+            scheduled_today = db.query(UploadRecord).filter(
+                UploadRecord.status == "SCHEDULED",
+                UploadRecord.scheduled_publish_at >= now_utc,
+                UploadRecord.scheduled_publish_at < today_end
+            ).count()
+
+            total_booked_today = published_today + scheduled_today
+
+            lead_buffer = timedelta(minutes=15)
+            due_slots = [s for s in today_slot_times if s <= (now_utc + lead_buffer)]
+
+            console.print(
+                f"[cyan][*] Slot Due Audit (Today):[/cyan] "
+                f"Slots Passed/Due: [bold]{len(due_slots)}/4[/bold] | "
+                f"Published: [bold]{published_today}[/bold] | "
+                f"Scheduled: [bold]{scheduled_today}[/bold] | "
+                f"Total Booked: [bold]{total_booked_today}/{DAILY_SHORTS_LIMIT}[/bold]"
+            )
+
+            slots_needed = max(0, len(due_slots) - total_booked_today)
+            if force:
+                slots_needed = max(1, slots_needed)
+
+            if slots_needed <= 0:
+                next_slots = [s for s in today_slot_times if s > (now_utc + lead_buffer)]
+                next_slot_str = next_slots[0].strftime("%H:%M UTC") if next_slots else "Tomorrow 02:00 UTC"
+                console.print(f"[bold yellow][*] All {len(due_slots)} due slot(s) for today have already been fulfilled. Next release slot is at {next_slot_str}.[/bold yellow]")
+                return {
+                    "status": "NO_DUE_SLOTS",
+                    "published_today": published_today,
+                    "scheduled_today": scheduled_today,
+                    "due_slots_count": len(due_slots)
+                }
+
+            console.print(f"[bold green][*] Fulfilling {slots_needed} due slot(s) immediately with direct public upload...[/bold green]")
+            published_results = []
+
+            from engines.drive_engine import is_valid_ready_short
+            for slot_idx in range(slots_needed):
+                if total_booked_today + len(published_results) >= DAILY_SHORTS_LIMIT:
+                    console.print(f"[bold yellow][!] Daily limit ({DAILY_SHORTS_LIMIT}) reached. Halting further releases for today.[/bold yellow]")
+                    break
+
+                ready_files = self.drive_engine.list_files_in_folder("01_READY")
+                eligible_candidates = []
+                for rf in ready_files:
+                    is_val, val_reason = is_valid_ready_short(rf, db=db, allow_test_artifacts=self.upload_engine._is_test_mode())
+                    if is_val:
+                        eligible_candidates.append(rf)
+
+                if target_file_id:
+                    eligible_candidates = [f for f in eligible_candidates if f["id"] == target_file_id]
+
+                if not eligible_candidates:
+                    console.print("[bold red][!] No valid eligible Shorts in 01_READY to publish! Buffer empty.[/bold red]")
+                    break
+
+                chosen_file = eligible_candidates[0]
+                file_id = chosen_file["id"]
+                name = chosen_file.get("name", "")
+
+                console.print(f"[cyan][*] Claiming '{name}' ({file_id}) for live public release...[/cyan]")
+                self.drive_engine.move_file_in_vault(file_id, from_folder="01_READY", to_folder="02_PROCESSING")
+
+                temp_download_path = PROJECT_ROOT / "data" / "renders" / f"due_pub_{file_id[:8]}.mp4"
+                temp_download_path.parent.mkdir(parents=True, exist_ok=True)
+                self.drive_engine.download_video_from_vault(file_id, temp_download_path)
+
+                resolved_meta = resolve_vault_file_metadata(chosen_file, db=db)
+                title = resolved_meta["title"]
+                description = resolved_meta["description"]
+
+                job_id = chosen_file.get("properties", {}).get("job_id") or f"job_live_{file_id[:8]}"
+                job = db.query(Job).filter_by(id=job_id).first()
+                if not job:
+                    job = Job(id=job_id, state=JobState.READY_TO_UPLOAD.value)
+                    db.add(job)
+                    db.commit()
+
+                render_output = db.query(RenderOutput).filter_by(job_id=job.id).first()
+                if not render_output:
+                    render_output = RenderOutput(
+                        id=f"rnd_{uuid.uuid4().hex[:10]}",
+                        job_id=job.id,
+                        video_path=str(temp_download_path),
+                        duration_sec=26.0,
+                        file_size_bytes=temp_download_path.stat().st_size if temp_download_path.exists() else 1024000,
+                        video_codec="h264",
+                        width=1080,
+                        height=1920
+                    )
+                    db.add(render_output)
+                    db.commit()
+                else:
+                    render_output.video_path = str(temp_download_path)
+                    db.commit()
+
+                metadata = {
+                    "title": title,
+                    "description": description,
+                    "tags": [
+                        "Harry Potter", "Wizarding World", "Hogwarts", "Harry Potter Lore",
+                        "Harry Potter Facts", "Movie Facts", "Shorts", "Harry Potter Shorts",
+                        "Deleted Scenes", "Book vs Movie", "Harry Potter Secrets"
+                    ]
+                }
+
+                gate_passed, gate_reason = self.upload_engine.evaluate_publication_safety_gate(
+                    db=db,
+                    job=job,
+                    render=render_output,
+                    metadata=metadata,
+                    allow_immediate=True
+                )
+                if not gate_passed:
+                    console.print(f"[bold red][x] Safety Gate Blocked Upload: {gate_reason}[/bold red]")
+                    self.drive_engine.move_file_in_vault(file_id, from_folder="02_PROCESSING", to_folder="01_READY")
+                    continue
+
+                # 3. PERSISTENT RETRY LOOP WITH 2-MINUTE BREAK
+                attempt = 1
+                upload_rec = None
+                while True:
+                    try:
+                        console.print(f"[bold cyan][*] Uploading Short '{title}' directly to YouTube as PUBLIC (Attempt #{attempt})...[/bold cyan]")
+                        upload_rec = self.upload_engine.upload_short_public(
+                            db=db,
+                            job=job,
+                            render=render_output,
+                            metadata=metadata,
+                            privacy_status="public"
+                        )
+                        if upload_rec and upload_rec.youtube_video_id:
+                            console.print(f"[bold green][+] Upload SUCCEEDED on attempt #{attempt}! YouTube Video ID: [bold yellow]{upload_rec.youtube_video_id}[/bold yellow][/bold green]")
+                            break
+                    except KeyboardInterrupt:
+                        logger.warning("Upload loop interrupted by user.")
+                        raise
+                    except Exception as upload_err:
+                        err_msg = str(upload_err)
+                        console.print(f"[bold red][!] Upload attempt #{attempt} failed: {err_msg}[/bold red]")
+                        if max_retries is not None and attempt >= max_retries:
+                            console.print(f"[bold red][!] Maximum retries ({max_retries}) reached. Exiting retry loop.[/bold red]")
+                            break
+                        console.print(f"[bold yellow][*] Safety Watchdog: Waiting {retry_interval_sec} seconds (2-minute break) before retry #{attempt + 1}...[/bold yellow]")
+                        import time
+                        time.sleep(retry_interval_sec)
+                        attempt += 1
+
+                if upload_rec and upload_rec.youtube_video_id:
+                    try:
+                        vault_transition_to_published(
+                            file_id=file_id,
+                            youtube_video_id=upload_rec.youtube_video_id,
+                            db=db,
+                            drive_engine=self.drive_engine,
+                            job_id=job.id,
+                            caller="main.publish_due_slots"
+                        )
+                    except Exception as vt_err:
+                        logger.warning(f"Could not transition Drive file to 03_PUBLISHED: {vt_err}")
+
+                    try:
+                        from core.models import HarryPotterScript
+                        clean_sid = resolved_meta.get("script_id") or name.replace(".mp4", "")
+                        hp_s = db.query(HarryPotterScript).filter(HarryPotterScript.id.ilike(f"%{clean_sid}%")).first()
+                        if hp_s:
+                            hp_s.status = "PUBLISHED"
+                            db.commit()
+                    except Exception as hp_err:
+                        logger.warning(f"Notice updating HP script published status: {hp_err}")
+
+                    published_results.append({
+                        "file_id": file_id,
+                        "youtube_video_id": upload_rec.youtube_video_id,
+                        "title": upload_rec.title,
+                        "attempts": attempt
+                    })
+
+                if temp_download_path and temp_download_path.exists():
+                    temp_download_path.unlink(missing_ok=True)
+
+            return {
+                "status": "SUCCESS" if published_results else "PARTIAL",
+                "published_count": len(published_results),
+                "published_videos": published_results,
+                "published_today": published_today + len(published_results),
+                "scheduled_today": scheduled_today
+            }
+
+        finally:
+            if close_db:
+                db.close()
+            lock.release()
+
     def publish_next_from_vault(self, force: bool = False, target_file_id: Optional[str] = None) -> bool:
         """Invokes canonical schedule_ready_buffer for a single video."""
         res = self.schedule_ready_buffer(max_to_schedule=1, target_file_id=target_file_id)
@@ -2002,6 +2279,8 @@ def main():
     parser.add_argument("--json", action="store_true", help="Output health check or diagnostic results in JSON format")
     parser.add_argument("--maintain-buffer", type=int, nargs="?", const=TARGET_RESERVE_BUFFER, default=0, metavar="TARGET", help=f"Maintain a reserve of TARGET ready Shorts in Drive 01_READY (default: {TARGET_RESERVE_BUFFER})")
     parser.add_argument("--produce-batch", type=int, default=0, metavar="N", help="Generate N Shorts, verify QA, and deposit in Google Drive 01_READY")
+    parser.add_argument("--publish-due", action="store_true", help="Claim and publish due Shorts from Google Drive Vault as public with 2-min retry loop")
+    parser.add_argument("--retry-interval", type=int, default=120, help="Retry interval in seconds between failed upload attempts (default: 120s)")
     parser.add_argument("--publish-next", action="store_true", help="Claim next ready Short from Google Drive 01_READY and publish to YouTube")
     parser.add_argument("--schedule-ready", action="store_true", help="Claim and schedule all available READY Shorts up to daily limit")
     parser.add_argument("--max-to-schedule", type=int, default=None, help="Maximum number of READY Shorts to schedule")
@@ -2162,6 +2441,8 @@ def main():
             sys.stdout.flush()
             sys.stderr.flush()
             os._exit(0)
+    elif args.publish_due:
+        pipeline.publish_due_slots(target_file_id=args.file_id, retry_interval_sec=args.retry_interval, force=args.force)
     elif args.publish_next:
         pipeline.publish_next_from_vault(force=args.force, target_file_id=args.file_id)
     elif args.schedule_ready:
