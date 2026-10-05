@@ -1,11 +1,12 @@
 {
-  "action": "PRODUCE_BATCH",
-  "outcome": "FAILED",
-  "block_reason": "Discovery Big candidate 'hps_disc_lupin_werewolf_wolfsbane_potion_b3' failed: Rendering failed: Cloned voice synthesis failed: F5-TTS FAIL-CLOSED: Required canonical reference speaker audio not found at any of: [PosixPath('/home/runner/work/harry-potter-automation/harry-potter-automation/data/voice_cloning/f5_tts/reference/selected_reference_speaker_24k.wav'), PosixPath('/home/runner/work/harry-potter-automation/harry-potter-automation/data/reference_audio/selected_reference_speaker_24k.wav')]; Discovery Big candidate 'hps_disc_voldemort_diary_horcrux_accidental_b6' failed: Rendering failed: Cloned voice synthesis failed: F5-TTS FAIL-CLOSED: Required canonical reference speaker audio not found at any of: [PosixPath('/home/runner/work/harry-potter-automation/harry-potter-automation/data/voice_cloning/f5_tts/reference/selected_reference_speaker_24k.wav'), PosixPath('/home/runner/work/harry-potter-automation/harry-potter-automation/data/reference_audio/selected_reference_speaker_24k.wav')]",
-  "requested_count": 1,
+  "action": "MAINTAIN_BUFFER",
+  "outcome": "BUFFER_SATISFIED",
+  "block_reason": null,
+  "requested_deficit": 0,
   "produced_count": 0,
   "initial_stock": 8,
   "final_stock": 8,
+  "target_stock": 8,
   "voice": "f5_cloned_narrator_v1",
-  "timestamp": "2026-10-05T19:04:36.688084Z"
+  "timestamp": "2026-10-05T23:18:24.692837Z"
 }
