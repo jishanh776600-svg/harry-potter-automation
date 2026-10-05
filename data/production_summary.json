@@ -1,12 +1,12 @@
 {
   "action": "MAINTAIN_BUFFER",
-  "outcome": "FAILED",
-  "block_reason": "Discovery Big candidate 'hps_disc_harry_hagrid_vault_gringotts_detail_b1' failed: Visual retrieval exception: Subject Mismatch Gate Violation for beat 'beat_1': No movie scenes verified for required characters ['Harry Potter']. Atmospheric filler is strictly banned for character beats.; Discovery Big candidate 'hps_disc_house_elves_spew_slavery_b4' failed: Visual retrieval exception: Subject Mismatch Gate Violation for beat 'beat_1': No movie scenes verified for required characters ['Peeves']. Atmospheric filler is strictly banned for character beats.",
+  "outcome": "BLOCKED",
+  "block_reason": "Cloud production lock held in Drive vault (00_SYSTEM)",
   "requested_deficit": 6,
   "produced_count": 0,
   "initial_stock": 2,
   "final_stock": 2,
   "target_stock": 8,
   "voice": "f5_cloned_narrator_v1",
-  "timestamp": "2026-10-05T16:54:58.922674Z"
+  "timestamp": "2026-10-05T17:04:45.628673Z"
 }
