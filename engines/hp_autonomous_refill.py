@@ -314,14 +314,32 @@ class HPAutonomousRefillEngine:
                 logger.info("[Refill:Pool] Sourcing fresh Discovery candidates via ContentPlanner...")
                 try:
                     planner = ContentPlannerEngine()
-                    new_cands = planner.plan_discovery_candidates(count=4)
+                    new_cands = planner.plan_discovery_candidates(count=6)
+                    # ContentPlanner uses its own DB session/transaction.
+                    # Expire the refill session's identity map so it can see
+                    # the newly committed DiscoveryCandidate rows.
+                    session.expire_all()
                     if new_cands:
-                        for nc in new_cands:
-                            cid = nc.get("candidate_id") or nc.get("id")
+                        new_ids = [
+                            nc.get("candidate_id") or nc.get("id")
+                            for nc in new_cands
+                            if not nc.get("duplicate")  # skip already-scripted duplicates
+                        ]
+                        logger.info(f"[Refill:Pool] ContentPlanner produced {len(new_ids)} new candidate(s): {new_ids}")
+                        for cid in new_ids:
                             if cid and cid not in excluded_cand_ids:
                                 candidate = session.query(DiscoveryCandidate).filter_by(id=cid).first()
-                                if candidate:
+                                if candidate and candidate.status in ("ELIGIBLE", "APPROVED"):
+                                    logger.info(f"[Refill:Pool] Selected new candidate from planner: {cid}")
                                     break
+                        # Fallback: if all returned were duplicates, re-query broadly
+                        if not candidate:
+                            logger.info("[Refill:Pool] All planner results were duplicates; re-querying DB for any eligible candidate...")
+                            candidate = session.query(DiscoveryCandidate).filter(
+                                DiscoveryCandidate.status.in_(["ELIGIBLE", "APPROVED"]),
+                                ~DiscoveryCandidate.id.in_(existing_script_cand_ids),
+                                ~DiscoveryCandidate.id.in_(excluded_cand_ids)
+                            ).first()
                 except Exception as cp_err:
                     logger.warning(f"Notice during Discovery candidate planning: {cp_err}")
 
