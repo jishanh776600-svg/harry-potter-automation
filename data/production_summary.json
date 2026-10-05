@@ -2,11 +2,11 @@
   "action": "MAINTAIN_BUFFER",
   "outcome": "FAILED",
   "block_reason": "Discovery Big candidate '1' failed: No eligible or discoverable DISCOVERY_BIG candidates available; Discovery Big candidate '1' failed: No eligible or discoverable DISCOVERY_BIG candidates available",
-  "requested_deficit": 5,
+  "requested_deficit": 6,
   "produced_count": 0,
-  "initial_stock": 3,
-  "final_stock": 3,
+  "initial_stock": 2,
+  "final_stock": 2,
   "target_stock": 8,
   "voice": "f5_cloned_narrator_v1",
-  "timestamp": "2026-10-05T15:27:18.471141Z"
+  "timestamp": "2026-10-05T16:09:49.014644Z"
 }
