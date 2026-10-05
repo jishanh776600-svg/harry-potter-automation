@@ -245,7 +245,7 @@ class HPAutonomousRefillEngine:
                 v_beats = json.loads(script.visual_beats_json or "[]")
             except Exception:
                 pass
-            has_content = any(b.get("visual_requirement") or b.get("narration_text") for b in v_beats) if v_beats else False
+            has_content = any(b.get("visual_requirement") or b.get("narration_text") or b.get("description") or b.get("action") for b in v_beats) if v_beats else False
             if (not v_beats or not has_content) and content_type.startswith("discovery"):
                 logger.warning(f"[Refill:Pool] Script {script.id} has empty visual beats. Quarantining...")
                 script.qa_status = "FAILED"
@@ -539,6 +539,14 @@ class HPAutonomousRefillEngine:
                 if cand_ns:
                     cand_ns.status = "DEPOSITED"
             session.commit()
+
+            # Immediate atomic cloud database sync so each video deposit is permanently saved in Drive vault
+            try:
+                from core.database_sync import upload_canonical_database
+                upload_canonical_database(self.drive_engine)
+                logger.info(f"[Refill:Vault] Canonical DB immediately synchronized to Drive vault for {script_id}.")
+            except Exception as sync_err:
+                logger.warning(f"[Refill:Vault] Notice: Immediate DB sync warning (non-fatal): {sync_err}")
 
             return True, script_id, None
         except Exception as ue:

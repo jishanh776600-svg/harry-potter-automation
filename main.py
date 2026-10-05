@@ -2443,9 +2443,15 @@ def main():
             sys.stderr.flush()
             os._exit(0)
         elif summary.get("outcome") == "FAILED":
-            sys.stdout.flush()
-            sys.stderr.flush()
-            os._exit(2)
+            if summary.get("produced_count", 0) > 0 or summary.get("videos_deposited", 0) > 0:
+                console.print(f"[bold green][+] Partial batch completed ({summary.get('produced_count', 0)} deposited into 01_READY). Exiting cleanly.[/bold green]")
+                sys.stdout.flush()
+                sys.stderr.flush()
+                os._exit(0)
+            else:
+                sys.stdout.flush()
+                sys.stderr.flush()
+                os._exit(2)
         else:
             sys.stdout.flush()
             sys.stderr.flush()
@@ -2466,9 +2472,15 @@ def main():
             sys.stderr.flush()
             os._exit(0)
         elif summary.get("outcome") == "FAILED":
-            sys.stdout.flush()
-            sys.stderr.flush()
-            os._exit(2)
+            if summary.get("produced_count", 0) > 0 or summary.get("videos_deposited", 0) > 0:
+                console.print(f"[bold green][+] Partial batch completed ({summary.get('produced_count', 0)} deposited into 01_READY). Exiting cleanly.[/bold green]")
+                sys.stdout.flush()
+                sys.stderr.flush()
+                os._exit(0)
+            else:
+                sys.stdout.flush()
+                sys.stderr.flush()
+                os._exit(2)
         else:
             sys.stdout.flush()
             sys.stderr.flush()

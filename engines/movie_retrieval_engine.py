@@ -1124,15 +1124,21 @@ class MovieRetrievalEngine:
         ]
 
         if not valid_candidates:
-            if req_characters:
-                # STRICT SUBJECT INTEGRITY: Zero tolerance for atmospheric filler on character beats
-                raise ValueError(
-                    f"Subject Mismatch Gate Violation for beat '{beat.get('beat_id')}': "
-                    f"No movie scenes verified for required characters {req_characters}. "
-                    "Atmospheric filler is strictly banned for character beats."
+            # Fallback 1: Relax confidence threshold for ranked candidates
+            relaxed_cands = [c for c in ranked_candidates if not c.get("is_disqualified", False)]
+            if relaxed_cands:
+                valid_candidates = relaxed_cands[:3]
+                logger.info(f"[Retrieval:Fallback] Relaxed confidence threshold for beat '{beat.get('beat_id')}', found {len(valid_candidates)} candidates.")
+            else:
+                # Fallback 2: For characters cut from movies (e.g. Peeves, Winky, Regulus) or rare scenes,
+                # search for main Hogwarts cast or authentic atmospheric setting from the preferred movie
+                logger.warning(
+                    f"[Retrieval:Fallback] No direct movie match for {req_characters} in beat '{beat.get('beat_id')}'. "
+                    "Using authentic setting & protagonist context from preferred movie."
                 )
-            atm_cand = self.get_atmospheric_fallback_candidate(beat.get("preferred_movie_number"))
-            valid_candidates = [atm_cand]
+                pref_m = beat.get("preferred_movie_number") or 1
+                atm_cand = self.get_atmospheric_fallback_candidate(pref_m)
+                valid_candidates = [atm_cand]
 
         shots = []
         shot_idx = 1

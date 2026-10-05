@@ -365,6 +365,84 @@ DISCOVERY_SEEDS = [
         "movie_omits": "The films hint at the scar connection but never deliver the same chilling realization — that Harry must die to destroy the piece of Voldemort living inside him.",
         "novel_fact_summary": "Book 6 finally reveals that Harry's scar contains a fragment of Voldemort's soul — making Harry an unintentional seventh Horcrux. This means Harry must allow himself to die for Voldemort to become mortal.",
     },
+    {
+        "slug": "ron_weasley_prefect_badge_surprise",
+        "discovery_type": "CHARACTER_DEPTH",
+        "title": "Why Dumbledore chose Ron as Prefect instead of Harry",
+        "novel_search_query": "Ron prefect badge Dumbledore Harry",
+        "movie_search_query": "Ron prefect Gryffindor badge",
+        "preferred_book": 5,
+        "preferred_chapter": 9,
+        "hook_concept": "Harry thought he was guaranteed to be Gryffindor prefect — until Ron opened his letter and pulled out the badge.",
+        "why_interesting": "Dumbledore chose Ron deliberately because he felt Harry had enough burdens to carry without prefect duties.",
+        "movie_omits": "Movie 5 cuts the entire prefect storyline, completely omitting Ron and Hermione's leadership role.",
+        "novel_fact_summary": "Book 5 reveals Dumbledore chose Ron over Harry because Harry was already carrying the weight of Voldemort's return.",
+    },
+    {
+        "slug": "percy_weasley_betrayal_and_redemption",
+        "discovery_type": "CHARACTER_DEPTH",
+        "title": "Percy Weasley completely disowned his family — the movies erased his entire redemption",
+        "novel_search_query": "Percy Ministry Weasley family traitor",
+        "movie_search_query": "Percy Weasley Ministry Fudge",
+        "preferred_book": 5,
+        "preferred_chapter": 4,
+        "hook_concept": "Percy Weasley cut ties with his family, called his father an embarrassment, and sent his mother's Christmas sweater back unopened.",
+        "why_interesting": "Percy sided with Fudge against his own parents, only to break down weeping and beg for forgiveness during the Battle of Hogwarts.",
+        "movie_omits": "The films show Percy standing silently near Fudge but never explain his deep ideological betrayal of the Weasleys.",
+        "novel_fact_summary": "Book 5 shows Percy storming out of the Burrow and rejecting his family. His heartbreaking return occurs in Book 7 right before Fred dies.",
+    },
+    {
+        "slug": "draco_malfoy_invisibility_cloak_train",
+        "discovery_type": "BOOK_VS_MOVIE_DIFFERENCE",
+        "title": "Draco stomped on Harry's face on the train — and Tonks saved him, not Luna",
+        "novel_search_query": "Draco Malfoy train petrified Harry face nose",
+        "movie_search_query": "Malfoy Harry train petrified",
+        "preferred_book": 6,
+        "preferred_chapter": 8,
+        "hook_concept": "In the book, Malfoy breaks Harry's nose and leaves him paralyzed under his Cloak — and Tonks finds him, not Luna Lovegood.",
+        "why_interesting": "Tonks was stationed in Hogsmeade battling depression and love for Lupin, which explains why she found Harry.",
+        "movie_omits": "Movie 6 substitutes Luna Lovegood with Spectrespecs instead of Tonks's deeply personal Book 6 arc.",
+        "novel_fact_summary": "In Book 6, Tonks finds Harry petrified on the Hogwarts Express, repairs his broken nose, and escorts him to Snape at the gate.",
+    },
+    {
+        "slug": "neville_parents_st_mungos_heartbreak",
+        "discovery_type": "CHARACTER_DEPTH",
+        "title": "Neville visiting his tortured parents at St. Mungo's was completely erased from the films",
+        "novel_search_query": "St Mungo Neville parents bubble gum wrapper",
+        "movie_search_query": "Neville Longbottom parents hospital",
+        "preferred_book": 5,
+        "preferred_chapter": 23,
+        "hook_concept": "Neville's mother can barely recognize him — but she silently hands him an empty candy wrapper, which he secretly pockets as his most treasured possession.",
+        "why_interesting": "Alice and Frank Longbottom were tortured into insanity by Bellatrix Lestrange, spending their lives in St. Mungo's Hospital.",
+        "movie_omits": "The films briefly mention Neville's parents but never show the heartbreaking hospital ward scene with the Droobles gum wrapper.",
+        "novel_fact_summary": "Book 5 Chapter 23 depicts Harry, Ron, and Hermione encountering Neville visiting his parents at St. Mungo's, where his mother hands him an empty wrapper.",
+    },
+    {
+        "slug": "peter_pettigrew_silver_hand_strangle",
+        "discovery_type": "BOOK_VS_MOVIE_DIFFERENCE",
+        "title": "Peter Pettigrew's chilling death was completely changed in the movie",
+        "novel_search_query": "Pettigrew silver hand throat choke life debt",
+        "movie_search_query": "Pettigrew cellar Malfoy Manor",
+        "preferred_book": 7,
+        "preferred_chapter": 23,
+        "hook_concept": "In the movie, Pettigrew is just knocked out by Dobby. In the book, his own silver hand strangles him to death when he hesitates to kill Harry.",
+        "why_interesting": "Voldemort gave Pettigrew the silver hand with a curse: if Pettigrew ever showed mercy or hesitation toward Harry, the hand would turn against its master.",
+        "movie_omits": "Movie 7 Part 1 turns Pettigrew's death into comic relief with a stunned fall, erasing Voldemort's ruthless failsafe trap.",
+        "novel_fact_summary": "In Book 7, Pettigrew hesitates for a single second remembering his life debt to Harry. The silver hand immediately chokes him to death despite Harry and Ron trying to pry it loose.",
+    },
+    {
+        "slug": "dumbledore_howler_petunia_remember_last",
+        "discovery_type": "LORE_DETAIL",
+        "title": "Dumbledore sent a Howler to Aunt Petunia — revealing their secret past",
+        "novel_search_query": "Remember my last Petunia Howler Dumbledore",
+        "movie_search_query": "Petunia Howler letter Dumbledore",
+        "preferred_book": 5,
+        "preferred_chapter": 2,
+        "hook_concept": "When Uncle Vernon tries to throw Harry out in Book 5, a smoking Howler explodes in the kitchen with Dumbledore's voice: 'Remember my last, Petunia.'",
+        "why_interesting": "Petunia wrote letters to Dumbledore as a child begging to attend Hogwarts, and Dumbledore gently declined — creating her lifelong bitterness.",
+        "movie_omits": "The movie cuts the Howler completely, removing the revelation that Dumbledore and Petunia had a direct connection predating Harry's birth.",
+        "novel_fact_summary": "In Book 5, Dumbledore's Howler forces Petunia to keep Harry at Privet Drive. The 'last' refers to the letter left with baby Harry on her doorstep explaining the blood protection.",
+    },
 ]
 
 
@@ -965,11 +1043,26 @@ class ContentPlannerEngine:
                 except Exception as e:
                     logger.warning(f"[DISCOVERY_PLANNER] Movie search error for {slug}: {e}")
 
-                # Visual beats for discovery
+                # Visual beats for discovery with full key requirements
                 visual_beats = [
-                    {"description": f"Harry Potter scene from Movie {seed['preferred_book']} establishing context"},
-                    {"description": seed["movie_search_query"]},
-                    {"description": f"Harry Potter character reaction or emotional moment"},
+                    {
+                        "beat_id": "beat_1",
+                        "description": f"Harry Potter scene from Movie {seed['preferred_book']} establishing context",
+                        "visual_requirement": f"Harry Potter scene from Movie {seed['preferred_book']} establishing context",
+                        "narration_text": seed.get("hook_concept", seed["title"]),
+                    },
+                    {
+                        "beat_id": "beat_2",
+                        "description": seed["movie_search_query"],
+                        "visual_requirement": seed["movie_search_query"],
+                        "narration_text": seed.get("why_interesting", seed["title"]),
+                    },
+                    {
+                        "beat_id": "beat_3",
+                        "description": f"Harry Potter character reaction or emotional moment",
+                        "visual_requirement": f"Harry Potter character reaction or emotional moment",
+                        "narration_text": seed.get("novel_fact_summary", seed["title"]),
+                    },
                 ]
                 enriched_beats, overall_vf = self._check_visual_feasibility(
                     visual_beats, movie_number_hint=seed["preferred_book"]
