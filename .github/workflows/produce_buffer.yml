@@ -8,9 +8,9 @@ name: YouTube Shorts Cloud Buffer Producer
 
 on:
   schedule:
-    # Autonomous buffer maintenance: Checks Drive 01_READY stock every 2 hours.
+    # Autonomous buffer maintenance: Checks Drive 01_READY stock every 30 minutes.
     # Exits cleanly in <15s if buffer is satisfied (8/8). Replenishes if deficit detected.
-    - cron: '0 */2 * * *'
+    - cron: '*/30 * * * *'
   workflow_dispatch:
     inputs:
       target_buffer:
@@ -84,6 +84,10 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          NVIDIA_API_KEY_2: ${{ secrets.NVIDIA_API_KEY_2 }}
+          NVIDIA_API_KEY_3: ${{ secrets.NVIDIA_API_KEY_3 }}
+          NVIDIA_API_KEYS: ${{ secrets.NVIDIA_API_KEYS }}
+          NVIDIA_MODELS: ${{ secrets.NVIDIA_MODELS }}
           AI_COUNCIL_DEEPSEEK_KEY_1: ${{ secrets.AI_COUNCIL_DEEPSEEK_KEY_1 }}
           AI_COUNCIL_DEEPSEEK_KEY_2: ${{ secrets.AI_COUNCIL_DEEPSEEK_KEY_2 }}
           AI_COUNCIL_DEEPSEEK_KEY_3: ${{ secrets.AI_COUNCIL_DEEPSEEK_KEY_3 }}
@@ -111,6 +115,18 @@ jobs:
           fi
           if [ -n "${NVIDIA_API_KEY}" ]; then
             echo "NVIDIA_API_KEY=${NVIDIA_API_KEY}" >> .env
+          fi
+          if [ -n "${NVIDIA_API_KEY_2}" ]; then
+            echo "NVIDIA_API_KEY_2=${NVIDIA_API_KEY_2}" >> .env
+          fi
+          if [ -n "${NVIDIA_API_KEY_3}" ]; then
+            echo "NVIDIA_API_KEY_3=${NVIDIA_API_KEY_3}" >> .env
+          fi
+          if [ -n "${NVIDIA_API_KEYS}" ]; then
+            echo "NVIDIA_API_KEYS=${NVIDIA_API_KEYS}" >> .env
+          fi
+          if [ -n "${NVIDIA_MODELS}" ]; then
+            echo "NVIDIA_MODELS=${NVIDIA_MODELS}" >> .env
           fi
           if [ -n "${AI_COUNCIL_DEEPSEEK_KEY_1}" ]; then
             echo "AI_COUNCIL_DEEPSEEK_KEY_1=${AI_COUNCIL_DEEPSEEK_KEY_1}" >> .env
@@ -152,6 +168,9 @@ jobs:
           python -m core.database_sync download
 
       - name: Run Batch Production & Replenish Drive Vault
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           BATCH_COUNT="${{ inputs.batch_count }}"
           TARGET_BUFFER="${{ inputs.target_buffer }}"

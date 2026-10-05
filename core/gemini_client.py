@@ -169,7 +169,9 @@ class GeminiClient:
             DEEPSEEK_API_KEY,
             DEEPSEEK_MODEL,
             NVIDIA_API_KEY,
-            NVIDIA_MODEL
+            NVIDIA_API_KEYS,
+            NVIDIA_MODEL,
+            NVIDIA_MODELS
         )
         if is_test_environment() and any(k is not None for k in (api_key, secondary_api_key, groq_api_key, openrouter_api_key, deepseek_api_key, nvidia_api_key)):
             self.api_key = api_key
@@ -178,6 +180,8 @@ class GeminiClient:
             self.openrouter_api_key = openrouter_api_key
             self.deepseek_api_key = deepseek_api_key
             self.nvidia_api_key = nvidia_api_key
+            self.nvidia_api_keys = [nvidia_api_key] if nvidia_api_key else []
+            self.nvidia_models = [nvidia_model] if nvidia_model else []
         else:
             self.api_key = api_key if api_key is not None else GEMINI_API_KEY
             self.secondary_api_key = secondary_api_key if secondary_api_key is not None else GEMINI_API_KEY_SECONDARY
@@ -185,12 +189,14 @@ class GeminiClient:
             self.openrouter_api_key = openrouter_api_key if openrouter_api_key is not None else OPENROUTER_API_KEY
             self.deepseek_api_key = deepseek_api_key if deepseek_api_key is not None else DEEPSEEK_API_KEY
             self.nvidia_api_key = nvidia_api_key if nvidia_api_key is not None else NVIDIA_API_KEY
+            self.nvidia_api_keys = list(NVIDIA_API_KEYS) if NVIDIA_API_KEYS else ([self.nvidia_api_key] if self.nvidia_api_key else [])
+            self.nvidia_models = list(NVIDIA_MODELS) if NVIDIA_MODELS else ([NVIDIA_MODEL] if NVIDIA_MODEL else ["meta/llama-3.3-70b-instruct"])
         self.primary_model = GEMINI_MODEL
         self.secondary_model = secondary_model or GEMINI_MODEL_SECONDARY or GEMINI_MODEL
         self.groq_model = groq_model or GROQ_MODEL or "llama-3.1-8b-instant"
         self.openrouter_model = openrouter_model or OPENROUTER_MODEL or "meta-llama/llama-3.3-70b-instruct"
         self.deepseek_model = deepseek_model or DEEPSEEK_MODEL or "deepseek-v4-pro"
-        self.nvidia_model = nvidia_model or NVIDIA_MODEL or "nvidia/nemotron-3.5-lightning-30b-a3b"
+        self.nvidia_model = nvidia_model or NVIDIA_MODEL or "meta/llama-3.3-70b-instruct"
         self.rate_limiter = rate_limiter or get_shared_rate_limiter()
         self.sleeper = sleeper
         self._provider_lock = threading.Lock()
@@ -268,13 +274,18 @@ class GeminiClient:
                     "api_key": self.deepseek_api_key,
                     "model": self.deepseek_model
                 })
-            if self.nvidia_api_key:
-                providers.append({
-                    "name": "nvidia",
-                    "type": "nvidia",
-                    "api_key": self.nvidia_api_key,
-                    "model": self.nvidia_model
-                })
+            nv_keys = getattr(self, "nvidia_api_keys", []) or ([self.nvidia_api_key] if self.nvidia_api_key else [])
+            nv_models = getattr(self, "nvidia_models", []) or ([self.nvidia_model] if self.nvidia_model else ["meta/llama-3.3-70b-instruct"])
+            if nv_keys:
+                for k_idx, nkey in enumerate(nv_keys):
+                    for m_idx, nmod in enumerate(nv_models):
+                        pname = "nvidia" if (k_idx == 0 and m_idx == 0) else f"nvidia_k{k_idx+1}_m{m_idx+1}"
+                        providers.append({
+                            "name": pname,
+                            "type": "nvidia",
+                            "api_key": nkey,
+                            "model": nmod
+                        })
         return providers
 
     def _execute_request(
@@ -506,6 +517,7 @@ class GeminiClient:
         max_retries: int = 3,
         base_delay: Optional[float] = None,
         max_delay: float = 60.0,
+        provider_name: str = "nvidia",
         **kwargs
     ) -> NvidiaResponse:
         """Executes API call to NVIDIA NIM OpenAI-compatible chat completion endpoint with pacing and backoff."""
@@ -579,19 +591,19 @@ class GeminiClient:
                 )
 
                 if is_quota_or_balance:
-                    self.mark_provider_exhausted("nvidia")
+                    self.mark_provider_exhausted(provider_name)
                     logger.warning(
-                        f"[NVIDIA_EXHAUSTED] NVIDIA API quota/rate-limit exhausted (HTTP {code}): {err_body[:200]}"
+                        f"[NVIDIA_EXHAUSTED] NVIDIA API quota/rate-limit exhausted for {provider_name} (HTTP {code}): {err_body[:200]}"
                     )
                     raise GeminiQuotaExhaustedError(
-                        f"NVIDIA API quota or rate limit exhausted (HTTP {code})"
+                        f"NVIDIA API quota or rate limit exhausted for {provider_name} (HTTP {code})"
                     ) from http_err
 
                 # Non-retryable 4xx errors
                 if 400 <= code < 500:
-                    self.mark_provider_exhausted("nvidia")
-                    logger.error(f"[NVIDIA_AUTH_FAIL] NVIDIA client error (HTTP {code}). Marking provider exhausted permanently for session: {err_body[:200]}")
-                    raise GeminiQuotaExhaustedError(f"NVIDIA API error (HTTP {code}): {err_body[:200]}") from http_err
+                    self.mark_provider_exhausted(provider_name)
+                    logger.error(f"[NVIDIA_AUTH_FAIL] NVIDIA client error for {provider_name} (HTTP {code}). Marking provider exhausted permanently for session: {err_body[:200]}")
+                    raise GeminiQuotaExhaustedError(f"NVIDIA API error for {provider_name} (HTTP {code}): {err_body[:200]}") from http_err
 
                 # Transient 5xx server errors
                 if attempt >= max_retries:
@@ -601,7 +613,7 @@ class GeminiClient:
                 jitter = 0.01 if is_test else random.uniform(0.5, 1.5)
                 delay = min(max_delay, raw_delay) + jitter
                 logger.warning(
-                    f"[NVIDIA_RETRY] Transient failure from NVIDIA (attempt {attempt}/{max_retries}, HTTP {code}). Retrying in {delay:.2f}s..."
+                    f"[NVIDIA_RETRY] Transient failure from NVIDIA {provider_name} (attempt {attempt}/{max_retries}, HTTP {code}). Retrying in {delay:.2f}s..."
                 )
                 self.sleeper(delay)
 
@@ -613,17 +625,17 @@ class GeminiClient:
                 jitter = 0.01 if is_test else random.uniform(0.5, 1.5)
                 delay = min(max_delay, raw_delay) + jitter
                 logger.warning(
-                    f"[NVIDIA_NET_RETRY] Network connection error to NVIDIA (attempt {attempt}/{max_retries}): {net_err}. Retrying in {delay:.2f}s..."
+                    f"[NVIDIA_NET_RETRY] Network connection error to NVIDIA {provider_name} (attempt {attempt}/{max_retries}): {net_err}. Retrying in {delay:.2f}s..."
                 )
                 self.sleeper(delay)
 
             except Exception as unk_err:
-                logger.error(f"[NVIDIA_ERROR] Unhandled error calling NVIDIA: {unk_err}")
+                logger.error(f"[NVIDIA_ERROR] Unhandled error calling NVIDIA {provider_name}: {unk_err}")
                 raise unk_err
 
-        # All retries exhausted on NVIDIA
-        self.mark_provider_exhausted("nvidia")
-        err_msg = f"NVIDIA API retries exhausted after {max_retries} attempts: {last_exception}"
+        # All retries exhausted on this NVIDIA provider
+        self.mark_provider_exhausted(provider_name)
+        err_msg = f"NVIDIA API retries exhausted for {provider_name} after {max_retries} attempts: {last_exception}"
         logger.error(f"[NVIDIA_EXHAUSTED] {err_msg}")
         raise GeminiQuotaExhaustedError(err_msg) from last_exception
 
@@ -981,6 +993,7 @@ class GeminiClient:
                         max_retries=max_retries,
                         base_delay=base_delay,
                         max_delay=max_delay,
+                        provider_name=prov_name,
                         **kwargs
                     )
                 else:

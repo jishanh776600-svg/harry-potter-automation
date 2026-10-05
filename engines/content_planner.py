@@ -443,6 +443,292 @@ DISCOVERY_SEEDS = [
         "movie_omits": "The movie cuts the Howler completely, removing the revelation that Dumbledore and Petunia had a direct connection predating Harry's birth.",
         "novel_fact_summary": "In Book 5, Dumbledore's Howler forces Petunia to keep Harry at Privet Drive. The 'last' refers to the letter left with baby Harry on her doorstep explaining the blood protection.",
     },
+    {
+        "slug": "remus_tonks_secret_marriage",
+        "discovery_type": "CHARACTER_DEPTH",
+        "title": "Remus Lupin tried to abandon Tonks — and Harry fought him at Grimmauld Place",
+        "novel_search_query": "Lupin Tonks Grimmauld coward",
+        "movie_search_query": "Lupin Tonks Grimmauld Place",
+        "preferred_book": 7,
+        "preferred_chapter": 11,
+        "hook_concept": "The movies portray Lupin and Tonks as a happy couple — but the book reveals Lupin tried to abandon his pregnant wife out of werewolf shame.",
+        "why_interesting": "Harry called Lupin a coward to his face, leading to a violent wand showdown in Grimmauld Place that forced Remus to return to his family.",
+        "movie_omits": "The films cut Lupin's struggle with his marriage and child completely, showing them only standing side-by-side at Hogwarts.",
+        "novel_fact_summary": "In Book 7, Remus Lupin attempted to leave Tonks due to fear of passing on lycanthropy. Harry furiously called him a coward, causing Lupin to curse Harry before ultimately returning home.",
+    },
+    {
+        "slug": "voldemort_cursed_dada_job",
+        "discovery_type": "LORE_DETAIL",
+        "title": "Voldemort placed a curse on the Defense Against the Dark Arts job",
+        "novel_search_query": "Dumbledore Voldemort defense against dark arts post",
+        "movie_search_query": "Dumbledore Voldemort interview office",
+        "preferred_book": 6,
+        "preferred_chapter": 20,
+        "hook_concept": "Why did Hogwarts never keep a Defense Against the Dark Arts teacher for more than one year? The book reveals Voldemort personally jinxed it.",
+        "why_interesting": "After Dumbledore rejected Tom Riddle's job interview in his office, Voldemort cursed the position. The curse broke only upon Voldemort's death.",
+        "movie_omits": "The films show different teachers each year but never explain the magical curse behind the turnover.",
+        "novel_fact_summary": "In the novel, Dumbledore reveals to Harry that since rejecting Tom Riddle's application for the Defense Against the Dark Arts post, no teacher has lasted longer than a single year.",
+    },
+    {
+        "slug": "dudley_dursley_redemption",
+        "discovery_type": "CHARACTER_DEPTH",
+        "title": "Dudley Dursley's emotional goodbye to Harry — completely deleted from the films",
+        "novel_search_query": "Dudley tea waste of space",
+        "movie_search_query": "Dudley Harry goodbye car",
+        "preferred_book": 7,
+        "preferred_chapter": 3,
+        "hook_concept": "In the final book, Dudley Dursley does the unthinkable: he thanks Harry and admits Harry saved his soul.",
+        "why_interesting": "Dudley left cups of tea outside Harry's bedroom door and shook Harry's hand, saying 'I don't think you're a waste of space.'",
+        "movie_omits": "Movie 7 Part 1 cut Dudley's farewell entirely from the theatrical release, leaving their lifelong rivalry without closure.",
+        "novel_fact_summary": "In the opening of Book 7, Dudley acknowledges that Harry saved his life from Dementors and parts with Harry on respectful terms, breaking the Dursley abuse cycle.",
+    },
+    {
+        "slug": "james_potter_snapes_worst_memory",
+        "discovery_type": "BOOK_VS_MOVIE_DIFFERENCE",
+        "title": "James Potter was a relentless bully — the uncut Pensieve memory",
+        "novel_search_query": "Levicorpus James Snape worst memory",
+        "movie_search_query": "James Potter Snape tree Pensieve",
+        "preferred_book": 5,
+        "preferred_chapter": 28,
+        "hook_concept": "Harry's father wasn't just mischievous — the novel's Pensieve scene reveals James Potter was an arrogant and cruel bully.",
+        "why_interesting": "James used Levicorpus to dangle Snape upside down and threatened to remove his trousers in front of the entire school, shattering Harry's hero-worship.",
+        "movie_omits": "Movie 5 softens James Potter's cruelty, omitting the worst humiliations and Lily Evans intervening to defend Severus.",
+        "novel_fact_summary": "In Book 5, Harry witnesses Snape's Worst Memory in the Pensieve, seeing James Potter torment Snape without provocation, deeply disturbing Harry.",
+    },
+    {
+        "slug": "lily_evans_snape_childhood",
+        "discovery_type": "CHARACTER_DEPTH",
+        "title": "Snape knew Lily Evans years before Hogwarts in Cokeworth",
+        "novel_search_query": "Lily Snape Cokeworth magic",
+        "movie_search_query": "Lily Snape childhood swing tree",
+        "preferred_book": 7,
+        "preferred_chapter": 33,
+        "hook_concept": "Severus Snape and Lily Evans grew up on the same poor street — and Snape was the one who revealed to Lily that she was a witch.",
+        "why_interesting": "The novel details years of secret childhood friendship under the trees before Petunia's jealousy and Hogwarts houses drove them apart.",
+        "movie_omits": "The films only show brief flashes of young Lily and Snape, cutting Petunia spying on them and their deep early bond.",
+        "novel_fact_summary": "In The Prince's Tale, J.K. Rowling reveals Snape and Lily bonded as outcast Muggle-town children in Cokeworth, with Snape mentoring Lily in magic before school.",
+    },
+    {
+        "slug": "frank_bryce_muggle_gardener",
+        "discovery_type": "BOOK_ONLY_DETAIL",
+        "title": "Frank Bryce — the brave Muggle gardener who stood up to Voldemort",
+        "novel_search_query": "Frank Bryce Riddle house gardener",
+        "movie_search_query": "Frank Bryce Voldemort Riddle House",
+        "preferred_book": 4,
+        "preferred_chapter": 1,
+        "hook_concept": "The opening chapter of Goblet of Fire is told entirely from the perspective of an elderly Muggle gardener.",
+        "why_interesting": "Frank Bryce was framed by locals for the Riddle family murders decades earlier and died valiantly confronting Lord Voldemort in the dark.",
+        "movie_omits": "The movie rushes through Frank's death in seconds without explaining his tragic backstory or the town suspicion he endured.",
+        "novel_fact_summary": "Frank Bryce was the decorated war veteran gardener of the Riddle House who lived under suspicion of murder for 50 years before being killed by Voldemort in Book 4.",
+    },
+    {
+        "slug": "bartycrouch_jr_winky_quidditch",
+        "discovery_type": "LORE_DETAIL",
+        "title": "Barty Crouch Jr was hidden in the Top Box at the Quidditch World Cup",
+        "novel_search_query": "Barty Crouch Invisibility Cloak tent box",
+        "movie_search_query": "Barty Crouch Jr Quidditch World Cup",
+        "preferred_book": 4,
+        "preferred_chapter": 35,
+        "hook_concept": "Harry was sitting right next to Voldemort's deadliest Death Eater at the World Cup — without ever knowing it.",
+        "why_interesting": "Barty Crouch Jr was smuggled out of Azkaban by his dying mother and kept under an Invisibility Cloak by his house-elf Winky in the Minister's box.",
+        "movie_omits": "Movie 4 cuts the entire Winky and Azkaban escape storyline, creating massive plot holes regarding how Crouch Jr got free.",
+        "novel_fact_summary": "The novel explains that Barty Crouch Jr escaped Azkaban via Polyjuice Potion and was secretly kept under an Imperius Curse until he broke free at the World Cup.",
+    },
+    {
+        "slug": "ludo_bagman_goblins_debt",
+        "discovery_type": "BOOK_ONLY_DETAIL",
+        "title": "Ludo Bagman — the Quidditch legend completely erased from Movie 4",
+        "novel_search_query": "Bagman leprechaun gold Fred George",
+        "movie_search_query": "Quidditch World Cup referee",
+        "preferred_book": 4,
+        "preferred_chapter": 37,
+        "hook_concept": "There was a famous Ministry sports chief who cheated Fred and George with fake gold — and the movies deleted him entirely.",
+        "why_interesting": "Ludo Bagman was deeply in debt to goblins and constantly tried to help Harry win the Triwizard Tournament so he could pay off his bets.",
+        "movie_omits": "Ludo Bagman was entirely cut from Goblet of Fire, with his commentator and judge roles distributed to other characters.",
+        "novel_fact_summary": "Ludo Bagman is a former Wimbourne Wasps Quidditch star and Head of Magical Games who paid the Weasley twins with vanished leprechaun gold.",
+    },
+    {
+        "slug": "draco_malfoy_vanishing_cabinet",
+        "discovery_type": "CHARACTER_DEPTH",
+        "title": "How Draco Malfoy actually spent months fixing the Vanishing Cabinet",
+        "novel_search_query": "Vanishing Cabinet Borgin Draco",
+        "movie_search_query": "Draco Room of Requirement Vanishing Cabinet",
+        "preferred_book": 6,
+        "preferred_chapter": 27,
+        "hook_concept": "The film makes Draco's repair seem effortless — the book shows the devastating psychological breakdown it caused.",
+        "why_interesting": "Draco spent every weekend in the Room of Requirement weeping in Moaning Myrtle's bathroom, knowing Voldemort would kill his family if he failed.",
+        "movie_omits": "Movie 6 shows Draco crying but skips the intricate mechanics of how Montague originally got trapped inside the cabinet in Book 5.",
+        "novel_fact_summary": "In Book 6, Draco spent months fixing the broken Vanishing Cabinet linking Hogwarts to Borgin and Burkes, suffering near-total mental collapse under Voldemort's threats.",
+    },
+    {
+        "slug": "ron_destroys_locket_vision",
+        "discovery_type": "CHARACTER_DEPTH",
+        "title": "The Horcrux locket's psychological torture of Ron Weasley",
+        "novel_search_query": "sword Gryffindor locket Ron",
+        "movie_search_query": "Ron destroy locket Horcrux sword",
+        "preferred_book": 7,
+        "preferred_chapter": 19,
+        "hook_concept": "When Ron opened the Slytherin locket, Riddle's soul didn't just speak — it weaponized Ron's deepest insecurities.",
+        "why_interesting": "The locket formed ghostly likenesses of Harry and Hermione mocking Ron's poverty, his mother preferring Harry, and his feelings of worthlessness.",
+        "movie_omits": "The movie shows kissing apparitions but leaves out Riddle's cruel voice taunting Ron about Mrs. Weasley wishing Harry were her son.",
+        "novel_fact_summary": "In Book 7, the locket Horcrux assaults Ron with psychological visions of Hermione loving Harry and his mother disdaining him before Ron strikes it with Gryffindor's sword.",
+    },
+    {
+        "slug": "dumbledore_hand_gaunt_ring",
+        "discovery_type": "MOTIVATION_REVEALED",
+        "title": "Why Dumbledore really put on the cursed Gaunt Ring Horcrux",
+        "novel_search_query": "ring Gaunt Dumbledore hand Ariana",
+        "movie_search_query": "Dumbledore blackened hand ring",
+        "preferred_book": 7,
+        "preferred_chapter": 33,
+        "hook_concept": "Dumbledore didn't wither his hand out of carelessness — he was desperate to apologize to his dead sister.",
+        "why_interesting": "Dumbledore recognized the Resurrection Stone set into Voldemort's Horcrux ring and recklessly put it on, hoping to see Ariana and his parents.",
+        "movie_omits": "Movie 6 shows Dumbledore's charred hand but never reveals the heartbreaking emotional motive behind why the greatest wizard alive succumbed to temptation.",
+        "novel_fact_summary": "Dumbledore tells Snape and Harry that he put on the Gaunt ring not to destroy a Horcrux, but because it housed the Resurrection Stone and he craved seeing his deceased family.",
+    },
+    {
+        "slug": "sirius_black_mirror_forgotten",
+        "discovery_type": "BOOK_ONLY_DETAIL",
+        "title": "The two-way mirror that could have saved Sirius Black's life",
+        "novel_search_query": "Sirius mirror package Christmas",
+        "movie_search_query": "Sirius two way mirror shard",
+        "preferred_book": 5,
+        "preferred_chapter": 38,
+        "hook_concept": "Sirius Black never had to die. Harry had a magic mirror in his trunk the whole time that would have proven Sirius was safe.",
+        "why_interesting": "Sirius gave Harry an unwrapped parcel in Book 5 for emergencies. Harry vowed never to use it and forgot it — rushing blindly to the Ministry trap.",
+        "movie_omits": "Movie 5 deletes the two-way mirror entirely, making its sudden appearance as a glass shard in Deathly Hallows a giant movie plot hole.",
+        "novel_fact_summary": "In Book 5, Sirius gifted Harry a two-way mirror to talk to him. Harry forgot it until after Sirius fell through the Veil, smashing it in grief in Dumbledore's office.",
+    },
+    {
+        "slug": "phineas_nigellus_portrait_spy",
+        "discovery_type": "BOOK_ONLY_DETAIL",
+        "title": "How Snape spied on the Golden Trio through a portrait in Hermione's bag",
+        "novel_search_query": "Phineas Nigellus portrait Hermione bag",
+        "movie_search_query": "Snape Headmaster office portrait",
+        "preferred_book": 7,
+        "preferred_chapter": 15,
+        "hook_concept": "How did Snape know where Harry was camping in the woods to deliver the Sword of Gryffindor? Through a talking portrait.",
+        "why_interesting": "Hermione packed Phineas Nigellus Black's portrait into her beaded bag. When she mentioned their location in the Forest of Dean, Phineas overheard and told Snape.",
+        "movie_omits": "The films show Snape's Doe Patronus guiding Harry to the pool but never explain how Snape located the trio in thousands of acres of wilderness.",
+        "novel_fact_summary": "In Book 7, Hermione removed Phineas Nigellus Black's portrait from Grimmauld Place. Phineas secretly reported the trio's whereabouts to Headmaster Snape.",
+    },
+    {
+        "slug": "regulus_black_riddle_cave",
+        "discovery_type": "CHARACTER_DEPTH",
+        "title": "Regulus Black's heroic sacrifice in the Horcrux cave",
+        "novel_search_query": "Regulus potion cave Inferi Kreacher",
+        "movie_search_query": "Regulus Black locket cave note",
+        "preferred_book": 7,
+        "preferred_chapter": 10,
+        "hook_concept": "Sirius thought his brother was a cowardly Death Eater — but Regulus died the bravest death in the entire series.",
+        "why_interesting": "Instead of forcing his house-elf Kreacher to drink the burning emerald potion again, Regulus drank it himself and ordered Kreacher to leave him behind.",
+        "movie_omits": "Movie 6 shows the R.A.B. note, but Movie 7 completely deletes Kreacher's tearful retelling of Regulus being dragged underwater by Inferi.",
+        "novel_fact_summary": "In Book 7, Kreacher reveals that Regulus drank the emerald potion in the Horcrux cave himself, sacrificed his life to save Kreacher, and drowned in the black lake.",
+    },
+    {
+        "slug": "albus_grindelwald_youth_alliance",
+        "discovery_type": "LORE_DETAIL",
+        "title": "Dumbledore's dark alliance with Gellert Grindelwald",
+        "novel_search_query": "Grindelwald Dumbledore Greater Good Godric",
+        "movie_search_query": "Dumbledore Grindelwald Godrics Hollow",
+        "preferred_book": 7,
+        "preferred_chapter": 35,
+        "hook_concept": "Before Dumbledore was a champion of Muggle rights, he spent a summer planning world domination with Gellert Grindelwald.",
+        "why_interesting": "Dumbledore coined the phrase 'For the Greater Good' to justify wizarding supremacy over Muggles, until Ariana's death shattered their partnership.",
+        "movie_omits": "Deathly Hallows Part 1 glosses over Rita Skeeter's book and Dumbledore's actual ideological alignment with Grindelwald.",
+        "novel_fact_summary": "In Book 7, Dumbledore confesses in King's Cross that as a young man he was seduced by Grindelwald's vision of wizards ruling over Muggles 'For the Greater Good'.",
+    },
+    {
+        "slug": "aberforth_ariana_goat_patronus",
+        "discovery_type": "CHARACTER_DEPTH",
+        "title": "Aberforth Dumbledore — the forgotten brother who saved Hogwarts",
+        "novel_search_query": "Aberforth goat Patronus Ariana",
+        "movie_search_query": "Aberforth Hogs Head tunnel Ariana",
+        "preferred_book": 7,
+        "preferred_chapter": 28,
+        "hook_concept": "Aberforth Dumbledore hated his famous brother Albus — but his stubborn bravery kept the student resistance alive.",
+        "why_interesting": "Aberforth operated the Hog's Head secret tunnel behind Ariana's portrait, sent Dobby to Malfoy Manor, and produced a Goat Patronus.",
+        "movie_omits": "Movie 7 Part 2 compresses Aberforth into a brief stopover, skipping his deep resentment of Albus for Ariana's death.",
+        "novel_fact_summary": "In Book 7, Aberforth explains how Ariana was traumatized by Muggle boys and how Albus's ambition caused the three-way duel that killed her.",
+    },
+    {
+        "slug": "harry_buries_dobby_by_hand",
+        "discovery_type": "CHARACTER_DEPTH",
+        "title": "Harry digging Dobby's grave with his bare hands",
+        "novel_search_query": "Dobby grave shovel Harry spade",
+        "movie_search_query": "Harry Dobby grave Shell Cottage",
+        "preferred_book": 7,
+        "preferred_chapter": 24,
+        "hook_concept": "After Dobby died, Harry had the Elder Wand in sight — but chose to spend hours sweating with a Muggle spade.",
+        "why_interesting": "Harry refused to use magic to dig Dobby's grave, wanting Dobby's resting place to be earned through physical human labor and love.",
+        "movie_omits": "The movie shows Harry wrapping Dobby's body but cuts the prolonged spiritual turning point where manual labor cleared Voldemort from Harry's mind.",
+        "novel_fact_summary": "In Book 7, Harry explicitly refuses to use magic to dig Dobby's grave at Shell Cottage, finding mental clarity through physical labor that blocked Voldemort's thoughts.",
+    },
+    {
+        "slug": "bill_weasley_fleur_delacour_wedding",
+        "discovery_type": "CHARACTER_DEPTH",
+        "title": "Fleur Delacour's devotion to scarred Bill Weasley",
+        "novel_search_query": "Bill Greyback steak Fleur hospital",
+        "movie_search_query": "Bill Weasley scarred werewolf Fleur",
+        "preferred_book": 6,
+        "preferred_chapter": 29,
+        "hook_concept": "Mrs. Weasley assumed Fleur only loved Bill for his good looks — until Fenrir Greyback mauled his face.",
+        "why_interesting": "In the hospital wing, Fleur fiercely declared 'I am good-looking enough for both of us!' winning Mrs. Weasley's tearful acceptance.",
+        "movie_omits": "Movie 6 cuts Bill being attacked during the Battle of the Astronomy Tower entirely, introducing his scars abruptly in Movie 7.",
+        "novel_fact_summary": "In Book 6, Fenrir Greyback viciously mauled Bill Weasley. Fleur proved her unconditional love in the hospital wing, proving her character to Molly Weasley.",
+    },
+    {
+        "slug": "arthur_weasley_malfoy_fistfight",
+        "discovery_type": "BOOK_ONLY_DETAIL",
+        "title": "Arthur Weasley tackled Lucius Malfoy into a bookstore bookshelf",
+        "novel_search_query": "Flourish and Blotts Arthur Malfoy fight",
+        "movie_search_query": "Lucius Malfoy Arthur Weasley Flourish Blotts",
+        "preferred_book": 2,
+        "preferred_chapter": 4,
+        "hook_concept": "Wizards don't always use wands — Arthur Weasley gave Lucius Malfoy an old-fashioned Muggle punch to the eye.",
+        "why_interesting": "In Flourish and Blotts, Arthur tackled Lucius into a stack of heavy encyclopedias until Hagrid had to pull them apart.",
+        "movie_omits": "The movie replaces the physical brawl with polite sneering and a walking stick flick.",
+        "novel_fact_summary": "In Book 2, Arthur Weasley threw Lucius Malfoy into a bookcase in Flourish and Blotts, giving him a cut lip before Hagrid separated them.",
+    },
+    {
+        "slug": "ginny_weasley_chaser_talent",
+        "discovery_type": "CHARACTER_DEPTH",
+        "title": "Ginny Weasley was secretly one of Hogwarts' greatest Quidditch players",
+        "novel_search_query": "Ginny broom shed Quidditch",
+        "movie_search_query": "Ginny Weasley Quidditch tryout",
+        "preferred_book": 5,
+        "preferred_chapter": 26,
+        "hook_concept": "Her brothers never let her play Quidditch at the Burrow — so Ginny broke into their broom shed every night for six years.",
+        "why_interesting": "By the time she made the Gryffindor team, she outflew almost everyone and caught the Golden Snitch against Cho Chang.",
+        "movie_omits": "The films portray Ginny as quiet and passive, deleting her fierce Quidditch dominance and witty personality.",
+        "novel_fact_summary": "In Book 5, Hermione reveals Ginny has been breaking into the family broom shed since age six to practice flying secretly, becoming a star Chaser and Seeker.",
+    },
+    {
+        "slug": "luna_lovegood_bedroom_paintings",
+        "discovery_type": "CHARACTER_DEPTH",
+        "title": "Luna Lovegood's bedroom ceiling — the most touching secret in the books",
+        "novel_search_query": "Luna ceiling portraits friends bedroom",
+        "movie_search_query": "Luna Lovegood house Rook bedroom",
+        "preferred_book": 7,
+        "preferred_chapter": 21,
+        "hook_concept": "When Harry, Ron, and Hermione walked into Luna's bedroom, they looked up and started crying.",
+        "why_interesting": "Luna had painted large portraits of Harry, Ron, Hermione, Ginny, and Neville connected by golden chains formed by the repeated word 'friends'.",
+        "movie_omits": "Movie 7 Part 1 visits Xenophilius Lovegood's house but completely skips the emotional moment of seeing Luna's painted ceiling.",
+        "novel_fact_summary": "In Book 7, the trio discovers Luna painted their faces on her ceiling entwined with golden chains inked with 'friends', showing how deeply she treasured them.",
+    },
+    {
+        "slug": "fred_weasley_final_joke_death",
+        "discovery_type": "BOOK_VS_MOVIE_DIFFERENCE",
+        "title": "Fred Weasley died with a smile on his face laughing at Percy",
+        "novel_search_query": "Fred joke Percy wall explosion",
+        "movie_search_query": "Fred Weasley death Great Hall",
+        "preferred_book": 7,
+        "preferred_chapter": 31,
+        "hook_concept": "The film showed Fred already dead on the floor — but the book captures the heartbreaking exact second of his passing.",
+        "why_interesting": "Percy had just reconciled with his family and made a joke about resigning from the Ministry. Fred laughed: 'You're actually joking, Perce—' right as the wall exploded.",
+        "movie_omits": "The movie cuts Percy's redemption and the explosion entirely, showing only the Weasley family weeping over Fred's corpse.",
+        "novel_fact_summary": "In Book 7, Fred dies mid-battle laughing at a joke made by his newly reconciled brother Percy, with the ghost of his last laugh etched on his face.",
+    },
 ]
 
 
@@ -1222,9 +1508,169 @@ class ContentPlannerEngine:
                     f"Score={story_plan.topic_score} | Structure={story_plan.story_structure.value}"
                 )
 
+            # Autonomous Deep Discovery Fallback: If seeds were exhausted or insufficient,
+            # mine unscripted canonical scenes directly from the novel FTS database.
+            if new_candidate_count < count:
+                logger.info(f"[DISCOVERY_PLANNER] Seeds provided {new_candidate_count}/{count} candidates. Activating Autonomous Novel Miner...")
+                mined = self._mine_autonomous_novel_discovery(session, count - new_candidate_count, results)
+                new_candidate_count += mined
+
             session.commit()
 
         return results
+
+    def _mine_autonomous_novel_discovery(
+        self,
+        session,
+        needed: int,
+        results: List[Dict[str, Any]]
+    ) -> int:
+        """
+        Autonomous Deep Discovery Miner.
+        Activated when curated seeds are exhausted or insufficient.
+        Scans novel chunks across the 7 books for rich canon moments, character
+        dialogues, and dramatic turning points not yet turned into Discovery candidates.
+        """
+        existing_chunks = {
+            c.chunk_id_primary for c in session.query(DiscoveryCandidate.chunk_id_primary).all()
+            if c.chunk_id_primary
+        }
+
+        mining_themes = [
+            ("Dumbledore Voldemort", "Dumbledore Voldemort duel"),
+            ("Snape Lily", "Snape Lily childhood memories"),
+            ("Sirius Harry", "Sirius Harry godfather Azkaban"),
+            ("Hermione Ron", "Hermione Ron arguing friendship"),
+            ("Malfoy Draco", "Draco Malfoy wand fear"),
+            ("Neville Longbottom", "Neville sword bravery"),
+            ("Hagrid creature", "Hagrid dragon forest beast"),
+            ("McGonagall Dumbledore", "McGonagall Hogwarts defense"),
+            ("Lupin werewolf", "Remus Lupin moon transformation"),
+            ("Horcrux soul", "Horcrux dark magic destroy"),
+            ("Pensieve memory", "Pensieve memory silver liquid"),
+            ("Sorting Hat song", "Sorting Hat Great Hall feast"),
+        ]
+
+        added = 0
+        for theme_query, movie_query in mining_themes:
+            if added >= needed:
+                break
+
+            hits = self.novel_engine.search(query=theme_query, limit=5)
+            for hit in hits:
+                if added >= needed:
+                    break
+                cid = hit["chunk_id"]
+                if cid in existing_chunks:
+                    continue
+
+                b_num = hit.get("book_number", 1)
+                c_num = hit.get("chapter_number", 1)
+                fp = _fingerprint(["AUTO_MINED_LORE", str(b_num), str(c_num), cid])
+                if session.query(DiscoveryCandidate).filter_by(content_fingerprint=fp).first():
+                    continue
+
+                text = hit["text"]
+                char = "Harry Potter"
+                for nm in ["Dumbledore", "Snape", "Voldemort", "Sirius", "Lupin", "Hermione", "Ron", "Neville", "Malfoy", "McGonagall", "Hagrid"]:
+                    if nm.lower() in text.lower():
+                        char = nm
+                        break
+
+                cand_id = f"disc_auto_b{b_num}c{c_num}_{cid[:6]}"
+                chap_title = hit.get("chapter_title", f"Chapter {c_num}")
+                book_title = hit.get("book_title", f"Book {b_num}")
+
+                visual_beats = [
+                    {
+                        "beat_id": "beat_1",
+                        "description": f"{char} establishing scene at Hogwarts",
+                        "visual_requirement": f"{char} establishing scene at Hogwarts",
+                        "narration_text": f"In {book_title}, {chap_title}, a pivotal canon detail takes place.",
+                    },
+                    {
+                        "beat_id": "beat_2",
+                        "description": movie_query,
+                        "visual_requirement": movie_query,
+                        "narration_text": f"The novel reveals {char}'s deeper thoughts and secret motives.",
+                    },
+                    {
+                        "beat_id": "beat_3",
+                        "description": f"{char} emotional realization close up",
+                        "visual_requirement": f"{char} emotional realization close up",
+                        "narration_text": f"This canon revelation changes how fans view the entire scene.",
+                    },
+                ]
+                enriched_beats, overall_vf = self._check_visual_feasibility(
+                    visual_beats, movie_number_hint=b_num
+                )
+
+                summary = f"Canonical book passage from Book {b_num}, Chapter {c_num} ({chap_title}) detailing {char}'s pivotal narrative beat."
+                title = f"Book {b_num} Secret: What really happened in '{chap_title}'"
+
+                candidate = DiscoveryCandidate(
+                    id=cand_id,
+                    discovery_type="BOOK_ONLY_DETAIL",
+                    book_number=b_num,
+                    book_title=book_title,
+                    chapter_number=c_num,
+                    chapter_title=chap_title,
+                    chunk_id_primary=cid,
+                    chunk_ids_supporting=json.dumps([]),
+                    novel_fact_summary=summary,
+                    novel_evidence_text=text[:600],
+                    corresponding_movie_number=b_num,
+                    corresponding_movie_title=f"Harry Potter {b_num}",
+                    movie_chunk_id=None,
+                    movie_shows="Movie portrays simplified adaptation of this sequence",
+                    movie_omits_or_changes="Novel provides extensive inner dialogue and lore context",
+                    why_interesting=f"Deepens understanding of {char} and canonical wizarding lore.",
+                    hook_concept=f"Did you know what J.K. Rowling actually wrote in {chap_title} about {char}?",
+                    short_duration_feasibility="FEASIBLE",
+                    visual_beats_json=json.dumps(enriched_beats),
+                    overall_visual_feasibility=overall_vf,
+                    discovery_tier="DEEP_DISCOVERY",
+                    story_structure="BOOK_TO_MOVIE_CONTRAST",
+                    hook_archetype="FORBIDDEN_KNOWLEDGE",
+                    evidence_route="NOVEL_PRIMARY",
+                    thesis=summary,
+                    evidence_points_json=json.dumps([]),
+                    anchor_point_json=None,
+                    insider_epiphany=f"Reveals critical canon lore for {char}.",
+                    payoff_type="BOOK_MOVIE_REALIZATION",
+                    payoff_text=f"A crucial insight into {char}'s true character.",
+                    title_pattern="BOOK_VS_MOVIE",
+                    suggested_title=title,
+                    expected_duration=55.0,
+                    target_word_count=130,
+                    target_speech_rate=2.4,
+                    topic_score=85.0,
+                    canon_depth=90.0,
+                    movie_contrast=80.0,
+                    curiosity_factor=85.0,
+                    visual_feasibility_score=80.0,
+                    routing_decision="AUTONOMOUS_MINED",
+                    status=STATUS_ELIGIBLE,
+                    content_fingerprint=fp,
+                    is_launch_candidate=False,
+                    created_at=datetime.utcnow(),
+                    updated_at=datetime.utcnow(),
+                )
+                session.add(candidate)
+                existing_chunks.add(cid)
+                added += 1
+                results.append({
+                    "id": cand_id,
+                    "slug": cand_id,
+                    "title": title,
+                    "status": STATUS_ELIGIBLE,
+                    "novel_fact_summary": summary,
+                    "visual_beats": enriched_beats,
+                    "content_fingerprint": fp,
+                })
+                logger.info(f"[DISCOVERY_PLANNER] Autonomous Miner created candidate: {cand_id}")
+
+        return added
 
     # ── Daily Batch Planning ───────────────────────────────────────────────────
 

@@ -74,7 +74,26 @@ DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
 DEEPSEEK_MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-v4-pro")
 DEEPSEEK_BASE_URL = os.getenv("DEEPSEEK_BASE_URL", "https://api.bluesminds.com/v1/chat/completions")
 NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY", "")
-NVIDIA_MODEL = os.getenv("NVIDIA_MODEL", "nvidia/nemotron-3.5-lightning-30b-a3b")
+_raw_nv_keys = os.getenv("NVIDIA_API_KEYS", "")
+NVIDIA_API_KEYS = [k.strip() for k in _raw_nv_keys.split(",") if k.strip()]
+if NVIDIA_API_KEY and NVIDIA_API_KEY not in NVIDIA_API_KEYS:
+    NVIDIA_API_KEYS.insert(0, NVIDIA_API_KEY)
+for _i in range(2, 10):
+    _extra_k = os.getenv(f"NVIDIA_API_KEY_{_i}", "").strip()
+    if _extra_k and _extra_k not in NVIDIA_API_KEYS:
+        NVIDIA_API_KEYS.append(_extra_k)
+
+NVIDIA_MODEL = os.getenv("NVIDIA_MODEL", "meta/llama-3.3-70b-instruct")
+_raw_nv_models = os.getenv("NVIDIA_MODELS", "")
+NVIDIA_MODELS = [m.strip() for m in _raw_nv_models.split(",") if m.strip()]
+if not NVIDIA_MODELS:
+    NVIDIA_MODELS = [
+        NVIDIA_MODEL,
+        "nvidia/llama-3.1-nemotron-70b-instruct",
+        "mistralai/mixtral-8x7b-instruct-v0.1",
+        "nvidia/nemotron-4-340b-instruct",
+        "qwen/qwen2.5-72b-instruct"
+    ]
 NVIDIA_BASE_URL = os.getenv("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1/chat/completions")
 
 AI_PROVIDER_AVAILABLE = bool(
@@ -83,6 +102,7 @@ AI_PROVIDER_AVAILABLE = bool(
     or OPENROUTER_API_KEY
     or DEEPSEEK_API_KEY
     or NVIDIA_API_KEY
+    or NVIDIA_API_KEYS
 )
 PEXELS_API_KEY = os.getenv("PEXELS_API_KEY", "")
 YOUTUBE_CLIENT_ID = os.getenv("YOUTUBE_CLIENT_ID", "")

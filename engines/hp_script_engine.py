@@ -40,7 +40,7 @@ from sqlalchemy.orm import sessionmaker, Session
 
 from config.settings import (
     PROJECT_ROOT, DB_PATH, GEMINI_API_KEY, GEMINI_MODEL,
-    PUBLISHING_ENABLED, UPLOAD_ENABLED
+    PUBLISHING_ENABLED, UPLOAD_ENABLED, AI_PROVIDER_AVAILABLE
 )
 from core.models import (
     Base, NovStoryCandidate, DiscoveryCandidate, HarryPotterScript, NovelChunk,
@@ -1565,7 +1565,7 @@ OUTPUT STRICT JSON:
         revision_feedback: List[str] = []
 
         # Attempt AI Generation Loop
-        if GEMINI_API_KEY and not use_deterministic:
+        if AI_PROVIDER_AVAILABLE and not use_deterministic:
             try:
                 gemini_client = get_gemini_client()
                 for attempt in range(1, max_attempts + 1):
