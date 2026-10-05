@@ -83,16 +83,16 @@ for _i in range(2, 10):
     if _extra_k and _extra_k not in NVIDIA_API_KEYS:
         NVIDIA_API_KEYS.append(_extra_k)
 
-NVIDIA_MODEL = os.getenv("NVIDIA_MODEL", "meta/llama-3.3-70b-instruct")
+NVIDIA_MODEL = os.getenv("NVIDIA_MODEL", "z-ai/glm-5.3-flash")
 _raw_nv_models = os.getenv("NVIDIA_MODELS", "")
 NVIDIA_MODELS = [m.strip() for m in _raw_nv_models.split(",") if m.strip()]
 if not NVIDIA_MODELS:
     NVIDIA_MODELS = [
-        NVIDIA_MODEL,
-        "nvidia/llama-3.1-nemotron-70b-instruct",
-        "mistralai/mixtral-8x7b-instruct-v0.1",
-        "nvidia/nemotron-4-340b-instruct",
-        "qwen/qwen2.5-72b-instruct"
+        "z-ai/glm-5.3-flash",
+        "moonshotai/kimi-k3",
+        "z-ai/glm-5.3",
+        "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "meta/muse-glimmer-30b"
     ]
 NVIDIA_BASE_URL = os.getenv("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1/chat/completions")
 
