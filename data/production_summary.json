@@ -1,12 +1,12 @@
 {
   "action": "MAINTAIN_BUFFER",
-  "outcome": "BLOCKED",
-  "block_reason": "Cloud production lock held in Drive vault (00_SYSTEM)",
+  "outcome": "FAILED",
+  "block_reason": "Discovery Big candidate 'hps_disc_harry_hagrid_vault_gringotts_detail_b1' failed: Visual retrieval yielded 0 accepted movie shots for hps_disc_harry_hagrid_vault_gringotts_detail_b1; Discovery Big candidate 'hps_disc_house_elves_spew_slavery_b4' failed: Visual retrieval yielded 0 accepted movie shots for hps_disc_house_elves_spew_slavery_b4",
   "requested_deficit": 6,
   "produced_count": 0,
   "initial_stock": 2,
   "final_stock": 2,
   "target_stock": 8,
   "voice": "f5_cloned_narrator_v1",
-  "timestamp": "2026-10-05T17:04:45.628673Z"
+  "timestamp": "2026-10-05T17:31:47.737744Z"
 }
