@@ -133,10 +133,10 @@ NOVEL_STORY_MAX_WORDS = 85
 NOVEL_STORY_MIN_DURATION = 22.0
 NOVEL_STORY_MAX_DURATION = 28.0
 
-DISCOVERY_SHORT_MIN_WORDS = 62
-DISCOVERY_SHORT_MAX_WORDS = 85
-DISCOVERY_SHORT_MIN_DURATION = 22.0
-DISCOVERY_SHORT_MAX_DURATION = 28.0
+DISCOVERY_SHORT_MIN_WORDS = 58
+DISCOVERY_SHORT_MAX_WORDS = 90
+DISCOVERY_SHORT_MIN_DURATION = 18.0
+DISCOVERY_SHORT_MAX_DURATION = 29.5
 
 
 @dataclass
@@ -1479,11 +1479,19 @@ OUTPUT STRICT JSON:
                 ]
             }
 
-        # Generic novel fallback
-        words = candidate.story_event_summary.split()[:40]
+        # Generic novel / discovery fallback
+        summary_raw = (
+            getattr(candidate, "story_event_summary", None)
+            or getattr(candidate, "novel_fact_summary", None)
+            or getattr(candidate, "thesis", None)
+            or getattr(candidate, "title", None)
+            or "A crucial secret was uncovered in the wizarding world"
+        )
+        words = str(summary_raw).split()[:40]
         event_str = " ".join(words)
+        b_title = getattr(candidate, "book_title", f"Book {getattr(candidate, 'book_number', 1)}")
         return {
-            "hook": f"Something unforgettable was unfolding inside {candidate.book_title}.",
+            "hook": f"Something unforgettable was unfolding inside {b_title}.",
             "development": f"{event_str}. The magical atmosphere grew denser as the situation reached a turning point.",
             "payoff": "What began as a quiet moment soon reshaped the fate of the entire wizarding world.",
             "visual_beats": [
@@ -1543,7 +1551,7 @@ OUTPUT STRICT JSON:
         Uses Gemini 3.6 Flash when available with iterative QA feedback loop,
         falling back seamlessly to high-grade deterministic generation if needed.
         """
-        is_novel = isinstance(candidate, NovStoryCandidate) or candidate.content_type == "novel_story"
+        is_novel = isinstance(candidate, NovStoryCandidate) or getattr(candidate, "content_type", "") == "novel_story"
         c_type = "novel_story" if is_novel else "discovery"
 
         logger.info(
