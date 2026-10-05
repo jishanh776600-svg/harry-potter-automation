@@ -1,12 +1,12 @@
 {
   "action": "MAINTAIN_BUFFER",
   "outcome": "FAILED",
-  "block_reason": "Discovery Big candidate '1' failed: No eligible or discoverable DISCOVERY_BIG candidates available; Discovery Big candidate '1' failed: No eligible or discoverable DISCOVERY_BIG candidates available",
+  "block_reason": "Discovery Big candidate 'hps_disc_neville_chosen_one_prophecy_b5' failed: Visual retrieval exception: No module named 'cv2'; Discovery Big candidate 'hps_disc_marauders_map_backstory_b3' failed: Visual retrieval yielded 0 accepted movie shots for hps_disc_marauders_map_backstory_b3",
   "requested_deficit": 6,
   "produced_count": 0,
   "initial_stock": 2,
   "final_stock": 2,
   "target_stock": 8,
   "voice": "f5_cloned_narrator_v1",
-  "timestamp": "2026-10-05T16:09:49.014644Z"
+  "timestamp": "2026-10-05T16:30:52.105757Z"
 }
