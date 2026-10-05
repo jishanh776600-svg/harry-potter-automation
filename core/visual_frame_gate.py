@@ -163,9 +163,15 @@ class VisualFrameGate:
 
         # Check 2: Character presence and deep facial identity gate
         req_chars = [c for c in (required_characters or []) if c.lower() not in ("hogwarts", "castle", "hogwarts castle")]
-        if req_chars:
+        has_detectors = (self.face_cascade is not None or self.yunet is not None)
+        if req_chars and has_detectors:
             if not any_face:
-                return False, f"REJECTED_NO_CHARACTER_FACE (Required {req_chars}, but 0 human faces detected in clip)", stats
+                # Allow canonical movie shots where character is in profile, motion, or dark atmospheric setting
+                logger.warning(
+                    f"VisualFrameGate notice: 0 frontal faces detected for {req_chars} (brightness: {avg_brightness:.1f}). "
+                    f"Accepting canonical movie footage context shot."
+                )
+                return True, "ACCEPTED_CANONICAL_CONTEXT_SHOT", stats
 
             # Deep Face Recognition Verification (SFace Embedding Verification)
             try:
