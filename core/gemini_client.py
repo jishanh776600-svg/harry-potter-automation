@@ -568,10 +568,9 @@ class GeminiClient:
                     resp_body = resp.read().decode("utf-8")
                     data = json.loads(resp_body)
                     choices = data.get("choices", [])
-                    if not choices:
-                        raise ValueError(f"NVIDIA returned empty choices: {resp_body[:200]}")
-                    text_content = choices[0].get("message", {}).get("content", "")
-                    return NvidiaResponse(text=text_content)
+                    msg = choices[0].get("message", {})
+                    text_content = msg.get("content") or msg.get("reasoning_content") or ""
+                    return NvidiaResponse(text=str(text_content))
             except HTTPError as http_err:
                 last_exception = http_err
                 code = http_err.code
