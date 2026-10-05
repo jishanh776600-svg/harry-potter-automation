@@ -1,12 +1,12 @@
 {
   "action": "MAINTAIN_BUFFER",
   "outcome": "FAILED",
-  "block_reason": "Discovery Big candidate 'hps_disc_dobby_enslaved_malfoys_b2' failed: Visual retrieval exception: No module named 'py_visual_evidence'; Discovery Big candidate '1' failed: No eligible or discoverable DISCOVERY_BIG candidates available",
-  "requested_deficit": 7,
+  "block_reason": "Discovery Big candidate '1' failed: No eligible or discoverable DISCOVERY_BIG candidates available; Discovery Big candidate '1' failed: No eligible or discoverable DISCOVERY_BIG candidates available",
+  "requested_deficit": 5,
   "produced_count": 0,
-  "initial_stock": 1,
-  "final_stock": 1,
+  "initial_stock": 3,
+  "final_stock": 3,
   "target_stock": 8,
-  "voice": "af_bella",
-  "timestamp": "2026-10-05T07:48:15.813521Z"
+  "voice": "f5_cloned_narrator_v1",
+  "timestamp": "2026-10-05T15:08:10.876515Z"
 }
