@@ -17,7 +17,9 @@ DB_PATH = DB_DIR / "franchise_visual_vault.db"
 
 def get_connection(db_path: Path = DB_PATH) -> sqlite3.Connection:
     db_path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(db_path), timeout=30.0)
+    conn = sqlite3.connect(str(db_path), timeout=60.0)
+    conn.execute("PRAGMA journal_mode=WAL;")
+    conn.execute("PRAGMA busy_timeout=60000;")
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -102,6 +104,18 @@ def insert_or_update_clip(clip_data: Dict[str, Any], db_path: Path = DB_PATH) ->
 
     clip_id = clip_data["clip_id"]
 
+    expr = clip_data.get("character_expressions", "")
+    if isinstance(expr, (list, dict)):
+        expr_str = json.dumps(expr)
+    else:
+        expr_str = str(expr or "")
+
+    spells = clip_data.get("spells_magic_actions", "")
+    if isinstance(spells, (list, dict)):
+        spells_str = json.dumps(spells)
+    else:
+        spells_str = str(spells or "")
+
     cur.execute("""
     INSERT OR REPLACE INTO franchise_clips (
         clip_id, movie_number, movie_title, start_seconds, end_seconds, duration_seconds,
@@ -117,21 +131,21 @@ def insert_or_update_clip(clip_data: Dict[str, Any], db_path: Path = DB_PATH) ->
         clip_data["start_seconds"],
         clip_data["end_seconds"],
         clip_data.get("duration_seconds", round(clip_data["end_seconds"] - clip_data["start_seconds"], 2)),
-        clip_data.get("primary_subject", "Unknown"),
+        str(clip_data.get("primary_subject", "Unknown")),
         chars_str,
-        clip_data.get("character_expressions", ""),
+        expr_str,
         objs_str,
-        clip_data.get("spells_magic_actions", ""),
-        clip_data["action_description"],
-        clip_data.get("lore_context", ""),
-        clip_data.get("location_setting", ""),
-        clip_data.get("shot_scale", "MEDIUM_SHOT"),
-        clip_data.get("camera_motion", "STATIC"),
-        clip_data.get("lighting_and_mood", "STANDARD"),
+        spells_str,
+        str(clip_data.get("action_description", "")),
+        str(clip_data.get("lore_context", "")),
+        str(clip_data.get("location_setting", "")),
+        str(clip_data.get("shot_scale", "MEDIUM_SHOT")),
+        str(clip_data.get("camera_motion", "STATIC")),
+        str(clip_data.get("lighting_and_mood", "STANDARD")),
         tags_str,
-        clip_data.get("drive_file_id", ""),
-        clip_data.get("drive_category", "CHARACTERS"),
-        clip_data.get("local_path", "")
+        str(clip_data.get("drive_file_id", "")),
+        str(clip_data.get("drive_category", "CHARACTERS")),
+        str(clip_data.get("local_path", ""))
     ))
 
     # Update FTS
@@ -143,13 +157,13 @@ def insert_or_update_clip(clip_data: Dict[str, Any], db_path: Path = DB_PATH) ->
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         clip_id,
-        clip_data.get("primary_subject", ""),
+        str(clip_data.get("primary_subject", "")),
         chars_str,
         objs_str,
-        clip_data.get("spells_magic_actions", ""),
-        clip_data.get("action_description", ""),
-        clip_data.get("lore_context", ""),
-        clip_data.get("location_setting", ""),
+        spells_str,
+        str(clip_data.get("action_description", "")),
+        str(clip_data.get("lore_context", "")),
+        str(clip_data.get("location_setting", "")),
         tags_str
     ))
 
