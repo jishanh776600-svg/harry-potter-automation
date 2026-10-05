@@ -885,10 +885,11 @@ class ContentPlannerEngine:
         Does NOT generate final narration — planning metadata only.
         """
         results = []
+        new_candidate_count = 0
 
         with self.Session() as session:
             for seed in DISCOVERY_SEEDS:
-                if len(results) >= count:
+                if new_candidate_count >= count:
                     break
 
                 slug = seed["slug"]
@@ -915,22 +916,32 @@ class ContentPlannerEngine:
                     })
                     continue
 
-                # Search novel FTS for evidence
-                novel_hits = self.novel_engine.search(
-                    query=seed["novel_search_query"],
-                    book_number=seed["preferred_book"],
-                    limit=3
-                )
+                # Search novel FTS for evidence with autonomous progressive fallback
+                queries_to_try = [
+                    seed.get("novel_search_query"),
+                    seed.get("title"),
+                    seed.get("novel_fact_summary"),
+                    seed.get("hook_concept")
+                ]
+                queries_to_try = [q for q in queries_to_try if q]
 
-                if not novel_hits:
-                    # Try without book filter
+                novel_hits = []
+                for query_candidate in queries_to_try:
                     novel_hits = self.novel_engine.search(
-                        query=seed["novel_search_query"],
+                        query=query_candidate,
+                        book_number=seed["preferred_book"],
                         limit=3
                     )
+                    if not novel_hits:
+                        novel_hits = self.novel_engine.search(
+                            query=query_candidate,
+                            limit=3
+                        )
+                    if novel_hits:
+                        break
 
                 if not novel_hits:
-                    logger.warning(f"[DISCOVERY_PLANNER] No novel evidence for: {slug}")
+                    logger.warning(f"[DISCOVERY_PLANNER] No novel evidence for: {slug} after autonomous fallback attempts")
                     continue
 
                 best_novel = novel_hits[0]
@@ -1110,6 +1121,7 @@ class ContentPlannerEngine:
                     "visual_beats": enriched_beats,
                     "content_fingerprint": fp,
                 })
+                new_candidate_count += 1
 
                 logger.info(
                     f"[DISCOVERY_PLANNER] Candidate created: {candidate_id} | "

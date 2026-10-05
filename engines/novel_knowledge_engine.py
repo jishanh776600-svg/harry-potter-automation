@@ -422,58 +422,92 @@ class NovelKnowledgeEngine:
         limit: int = 5
     ) -> List[Dict[str, Any]]:
         """
-        Full-text semantic retrieval over the 7 novels using SQLite FTS5 BM25 ranking.
-        Supports keyword search, exact phrases (in quotes), and metadata filtering.
+        Autonomous adaptive full-text semantic retrieval over the 7 novels using SQLite FTS5 BM25 ranking.
+        Multi-tier progressive strategy:
+          Tier 1: Strict AND across all terms (exact keyword precision)
+          Tier 2: Stop-word filtered AND (removes low-information connective words)
+          Tier 3: BM25-ranked OR across significant terms (finds closest canonical passages)
+          Tier 4: Cross-book relaxation (if book_number was constrained and yielded 0 hits)
         """
-        # Sanitize query for FTS5 syntax
         clean_q = re.sub(r'[^\w\s"\'\-]', " ", query).strip()
         if not clean_q:
             return []
 
-        # Format terms into FTS5 match expression
-        terms = clean_q.split()
-        if len(terms) == 1:
-            fts_match = f'"{terms[0]}"*'
+        raw_terms = [t for t in clean_q.split() if t]
+        if not raw_terms:
+            return []
+
+        stop_words = {
+            "the", "a", "an", "in", "on", "of", "at", "by", "for", "with", "about",
+            "into", "through", "after", "before", "under", "between", "but", "and",
+            "or", "is", "was", "are", "were", "be", "been", "being", "have", "has",
+            "had", "do", "does", "did", "would", "should", "could", "can", "will",
+            "plan", "details", "explain", "explains", "story", "full", "happens",
+            "secret", "truth", "reason", "scene", "reveals", "their", "there",
+            "where", "which", "what", "why", "when", "that", "this", "these", "those"
+        }
+        sig_terms = [t for t in raw_terms if t.lower() not in stop_words and len(t) > 2]
+        if not sig_terms:
+            sig_terms = raw_terms
+
+        def _run_query(match_expr: str, b_num: Optional[int], c_num: Optional[int]) -> List[Any]:
+            sql = """
+                SELECT 
+                    c.id as chunk_id,
+                    c.book_number,
+                    c.book_title,
+                    c.chapter_number,
+                    c.chapter_title,
+                    c.page_start,
+                    c.page_end,
+                    c.global_chronology_index,
+                    c.source_location,
+                    c.text,
+                    bm25(novel_chunks_fts) as rank
+                FROM novel_chunks_fts f
+                JOIN novel_chunks c ON f.chunk_id = c.id
+                WHERE novel_chunks_fts MATCH ?
+            """
+            params = [match_expr]
+            if b_num is not None:
+                sql += " AND c.book_number = ?"
+                params.append(b_num)
+            if c_num is not None:
+                sql += " AND c.chapter_number = ?"
+                params.append(c_num)
+            sql += " ORDER BY rank ASC LIMIT ?"
+            params.append(limit)
+
+            with get_db_connection() as conn:
+                try:
+                    return conn.execute(sql, params).fetchall()
+                except sqlite3.OperationalError:
+                    return []
+
+        # Tier 1: Exact phrase if quoted, else strict AND with prefix wildcards
+        if '"' in query:
+            match_t1 = f'"{clean_q}"'
+        elif len(raw_terms) == 1:
+            match_t1 = f'"{raw_terms[0]}"*'
         else:
-            fts_match = f'"{clean_q}"' if '"' in query else " AND ".join(f'"{t}"*' for t in terms)
+            match_t1 = " AND ".join(f'"{t}"*' for t in raw_terms)
 
-        sql = """
-            SELECT 
-                c.id as chunk_id,
-                c.book_number,
-                c.book_title,
-                c.chapter_number,
-                c.chapter_title,
-                c.page_start,
-                c.page_end,
-                c.global_chronology_index,
-                c.source_location,
-                c.text,
-                bm25(novel_chunks_fts) as rank
-            FROM novel_chunks_fts f
-            JOIN novel_chunks c ON f.chunk_id = c.id
-            WHERE novel_chunks_fts MATCH ?
-        """
-        params = [fts_match]
+        rows = _run_query(match_t1, book_number, chapter_number)
 
-        if book_number is not None:
-            sql += " AND c.book_number = ?"
-            params.append(book_number)
-        if chapter_number is not None:
-            sql += " AND c.chapter_number = ?"
-            params.append(chapter_number)
+        # Tier 2: Filtered AND (if stop words were present and Tier 1 had 0 hits)
+        if not rows and len(sig_terms) < len(raw_terms) and len(sig_terms) > 0:
+            match_t2 = " AND ".join(f'"{t}"*' for t in sig_terms)
+            rows = _run_query(match_t2, book_number, chapter_number)
 
-        sql += " ORDER BY rank ASC LIMIT ?"
-        params.append(limit)
+        # Tier 3: BM25-ranked OR across significant terms
+        if not rows and len(sig_terms) > 1:
+            match_t3 = " OR ".join(f'"{t}"*' for t in sig_terms)
+            rows = _run_query(match_t3, book_number, chapter_number)
 
-        with get_db_connection() as conn:
-            try:
-                rows = conn.execute(sql, params).fetchall()
-            except sqlite3.OperationalError:
-                # Fallback to simple token matching if complex match fails
-                simple_match = " OR ".join(f'"{t}"' for t in terms)
-                params[0] = simple_match
-                rows = conn.execute(sql, params).fetchall()
+        # Tier 4: Cross-book relaxation if book_number was provided and yielded 0 hits
+        if not rows and book_number is not None:
+            match_t4 = " OR ".join(f'"{t}"*' for t in sig_terms)
+            rows = _run_query(match_t4, None, None)
 
         results = []
         for r in rows:
