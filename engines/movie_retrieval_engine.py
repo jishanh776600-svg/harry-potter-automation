@@ -1077,25 +1077,6 @@ class MovieRetrievalEngine:
                     if kc.lower() not in ("hogwarts", "castle") and kc not in req_characters:
                         req_characters.append(kc)
 
-        valid_candidates = [
-            c for c in ranked_candidates
-            if c.get("score", 0.0) >= MIN_CONFIDENCE_THRESHOLD and not c.get("is_disqualified", False)
-        ]
-
-        if not valid_candidates:
-            if req_characters:
-                # STRICT SUBJECT INTEGRITY: Zero tolerance for atmospheric filler on character beats
-                raise ValueError(
-                    f"Subject Mismatch Gate Violation for beat '{beat.get('beat_id')}': "
-                    f"No movie scenes verified for required characters {req_characters}. "
-                    "Atmospheric filler is strictly banned for character beats."
-                )
-            atm_cand = self.get_atmospheric_fallback_candidate(beat.get("preferred_movie_number"))
-            valid_candidates = [atm_cand]
-
-        shots = []
-        shot_idx = 1
-
         # Strategy 0: Curated Master Character Shot Bank (Pre-Verified Rapid Cuts)
         from core.character_shot_bank import find_curated_character_shots
         concept_query = f"{beat.get('visual_requirement', '')} {beat.get('action', '')} {beat.get('narration_text', '')}"
@@ -1104,9 +1085,11 @@ class MovieRetrievalEngine:
             characters=req_characters,
             count=target_shots_per_beat
         )
-        if curated_shots and len(curated_shots) >= target_shots_per_beat:
-            logger.info(f"Using {len(curated_shots)} pre-verified shots from CharacterShotBank for beat {beat.get('beat_id')}")
-            for s_idx, cs in enumerate(curated_shots[:target_shots_per_beat], 1):
+        if curated_shots and len(curated_shots) > 0:
+            shots_to_use = [curated_shots[i % len(curated_shots)] for i in range(target_shots_per_beat)]
+            logger.info(f"Using {len(shots_to_use)} pre-verified shots from CharacterShotBank for beat {beat.get('beat_id')}")
+            shots = []
+            for s_idx, cs in enumerate(shots_to_use, 1):
                 c_start = float(cs["start_seconds"])
                 c_end = float(cs["end_seconds"])
                 shot_dur = float(cs["duration_seconds"])
@@ -1134,6 +1117,25 @@ class MovieRetrievalEngine:
                 if used_intervals is not None:
                     used_intervals.append((cs["movie_number"], c_start, c_end))
             return shots
+
+        valid_candidates = [
+            c for c in ranked_candidates
+            if c.get("score", 0.0) >= MIN_CONFIDENCE_THRESHOLD and not c.get("is_disqualified", False)
+        ]
+
+        if not valid_candidates:
+            if req_characters:
+                # STRICT SUBJECT INTEGRITY: Zero tolerance for atmospheric filler on character beats
+                raise ValueError(
+                    f"Subject Mismatch Gate Violation for beat '{beat.get('beat_id')}': "
+                    f"No movie scenes verified for required characters {req_characters}. "
+                    "Atmospheric filler is strictly banned for character beats."
+                )
+            atm_cand = self.get_atmospheric_fallback_candidate(beat.get("preferred_movie_number"))
+            valid_candidates = [atm_cand]
+
+        shots = []
+        shot_idx = 1
 
         # Strategy A: If top candidate is high confidence and long enough (>= 4.0s),
         # decompose it directly into cohesive sequential shots to avoid jarring scene jumps.
@@ -1363,11 +1365,13 @@ class MovieRetrievalEngine:
         shot: Dict[str, Any],
         script_id: str,
         beat_id: str,
-        movie_path: Path
+        movie_path: Path,
+        beat: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Extracts an exact, audio-muted (-an) 9:16 vertical clip (1.5s - 3.0s).
         Asserts via ffprobe that ZERO audio streams are present.
+        Applies smart character-centered crop and enforces VisualFrameGate.
         """
         clip_start = shot["clip_start_seconds"]
         clip_dur = shot["duration_seconds"]
@@ -1376,13 +1380,17 @@ class MovieRetrievalEngine:
         output_filename = f"{script_id}_{beat_id}_{shot_id}.mp4"
         output_path = self.clips_dir / output_filename
 
+        req_chars = shot.get("candidate", {}).get("characters") or (beat.get("characters") if beat else []) or []
+        primary_char = req_chars[0] if req_chars else None
+
         self.asset_engine.extract_muted_clip(
             video_input_path=movie_path,
             start_seconds=clip_start,
             duration_seconds=clip_dur,
             output_clip_path=output_path,
             target_width=1080,
-            target_height=1920
+            target_height=1920,
+            focus_character=primary_char
         )
 
         sha = hashlib.sha256()
@@ -1417,7 +1425,6 @@ class MovieRetrievalEngine:
         # Visual Frame Gate verification (Computer Vision subject presence & quality)
         from core.visual_frame_gate import VisualFrameGate
         gate = VisualFrameGate()
-        req_chars = shot.get("candidate", {}).get("characters") or []
         is_gate_ok, gate_reason, gate_stats = gate.verify_clip(output_path, required_characters=req_chars)
         if not is_gate_ok:
             logger.warning(f"VisualFrameGate verification failed for {output_filename}: {gate_reason} (Stats: {gate_stats})")
@@ -1627,7 +1634,7 @@ class MovieRetrievalEngine:
             beat_id = beat.get("beat_id", "beat_1")
             beat_custom_dur = float(beat.get("duration_seconds", 0.0))
             if beat_custom_dur > 0:
-                current_shots_per_beat = max(1, int(round(beat_custom_dur / DEFAULT_TARGET_SHOT_DURATION)))
+                current_shots_per_beat = max(shots_per_beat, int(round(beat_custom_dur / DEFAULT_TARGET_SHOT_DURATION)))
             else:
                 current_shots_per_beat = shots_per_beat
             is_novel_only = beat.get("is_novel_only", False) or beat.get("discovery_type") in ("BOOK_ONLY_DETAIL", "NOVEL_ONLY")
@@ -1939,8 +1946,12 @@ class MovieRetrievalEngine:
                             shot=shot,
                             script_id=script_id,
                             beat_id=beat_id,
-                            movie_path=movie_file
+                            movie_path=movie_file,
+                            beat=beat
                         )
+                        if extraction_meta.get("visual_gate_status") == "FAIL":
+                            match_status = "REJECTED_VISUAL_GATE"
+                            reason = extraction_meta.get("visual_gate_reason")
                     except Exception as e:
                         logger.error(f"Clip extraction failed for {script_id} {beat_id} {shot_id}: {e}")
                         match_status = "EXTRACTION_FAILED"

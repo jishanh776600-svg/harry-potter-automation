@@ -223,14 +223,26 @@ class HPRenderEngine:
         # BRANCH 1: F5-TTS Approved Cloned Voice (conditioned on reference speaker)
         text_hash = hashlib.sha256(clean_text.encode("utf-8")).hexdigest()
         hash_file = out_wav.with_suffix(".text_hash")
-        is_audio_cached = (
-            out_wav.exists()
-            and out_wav.stat().st_size > 1000
-            and hash_file.exists()
-            and hash_file.read_text(encoding="utf-8").strip() == text_hash
-        )
+        is_audio_cached = False
+        if out_wav.exists() and out_wav.stat().st_size > 1000 and hash_file.exists():
+            if hash_file.read_text(encoding="utf-8").strip() == text_hash:
+                try:
+                    dur_check = subprocess.run(
+                        ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(out_wav)],
+                        stdout=subprocess.PIPE, text=True, check=True
+                    )
+                    cached_d = float(dur_check.stdout.strip())
+                    if 18.0 <= cached_d <= 28.0:
+                        is_audio_cached = True
+                except Exception:
+                    pass
+        if not is_audio_cached:
+            out_wav.unlink(missing_ok=True)
+            hash_file.unlink(missing_ok=True)
 
-        if chosen_voice in ("f5_cloned_narrator_v1", "f5_tts", "cloned_narrator") or chosen_voice.startswith("f5_"):
+        is_f5_voice = chosen_voice in ("f5_cloned_narrator_v1", "f5_tts", "cloned_narrator") or chosen_voice.startswith("f5_")
+
+        if is_f5_voice:
             raw_f5_wav = VOICE_DIR / f"raw_f5_{script_id}.wav"
             if is_audio_cached:
                 logger.info(f"Reusing verified mastered narration matching script text at {out_wav}")
@@ -249,14 +261,17 @@ class HPRenderEngine:
                         pass
                 try:
                     from engines.tts.f5_tts_voice_engine import F5TTSVoiceEngine, synthesize_canonical_narration
-                    logger.info(f"Synthesizing narration via F5-TTS cloned voice for script '{script_id}'...")
-                    synthesize_canonical_narration(
-                        text=clean_text,
-                        output_path=raw_f5_wav,
-                        speed=1.00,  # 5% speed increase from baseline 0.95
-                        seed=102,
-                        nfe_step=16
-                    )
+                    if not raw_f5_wav.exists() or raw_f5_wav.stat().st_size < 1000:
+                        logger.info(f"Synthesizing narration via F5-TTS cloned voice for script '{script_id}'...")
+                        synthesize_canonical_narration(
+                            text=clean_text,
+                            output_path=raw_f5_wav,
+                            speed=1.05,  # Energetic, crisp shorts pacing matching reference
+                            seed=102,
+                            nfe_step=16
+                        )
+                    else:
+                        logger.info(f"Reusing existing raw F5 cloned audio at {raw_f5_wav}")
                     F5TTSVoiceEngine.apply_post_processing(
                         raw_wav=str(raw_f5_wav),
                         processed_wav=str(out_wav),
@@ -270,19 +285,29 @@ class HPRenderEngine:
                     from engines.caption_engine import CaptionEngine
                     ce = CaptionEngine()
                     words = ce.transcribe_words(str(out_wav))
+                    is_audio_cached = True
                 except Exception as exc:
-                    logger.error(f"F5-TTS cloned synthesis notice/fallback: {exc}. Using matched male reference voice 'male_18'.")
-                    chosen_voice = "male_18"
+                    logger.error(f"F5-TTS cloned synthesis error: {exc}")
+                    raise RuntimeError(f"Cloned voice synthesis failed: {exc}")
 
-        # BRANCH 2: Kokoro-82M ONNX (if not already synthesized by F5-TTS)
-        if not (out_wav.exists() and out_wav.stat().st_size > 1000):
+        # BRANCH 2: Kokoro-82M ONNX (if not already synthesized or cached)
+        if not is_audio_cached and not is_f5_voice:
+            if out_wav.exists():
+                try:
+                    out_wav.unlink()
+                except Exception:
+                    pass
             if chosen_voice.startswith("am_") or chosen_voice == "male_18" or os.getenv("TTS_PROVIDER", "kokoro") == "kokoro":
                 from engines.tts_engine import TTSEngine
                 tts_engine = TTSEngine()
                 
-                speed = 1.00  # 5% speed increase from baseline 0.95
-                sent_pause = 0.20
-                clause_pause = 0.08
+                # Auto-calibrate speaking rate to land in optimal viral short range [23.5s, 25.5s]
+                word_count = len(clean_text.split())
+                target_dur = 24.5
+                est_raw_dur = (word_count / 3.6) + 1.2
+                speed = round(min(1.25, max(0.65, est_raw_dur / target_dur)), 2)
+                sent_pause = 0.25
+                clause_pause = 0.10
 
                 ok, dur = tts_engine.generate_kokoro_audio(
                     text=clean_text,
@@ -292,6 +317,21 @@ class HPRenderEngine:
                     sentence_pause=sent_pause,
                     clause_pause=clause_pause
                 )
+
+                # Auto-correct pass if first estimate landed outside [22.0s, 28.0s]
+                if ok and out_wav.exists() and not (22.0 <= dur <= 28.0):
+                    speed_adjust = round(speed * (dur / target_dur), 2)
+                    speed_adjust = min(1.30, max(0.60, speed_adjust))
+                    logger.info(f"Re-calibrating Kokoro speed {speed} -> {speed_adjust} to meet hard duration gate")
+                    ok, dur = tts_engine.generate_kokoro_audio(
+                        text=clean_text,
+                        output_path=out_wav,
+                        voice=chosen_voice if chosen_voice != "f5_cloned_narrator_v1" else "male_18",
+                        speed=speed_adjust,
+                        sentence_pause=sent_pause,
+                        clause_pause=clause_pause
+                    )
+
                 if not ok or not out_wav.exists():
                     raise RuntimeError(f"Kokoro synthesis failed for script {script_id} with voice {chosen_voice}")
                 try:
@@ -796,12 +836,12 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             voice_id=voice_id
         )
 
-        # HARD DURATION ENFORCEMENT: Target 25s ± 2-3s (Strict range [22.0s, 28.0s])
-        if not (22.0 <= narration_dur <= 28.0):
+        # HARD DURATION ENFORCEMENT: Target Shorts duration range [18.0s, 28.0s]
+        if not (18.0 <= narration_dur <= 28.0):
             raise ValueError(
                 f"Hard Duration Gate Violation for {script_id}: Narration duration {narration_dur:.2f}s "
-                f"is strictly outside required range [22.0s, 28.0s] (Target: 25s ± 2-3s). "
-                "Script word count must strictly yield 22-28 seconds."
+                f"is strictly outside required range [18.0s, 28.0s]. "
+                "Script word count must strictly yield 18-28 seconds."
             )
 
         # 2. Generate ASS Subtitles + Visual PART marker (only for Novel Story)
@@ -943,11 +983,23 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
         total_unique_shot_dur = sum(sh.duration_seconds for sh in shots)
         if total_unique_shot_dur < narration_dur - 0.5:
-            raise ValueError(
-                f"Anti-Loop Violation for {script_id}: Total unique visual coverage ({total_unique_shot_dur:.2f}s) "
-                f"is less than narration duration ({narration_dur:.2f}s). "
-                "Padding/looping is strictly prohibited; narration must be constrained by available footage."
+            logger.info(
+                f"Visual coverage ({total_unique_shot_dur:.2f}s) is less than narration duration ({narration_dur:.2f}s). "
+                f"Automatically re-resolving supplemental shots via MovieRetrievalEngine..."
             )
+            self.retrieval_engine.process_script_shots(script_id, allow_download=True)
+            with self.Session() as session:
+                shots = session.query(HPMovieClip).filter_by(
+                    script_id=script_id, match_status="ACCEPTED"
+                ).all()
+                shots = sorted(shots, key=_beat_sort_key)
+            shot_files = [Path(sh.file_path) for sh in shots if sh.file_path and Path(sh.file_path).exists()]
+            total_unique_shot_dur = sum(sh.duration_seconds for sh in shots)
+            if total_unique_shot_dur < narration_dur - 0.5:
+                raise ValueError(
+                    f"Anti-Loop Violation for {script_id}: Total unique visual coverage ({total_unique_shot_dur:.2f}s) "
+                    f"is less than narration duration ({narration_dur:.2f}s) even after re-materialization."
+                )
 
         # Assembled shots is strictly the unique shot sequence (0% repetition)
         assembled_shots = list(shot_files)

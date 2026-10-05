@@ -472,9 +472,8 @@ class VisualFeedbackEngine:
                 continue
 
             intended = normalize_character_name(rec.get("intended_character") or "")
-            actual = (rec.get("actual_character") or "").lower()
-
-            if norm_char in intended or intended in norm_char or norm_char in actual:
+            # Strictly match intended character only (prevent cross-character pollution)
+            if norm_char == intended or norm_char in intended or intended in norm_char:
                 matches.append({
                     "movie_number": rec["movie_number"],
                     "start_seconds": rec["start_seconds"],

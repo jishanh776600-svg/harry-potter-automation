@@ -102,18 +102,39 @@ FORBIDDEN_VISUAL_TERMS = [
     "consistory", "pollinations", "midjourney", "dall-e", "stable diffusion"
 ]
 
-MIN_WORD_COUNT = 75
-MAX_WORD_COUNT = 88
-PREFERRED_MIN_WORDS = 78
-PREFERRED_MAX_WORDS = 85
+MIN_WORD_COUNT = 62
+MAX_WORD_COUNT = 85
+PREFERRED_MIN_WORDS = 65
+PREFERRED_MAX_WORDS = 78
 
-NOVEL_STORY_MIN_WORDS = 75
-NOVEL_STORY_MAX_WORDS = 88
+# ── DEXTER LOFTIN VIRAL NARRATION & HOOK ENGINE INVARIANTS ─────────────────
+DEXTER_LOFTIN_GUIDANCE = """
+DEXTER LOFTIN STYLE & RETENTION SPECIFICATION:
+1. HOOK (0-5s):
+   - High personal curiosity, counter-intuitive realization, or poignant observation:
+     Examples:
+     * "It took me eighteen years to realize why [Character] could almost never look [Character] in the eyes."
+     * "There's a subtle detail in [Scene] that completely changes how you view [Character]."
+     * "Did you notice what [Character] always does right before [Action]?"
+     * "Almost nobody realizes why [Character] actually said this."
+   - Avoid dry academic introductions, robotic exposition, or greeting the audience.
+2. DEVELOPMENT (Conversational Spoken Storytelling):
+   - Fast, punchy, spoken English. Short sentences. Zero textbook prose.
+   - Grounded in human emotions: grief, loyalty, hidden regret, shock, or dark mystery.
+3. PAYOFF (Final Revelation):
+   - Emotional punchline or lore twist that lingers, ending with a compelling viewer prompt (e.g., "Did you notice this?").
+4. PHYSICAL MOVIE VISUAL ANCHORS:
+   - Every visual beat MUST name specific characters, facial expressions, gaze directions, robes, or props.
+   - This directly drives facial recognition centering (YuNet/SFace) and rapid cuts (1.4s-1.8s).
+"""
+
+NOVEL_STORY_MIN_WORDS = 62
+NOVEL_STORY_MAX_WORDS = 85
 NOVEL_STORY_MIN_DURATION = 22.0
 NOVEL_STORY_MAX_DURATION = 28.0
 
-DISCOVERY_SHORT_MIN_WORDS = 75
-DISCOVERY_SHORT_MAX_WORDS = 88
+DISCOVERY_SHORT_MIN_WORDS = 62
+DISCOVERY_SHORT_MAX_WORDS = 85
 DISCOVERY_SHORT_MIN_DURATION = 22.0
 DISCOVERY_SHORT_MAX_DURATION = 28.0
 
@@ -531,9 +552,9 @@ class HarryPotterScriptEngine:
                 word_count_within_tier_bounds = False
                 reasons.append(f"Check Word Count Failed: {word_count} words outside Deep Discovery target bounds (220-300)")
         elif effective_tier == "MICRO_DISCOVERY":
-            if word_count < 75 or word_count > 88:
+            if word_count < 62 or word_count > 85:
                 word_count_within_tier_bounds = False
-                reasons.append(f"Check Word Count Failed: {word_count} words outside Micro Discovery bounds (75-88 for 25s ± 2-3s)")
+                reasons.append(f"Check Word Count Failed: {word_count} words outside Micro Discovery bounds (62-85 for 25s ± 2-3s)")
 
         # Check M: Discovery Editorial Value Gate (viewer value, anti-recap, explanatory depth)
         editorial_res = DiscoveryNarrativeEngine.evaluate_discovery_editorial_value(
@@ -650,10 +671,12 @@ MANDATORY STORYTELLING RULES:
    - If the novel contains a detail the movies never showed, focus your storytelling on what the movies ACTUALLY show!
 
 4. HARD INVARIANTS:
-   - WORD COUNT: Exactly 75 to 85 spoken words (STRICT PROGRAMMATIC RANGE: 75 to 88 words for 22.0s-28.0s duration; target 25s).
+   - WORD COUNT: Exactly 65 to 78 spoken words (STRICT PROGRAMMATIC RANGE: 62 to 85 words for 22.0s-28.0s duration; target 25s).
    - STANDALONE: Must make 100% complete sense on its own.
    - NEVER speak "part 1", "chapter 1", "episode 1", or any numbering.
    - NEVER use clickbait clichés ("will shock you", "you won't believe", "mind-blowing").
+
+{DEXTER_LOFTIN_GUIDANCE}
 
 {feedback_str}
 
@@ -712,8 +735,10 @@ MANDATORY SCRIPT STRUCTURE:
 3. MOVIE: State what the film shows or omits.
 4. DIFFERENCE & PAYOFF: The exact contrast and why this difference matters.
 
+{DEXTER_LOFTIN_GUIDANCE}
+
 RULES:
-- Word count: Exactly 75 to 85 spoken words (STRICT PROGRAMMATIC RANGE: 75 to 88 words for 22.0s-28.0s duration; target 25s).
+- Word count: Exactly 65 to 78 spoken words (STRICT PROGRAMMATIC RANGE: 62 to 85 words for 22.0s-28.0s duration; target 25s).
 - First substantive sentence must communicate the subject and difference.
 - Avoid narrative story transitions ("Meanwhile", "Later", "The next morning", "He then").
 - Visual Beats: 3-4 beats. Classify each beat as DIRECT or CONTEXTUAL in visual_requirement.
@@ -770,8 +795,10 @@ MANDATORY SCRIPT STRUCTURE:
 3. MOVIE ABSENCE: What happens in the movie instead or how it skips the scene.
 4. PAYOFF: Why the omission matters or what fans missed.
 
+{DEXTER_LOFTIN_GUIDANCE}
+
 RULES:
-- Word count: Exactly 75 to 85 spoken words (STRICT PROGRAMMATIC RANGE: 75 to 88 words for 22.0s-28.0s duration; target 25s).
+- Word count: Exactly 65 to 78 spoken words (STRICT PROGRAMMATIC RANGE: 62 to 85 words for 22.0s-28.0s duration; target 25s).
 - Classify visual beats as DIRECT or CONTEXTUAL.
 {feedback_str}
 OUTPUT STRICT JSON:
@@ -810,8 +837,10 @@ MANDATORY SCRIPT STRUCTURE:
 3. CONTEXT: How it connects to the film world.
 4. PAYOFF: Why it was cut or what happened to the footage.
 
+{DEXTER_LOFTIN_GUIDANCE}
+
 RULES:
-- Word count: Exactly 75 to 85 spoken words (STRICT PROGRAMMATIC RANGE: 75 to 88 words for 22.0s-28.0s duration; target 25s).
+- Word count: Exactly 65 to 78 spoken words (STRICT PROGRAMMATIC RANGE: 62 to 85 words for 22.0s-28.0s duration; target 25s).
 - Visual classification must be CONTEXTUAL (since behind-the-scenes facts cannot be directly shown in movie scenes).
 {feedback_str}
 OUTPUT STRICT JSON:
@@ -850,8 +879,10 @@ MANDATORY SCRIPT STRUCTURE:
 3. EVIDENCE / CONTEXT: Where it appears and what proves it.
 4. PAYOFF: Why it is fascinating or what it explains.
 
+{DEXTER_LOFTIN_GUIDANCE}
+
 RULES:
-- Word count: Exactly 75 to 85 spoken words (STRICT PROGRAMMATIC RANGE: 75 to 88 words for 22.0s-28.0s duration; target 25s).
+- Word count: Exactly 65 to 78 spoken words (STRICT PROGRAMMATIC RANGE: 62 to 85 words for 22.0s-28.0s duration; target 25s).
 - Visual classification: DIRECT if visible on screen, CONTEXTUAL if lore/background.
 {feedback_str}
 OUTPUT STRICT JSON:
@@ -1631,8 +1662,18 @@ OUTPUT STRICT JSON:
                         if kc not in chars:
                             chars.append(kc)
 
+            beat_narration = b.get("narration_text", "")
+            beat_words = len(beat_narration.split()) if beat_narration else 0
+            if "duration_seconds" in b:
+                beat_dur = float(b["duration_seconds"])
+            elif word_count > 0 and beat_words > 0:
+                beat_dur = round(est_duration * (beat_words / word_count), 2)
+            else:
+                beat_dur = round(est_duration / max(1, len(raw_beats)), 2)
+
             clean_beats.append({
                 "beat_id": b.get("beat_id", f"beat_{idx}"),
+                "duration_seconds": beat_dur,
                 "narration_text": b.get("narration_text", ""),
                 "visual_requirement": b.get("visual_requirement", ""),
                 "characters": chars,

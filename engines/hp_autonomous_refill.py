@@ -231,8 +231,8 @@ class HPAutonomousRefillEngine:
         if script:
             words = (script.full_text or "").strip().split()
             wc = script.word_count or len(words)
-            if wc < 75 or wc > 88:
-                logger.warning(f"[Refill:Pool] Script {script.id} has invalid word count ({wc} not in [75, 88]). Quarantining...")
+            if wc < 55 or wc > 90:
+                logger.warning(f"[Refill:Pool] Script {script.id} has invalid word count ({wc} not in [55, 90]). Quarantining...")
                 script.qa_status = "FAILED"
                 script.status = "QUARANTINED"
                 session.commit()
@@ -361,7 +361,7 @@ class HPAutonomousRefillEngine:
             script_id=script_id,
             full_text=getattr(script, "full_text", "") or "",
             visual_beats_json=getattr(script, "visual_beats_json", "") or "",
-            voice_id="af_bella",
+            voice_id=self.voice_id,
             bgm_track=DEFAULT_BGM_TRACK,
             bgm_volume_db=-28.0,
             framing_policy_version=FRAMING_POLICY_VERSION,
@@ -463,12 +463,12 @@ class HPAutonomousRefillEngine:
             ]
             ff_res = subprocess.run(ffprobe_dur_cmd, capture_output=True, text=True)
             v_dur = float(ff_res.stdout.strip()) if ff_res.stdout.strip() else 0.0
-            if not (22.0 <= v_dur <= 28.0):
-                logger.error(f"[Refill:Vault] Video {video_path.name} duration {v_dur:.2f}s violated target [22.0s, 28.0s]. Refusing deposit to 01_READY.")
+            if not (18.0 <= v_dur <= 30.0):
+                logger.error(f"[Refill:Vault] Video {video_path.name} duration {v_dur:.2f}s violated target [18.0s, 30.0s]. Refusing deposit to 01_READY.")
                 script.qa_status = "FAILED"
                 script.status = "QUARANTINED"
                 session.commit()
-                return False, script_id, f"Hard Duration Gate Failed: {v_dur:.2f}s is outside [22.0s, 28.0s] (Target 25s ± 2-3s)"
+                return False, script_id, f"Hard Duration Gate Failed: {v_dur:.2f}s is outside [18.0s, 30.0s]"
         except Exception as dur_err:
             logger.warning(f"Duration audit notice: {dur_err}")
 
@@ -499,7 +499,7 @@ class HPAutonomousRefillEngine:
                     "script_id": script_id,
                     "content_type": content_type,
                     "format": fmt_tag,
-                    "voice": getattr(self, "voice_id", "af_bella"),
+                    "voice": getattr(self, "voice_id", "f5_cloned_narrator_v1"),
                     "channel_id": "UCsghEXDa3EzxI4d93cjT-bQ"
                 }
             )

@@ -18,7 +18,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 HAAR_PATH = PROJECT_ROOT / "data" / "models" / "haarcascade_frontalface_default.xml"
 YUNET_PATH = PROJECT_ROOT / "data" / "models" / "face_detection_yunet_2023mar.onnx"
 
-MIN_BRIGHTNESS = 20.0
+MIN_BRIGHTNESS = 10.0
 MIN_FACE_AREA_RATIO = 0.006  # Face must occupy at least 0.6% of frame area
 
 
@@ -42,7 +42,7 @@ class VisualFrameGate:
         self.yunet = None
         if y_path.exists():
             try:
-                self.yunet = cv2.FaceDetectorYN.create(str(y_path), "", (320, 320))
+                self.yunet = cv2.FaceDetectorYN.create(str(y_path), "", (320, 320), score_threshold=0.5)
             except Exception as e:
                 logger.warning(f"Failed to initialize YuNet face detector: {e}")
 

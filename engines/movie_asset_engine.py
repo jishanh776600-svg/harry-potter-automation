@@ -429,12 +429,14 @@ class MovieAssetEngine:
         start_seconds: float,
         duration_seconds: float,
         target_width: int = 1080,
-        target_height: int = 1920
+        target_height: int = 1920,
+        focus_character: Optional[str] = None
     ) -> str:
         """
         Dynamically analyzes character faces and focal subjects/saliency across
         the clip interval to compute the optimal 9:16 vertical crop window X offset.
-        Prevents characters and faces on the left/right thirds from being chopped in half.
+        Target-matches the requested focus character face via SFace so the subject
+        is centered in frame and never sliced off.
         """
         import cv2
         import numpy as np
@@ -470,7 +472,7 @@ class MovieAssetEngine:
             ideal_cx = src_w / 2.0
             detected_type = "center_fallback"
 
-            # 1. Primary: YuNet Deep Learning Face Detector
+            # 1. Primary: YuNet Deep Learning Face Detector + SFace Target Matching
             yunet_path = PROJECT_ROOT / "data" / "models" / "face_detection_yunet_2023mar.onnx"
             if yunet_path.exists():
                 try:
@@ -480,17 +482,39 @@ class MovieAssetEngine:
                     if faces is not None and len(faces) > 0:
                         valid_faces = [f for f in faces if f[2] >= 25 and f[3] >= 25]
                         if valid_faces:
-                            # If multiple faces fit within crop_w, center on group
-                            min_fx = min(f[0] for f in valid_faces)
-                            max_fx = max(f[0] + f[2] for f in valid_faces)
-                            if (max_fx - min_fx) <= (crop_w * 0.90):
-                                ideal_cx = (min_fx + max_fx) / 2.0
-                                detected_type = f"face_group_yunet({len(valid_faces)}_faces)"
-                            else:
-                                # Target primary/largest face
-                                best_face = max(valid_faces, key=lambda f: f[2] * f[3])
-                                ideal_cx = best_face[0] + best_face[2] / 2.0
-                                detected_type = f"face_primary_yunet(area={best_face[2]*best_face[3]:.0f},conf={best_face[14]:.2f})"
+                            # If target character specified, use SFace to identify that specific character's face
+                            matched_face = None
+                            if focus_character:
+                                try:
+                                    from core.character_face_engine import CharacterFaceEngine, slugify_name
+                                    fe = CharacterFaceEngine()
+                                    target_slug = slugify_name(focus_character)
+                                    best_sc = -1.0
+                                    for vf in valid_faces:
+                                        aligned = fe.sface.alignCrop(img, vf)
+                                        feat = fe.sface.feature(aligned)
+                                        is_match, sc = fe.match_face_to_character(feat, target_slug, threshold=0.42)
+                                        if is_match and sc > best_sc:
+                                            best_sc = sc
+                                            matched_face = vf
+                                    if matched_face is not None:
+                                        ideal_cx = matched_face[0] + matched_face[2] / 2.0
+                                        detected_type = f"face_target_{target_slug}(conf={best_sc:.2f})"
+                                except Exception as fe_err:
+                                    logger.debug(f"Target face match notice: {fe_err}")
+
+                            if matched_face is None:
+                                # If multiple faces fit within crop_w, center on group
+                                min_fx = min(f[0] for f in valid_faces)
+                                max_fx = max(f[0] + f[2] for f in valid_faces)
+                                if (max_fx - min_fx) <= (crop_w * 0.90):
+                                    ideal_cx = (min_fx + max_fx) / 2.0
+                                    detected_type = f"face_group_yunet({len(valid_faces)}_faces)"
+                                else:
+                                    # Target primary/largest face
+                                    best_face = max(valid_faces, key=lambda f: f[2] * f[3])
+                                    ideal_cx = best_face[0] + best_face[2] / 2.0
+                                    detected_type = f"face_primary_yunet(area={best_face[2]*best_face[3]:.0f},conf={best_face[14]:.2f})"
                 except Exception as e:
                     logger.debug(f"YuNet detection error: {e}")
 
@@ -547,7 +571,8 @@ class MovieAssetEngine:
         output_clip_path: Path,
         target_width: int = 1080,
         target_height: int = 1920,
-        custom_vf: Optional[str] = None
+        custom_vf: Optional[str] = None,
+        focus_character: Optional[str] = None
     ) -> Path:
         """
         CRITICAL AUDIO MUTING & INTELLIGENT 9:16 FRAMING INVARIANT:
@@ -568,7 +593,8 @@ class MovieAssetEngine:
                     start_seconds=start_seconds,
                     duration_seconds=duration_seconds,
                     target_width=target_width,
-                    target_height=target_height
+                    target_height=target_height,
+                    focus_character=focus_character
                 )
             except Exception as e:
                 logger.warning(f"Smart crop failed ({e}), falling back to center crop.")

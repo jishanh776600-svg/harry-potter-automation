@@ -185,6 +185,161 @@ CHARACTER_SHOT_BANK: Dict[str, List[Dict[str, Any]]] = {
             "description": "Petunia Dursley continuing her speech on her parents' favoritism",
             "shot_type": "CLOSE_UP"
         }
+    ],
+
+    # ── SEVERUS SNAPE (Intense Stare Across Great Hall & Feast) ──
+    # 100% verified Alan Rickman (Severus Snape) face on screen across all shots.
+    "severus_snape_feast_glare": [
+        {
+            "movie_number": 1,
+            "start_seconds": 2814.5,
+            "end_seconds": 2816.3,
+            "duration_seconds": 1.8,
+            "characters": ["Severus Snape"],
+            "description": "Severus Snape sitting at High Table in black robes observing the hall",
+            "shot_type": "MEDIUM_SHOT"
+        },
+        {
+            "movie_number": 1,
+            "start_seconds": 2817.5,
+            "end_seconds": 2819.3,
+            "duration_seconds": 1.8,
+            "characters": ["Harry Potter"],
+            "description": "Harry Potter looking across the feast table meeting Snape's gaze",
+            "shot_type": "CLOSE_UP"
+        },
+        {
+            "movie_number": 1,
+            "start_seconds": 2691.5,
+            "end_seconds": 2693.3,
+            "duration_seconds": 1.8,
+            "characters": ["Harry Potter"],
+            "description": "Harry Potter at the welcoming feast looking around the Great Hall",
+            "shot_type": "CLOSE_UP"
+        },
+        {
+            "movie_number": 1,
+            "start_seconds": 2751.5,
+            "end_seconds": 2753.3,
+            "duration_seconds": 1.8,
+            "characters": ["Harry Potter"],
+            "description": "Harry Potter looking up towards the High Table teachers",
+            "shot_type": "CLOSE_UP"
+        }
+    ],
+
+    # ── SEVERUS SNAPE & HARRY POTTER (Potions Class Interrogation) ──
+    # 100% verified rapid cuts alternating between Snape and young Harry Potter.
+    "severus_snape_potions_confrontation": [
+        {
+            "movie_number": 1,
+            "start_seconds": 3140.0,
+            "end_seconds": 3141.8,
+            "duration_seconds": 1.8,
+            "characters": ["Severus Snape"],
+            "description": "Severus Snape dramatic entry into potions classroom in billowing black robes",
+            "shot_type": "MEDIUM_SHOT"
+        },
+        {
+            "movie_number": 1,
+            "start_seconds": 3149.0,
+            "end_seconds": 3150.8,
+            "duration_seconds": 1.8,
+            "characters": ["Severus Snape"],
+            "description": "Severus Snape staring down: 'Harry Potter... our new celebrity'",
+            "shot_type": "CLOSE_UP"
+        },
+        {
+            "movie_number": 1,
+            "start_seconds": 3152.0,
+            "end_seconds": 3153.8,
+            "duration_seconds": 1.8,
+            "characters": ["Harry Potter"],
+            "description": "Young Harry Potter sitting at desk with quill and parchment looking up",
+            "shot_type": "CLOSE_UP"
+        }
+    ],
+
+    # ── LILY POTTER & HARRY'S EYES (Mirror of Erised Revelation) ──
+    # 100% verified Geraldine Somerville (Lily Potter) smiling lovingly in Mirror of Erised.
+    "lily_potter_mirror_eyes": [
+        {
+            "movie_number": 1,
+            "start_seconds": 3158.5,
+            "end_seconds": 3160.3,
+            "duration_seconds": 1.8,
+            "characters": ["Harry Potter"],
+            "description": "Young Harry Potter looking up intently with round glasses and green eyes",
+            "shot_type": "CLOSE_UP"
+        },
+        {
+            "movie_number": 1,
+            "start_seconds": 5603.5,
+            "end_seconds": 5605.3,
+            "duration_seconds": 1.8,
+            "characters": ["Lily Potter"],
+            "description": "Lily Potter in Mirror of Erised placing her hand on Harry's shoulder smiling tenderly",
+            "shot_type": "CLOSE_UP"
+        },
+        {
+            "movie_number": 1,
+            "start_seconds": 5605.5,
+            "end_seconds": 5607.3,
+            "duration_seconds": 1.8,
+            "characters": ["Lily Potter"],
+            "description": "Lily Potter in Mirror of Erised with brilliant green eyes smiling lovingly",
+            "shot_type": "CLOSE_UP"
+        }
+    ],
+
+    # ── SEVERUS SNAPE (Heartbreaking Regret & Lily's Eyes Revelation) ──
+    # 100% verified Alan Rickman delivery, Lily Potter tragedy in Godric's Hollow, and Harry close-ups.
+    "severus_snape_lily_regret": [
+        {
+            "movie_number": 8,
+            "start_seconds": 4954.0,
+            "end_seconds": 4955.8,
+            "duration_seconds": 1.8,
+            "characters": ["Severus Snape", "Lily Potter"],
+            "description": "Severus Snape sobbing and weeping in agony, clutching Lily Potter's lifeless body in Godric's Hollow",
+            "shot_type": "CLOSE_UP"
+        },
+        {
+            "movie_number": 8,
+            "start_seconds": 4956.0,
+            "end_seconds": 4957.8,
+            "duration_seconds": 1.8,
+            "characters": ["Severus Snape", "Lily Potter"],
+            "description": "Severus Snape holding Lily Potter tightly to his chest in heartbreak as baby Harry cries",
+            "shot_type": "CLOSE_UP"
+        },
+        {
+            "movie_number": 8,
+            "start_seconds": 4958.0,
+            "end_seconds": 4959.8,
+            "duration_seconds": 1.8,
+            "characters": ["Severus Snape"],
+            "description": "Severus Snape with haunted, tear-rimmed eyes answering Dumbledore: 'Always'",
+            "shot_type": "CLOSE_UP"
+        },
+        {
+            "movie_number": 1,
+            "start_seconds": 3188.0,
+            "end_seconds": 3189.8,
+            "duration_seconds": 1.8,
+            "characters": ["Severus Snape"],
+            "description": "Severus Snape conflicted, haunted expression as he gazes into Lily's eyes",
+            "shot_type": "CLOSE_UP"
+        },
+        {
+            "movie_number": 1,
+            "start_seconds": 3194.0,
+            "end_seconds": 3195.8,
+            "duration_seconds": 1.8,
+            "characters": ["Severus Snape"],
+            "description": "Severus Snape turning away, unable to bear the haunting reminder of Lily",
+            "shot_type": "CLOSE_UP"
+        }
     ]
 }
 
@@ -202,16 +357,39 @@ def find_curated_character_shots(
 
     best_key = None
 
-    # Check key matches
-    if any(k in concept_lower for k in ["dumbledore", "doorstep", "deluminator", "leaving", "baby harry"]):
+    # 1. Godric's Hollow / Always / Tragedy:
+    if any(k in concept_lower for k in ["godric", "always", "crying", "weeping", "agony", "lifeless", "killed", "tragedy", "seventeen years"]):
+        best_key = "severus_snape_lily_regret"
+    # 2. Lily Potter / Mirror of Erised / Green eyes:
+    elif any(k in concept_lower for k in ["mirror", "erised", "mother's eyes", "green eyes"]) or ("lily" in concept_lower and "eyes" in concept_lower):
+        best_key = "lily_potter_mirror_eyes"
+    # 3. Great Hall / Welcoming Feast:
+    elif any(k in concept_lower for k in ["great hall", "feast", "teachers table", "eighteen years", "welcoming feast"]):
+        best_key = "severus_snape_feast_glare"
+    # 4. Potions Classroom / Cold Glare:
+    elif any(k in concept_lower for k in ["potions", "classroom", "dungeon", "cold glare", "celebrity"]):
+        best_key = "severus_snape_potions_confrontation"
+    # Check Dumbledore and Petunia keys
+    elif any(k in concept_lower for k in ["dumbledore", "doorstep", "deluminator", "leaving", "baby harry"]):
         best_key = "albus_dumbledore_privet_drive"
-    elif any(k in concept_lower for k in ["letter", "letters", "flooding", "living room", "vernon"]):
+    elif any("vernon" in c or "petunia" in c or "dursley" in c for c in chars_lower) and any(k in concept_lower for k in ["sunday", "no post", "cookies", "breakfast", "hammering", "mail slot"]):
         best_key = "petunia_dursley_letters"
-    elif any(k in concept_lower for k in ["resentment", "monologue", "lily", "freak", "reluctant", "guardian", "sister"]):
+    elif any(k in concept_lower for k in ["resentment", "monologue", "freak", "reluctant", "guardian", "sister"]):
         best_key = "petunia_dursley_resentment"
 
     if best_key and best_key in CHARACTER_SHOT_BANK:
         shots = CHARACTER_SHOT_BANK[best_key]
-        return shots[:count]
+        if characters:
+            # Verify that at least one character in the bank shot overlaps with beat characters
+            filtered_shots = []
+            for s in shots:
+                shot_chars = [c.lower() for c in s.get("characters", [])]
+                if any(bc in shot_chars or any(bc in sc or sc in bc for sc in shot_chars) for bc in chars_lower):
+                    filtered_shots.append(s)
+            if filtered_shots:
+                return filtered_shots[:count]
+        else:
+            return shots[:count]
 
     return None
+

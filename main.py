@@ -330,11 +330,11 @@ class ShortsPipeline:
         try:
             authoritative_db_voice = get_active_voice(db)
             if authoritative_db_voice not in APPROVED_PRODUCTION_VOICES:
-                authoritative_db_voice = "af_bella"
-            chosen_voice = voice or authoritative_db_voice or os.getenv("KOKORO_VOICE") or "af_bella"
+                authoritative_db_voice = "f5_cloned_narrator_v1"
+            chosen_voice = voice or authoritative_db_voice or os.getenv("KOKORO_VOICE") or "f5_cloned_narrator_v1"
             if chosen_voice not in APPROVED_PRODUCTION_VOICES:
-                logger.warning(f"Voice '{chosen_voice}' not in APPROVED_PRODUCTION_VOICES. Defaulting to 'af_bella'.")
-                chosen_voice = "af_bella"
+                logger.warning(f"Voice '{chosen_voice}' not in APPROVED_PRODUCTION_VOICES. Defaulting to 'f5_cloned_narrator_v1'.")
+                chosen_voice = "f5_cloned_narrator_v1"
             self.run_voice = chosen_voice
         finally:
             db.close()
@@ -767,7 +767,7 @@ class ShortsPipeline:
                     "produced_count": produced,
                     "initial_stock": 0,
                     "final_stock": produced,
-                    "voice": "af_bella",
+                    "voice": "f5_cloned_narrator_v1",
                     "timestamp": datetime.utcnow().isoformat() + "Z"
                 }
                 self._write_production_summary(summary)
@@ -782,7 +782,7 @@ class ShortsPipeline:
                         "produced_count": 0,
                         "initial_stock": 0,
                         "final_stock": 0,
-                        "voice": "af_bella",
+                        "voice": "f5_cloned_narrator_v1",
                         "timestamp": datetime.utcnow().isoformat() + "Z"
                     }
                     self._write_production_summary(summary)
@@ -792,7 +792,7 @@ class ShortsPipeline:
         from engines.hp_autonomous_refill import HPAutonomousRefillEngine
         orchestrator = HPAutonomousRefillEngine(
             drive_engine=self.drive_engine,
-            voice_id="af_bella",
+            voice_id="f5_cloned_narrator_v1",
             is_dry_run=is_dry_run or getattr(self, "dry_run", False),
             force_unlock=force_unlock
         )
@@ -806,7 +806,7 @@ class ShortsPipeline:
             "produced_count": telemetry.videos_deposited,
             "initial_stock": telemetry.initial_ready_stock,
             "final_stock": telemetry.final_ready_stock,
-            "voice": "af_bella",
+            "voice": "f5_cloned_narrator_v1",
             "timestamp": datetime.utcnow().isoformat() + "Z"
         }
         self._write_production_summary(summary)
@@ -851,7 +851,7 @@ class ShortsPipeline:
         from engines.hp_autonomous_refill import HPAutonomousRefillEngine
         orchestrator = HPAutonomousRefillEngine(
             drive_engine=self.drive_engine,
-            voice_id="af_bella",
+            voice_id="f5_cloned_narrator_v1",
             is_dry_run=is_dry_run or getattr(self, "dry_run", False),
             force_unlock=force_unlock
         )
@@ -866,7 +866,7 @@ class ShortsPipeline:
             "initial_stock": telemetry.initial_ready_stock,
             "final_stock": telemetry.final_ready_stock,
             "target_stock": clamped_target,
-            "voice": "af_bella",
+            "voice": "f5_cloned_narrator_v1",
             "timestamp": datetime.utcnow().isoformat() + "Z"
         }
         self._write_production_summary(summary)
@@ -2040,7 +2040,7 @@ class ShortsPipeline:
         console.print(Panel.fit(
             f"[bold green]=== AL-AMR 100% Autonomous Production & Scheduling Daemon ===[/bold green]\n"
             f"Reserve Buffer Target: [bold cyan]{target_stock} Verified Shorts[/bold cyan]\n"
-            f"Voice Lock: [bold green]af_bella[/bold green]\n"
+            f"Voice Lock: [bold green]f5_cloned_narrator_v1[/bold green]\n"
             f"Publishing Limit: [bold]3 Shorts/day (06:00, 11:00, 15:00 UTC)[/bold]\n"
             f"Horizon: [bold]Rolling 48-Hour Forward Horizon[/bold]\n"
             f"Convergence Interval: [bold yellow]{check_interval_sec // 60} minutes[/bold yellow]",
