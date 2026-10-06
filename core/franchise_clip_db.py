@@ -170,6 +170,17 @@ def insert_or_update_clip(clip_data: Dict[str, Any], db_path: Path = DB_PATH) ->
     conn.commit()
     conn.close()
 
+def get_clip_by_id(clip_id: str, db_path: Path = DB_PATH) -> Optional[Dict[str, Any]]:
+    """Retrieves a single clip record by clip_id."""
+    conn = get_connection(db_path)
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM franchise_clips WHERE clip_id = ?", (clip_id,))
+    row = cur.fetchone()
+    conn.close()
+    if row:
+        return dict(row)
+    return None
+
 def search_clips(
     query_str: str,
     movie_number: Optional[int] = None,

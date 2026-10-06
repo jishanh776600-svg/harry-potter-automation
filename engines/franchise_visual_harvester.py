@@ -90,11 +90,14 @@ class FranchiseVisualHarvester:
         return shots
 
     def extract_keyframe(self, movie_path: Path, timestamp_sec: float, out_img: Path) -> bool:
-        """Extracts a high-res JPG keyframe from the exact timestamp."""
+        """Extracts a high-res JPG keyframe with two-stage seek for frame accuracy."""
+        pre_seek = max(0.0, timestamp_sec - 2.0)
+        in_seek = timestamp_sec - pre_seek
         cmd = [
             "ffmpeg", "-y", "-loglevel", "error",
-            "-ss", f"{timestamp_sec:.2f}",
+            "-ss", f"{pre_seek:.2f}",
             "-i", str(movie_path),
+            "-ss", f"{in_seek:.2f}",
             "-vframes", "1",
             "-q:v", "2",
             str(out_img)
@@ -119,17 +122,17 @@ class FranchiseVisualHarvester:
         with open(image_path, "rb") as f:
             b64_img = base64.b64encode(f.read()).decode("utf-8")
 
-        prompt = f"""You are the Master Visual Archon for Harry Potter ({movie_title} at timestamp {int(timestamp_sec//60)}m {int(timestamp_sec%60)}s).
+        prompt = f"""You are an expert Harry Potter cinematic archivist ({movie_title} at timestamp {int(timestamp_sec//60)}m {int(timestamp_sec%60)}s).
 Analyze this exact movie frame and output strict JSON with these fields:
 {{
   "primary_subject": "Main character, object, or creature in focus",
-  "characters_present": ["list of named characters visible, or empty list"],
-  "character_expressions": "facial expression and emotion, e.g. 'cold glare', 'terrified', 'smiling warmly', or 'none'",
-  "visible_objects_props": ["key magical items, props, books, wands, clocks visible"],
+  "characters_present": ["list of named characters visible, e.g. Harry Potter, Snape, Draco Malfoy, or empty list"],
+  "character_expressions": "facial expression description, e.g. 'cold glare', 'terrified', 'smiling warmly', 'smirking', or 'none'",
+  "visible_objects_props": ["magical items, props, books, wands, statues visible"],
   "spells_magic_actions": "name of spell or magic active if any, else 'none'",
   "action_description": "Precise description of what physically appears or happens in this shot (1-2 sentences)",
   "lore_context": "Deeper canon/lore significance of this scene in the Harry Potter universe (1-2 sentences)",
-  "location_setting": "Specific place name, e.g. 'Potions Dungeon', 'The Burrow Kitchen', 'Great Hall'",
+  "location_setting": "Specific place name, e.g. 'Potions Dungeon', 'Great Hall', 'Forbidden Forest', 'Hogwarts Express'",
   "shot_scale": "CLOSE_UP, MEDIUM_SHOT, WIDE_ESTABLISHING, or TWO_SHOT",
   "camera_motion": "STATIC, TRACKING, SLOW_PUSH_IN, or PAN",
   "lighting_and_mood": "DARK_SUSPENSEFUL, WARM_DOMESTIC, GOTHIC_MYSTERIOUS, or CLIMACTIC",
@@ -138,7 +141,6 @@ Analyze this exact movie frame and output strict JSON with these fields:
 }}
 Output ONLY the raw JSON object."""
 
-        # Use NVIDIA Multimodal Vision model (tested 200 OK)
         url = "https://integrate.api.nvidia.com/v1/chat/completions"
         headers = {
             "Authorization": f"Bearer {NVIDIA_API_KEY}",
@@ -155,16 +157,15 @@ Output ONLY the raw JSON object."""
                     ]
                 }
             ],
-            "max_tokens": 400,
+            "max_tokens": 800,
             "temperature": 0.1
         }
 
         try:
             import re
-            resp = requests.post(url, headers=headers, json=payload, timeout=30)
+            resp = requests.post(url, headers=headers, json=payload, timeout=35)
             if resp.status_code == 200:
                 raw_text = resp.json()["choices"][0]["message"]["content"]
-                # Extract first valid JSON object via regex
                 m = re.search(r"\{.*\}", raw_text, re.DOTALL)
                 if m:
                     return json.loads(m.group(0))
@@ -202,15 +203,18 @@ Output ONLY the raw JSON object."""
         output_mp4: Path
     ) -> bool:
         """
-        Cuts exact clip, scales and crops cleanly to 1080x1920 (9:16 vertical),
+        Cuts exact clip with two-stage seek for frame accuracy, scales and crops cleanly to 1080x1920 (9:16 vertical),
         strips movie audio completely (-an), and encodes as fast H.264.
         """
+        pre_seek = max(0.0, start_sec - 2.0)
+        in_seek = start_sec - pre_seek
         dur = max(1.2, end_sec - start_sec)
         filter_str = "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920:(iw-1080)/2:(ih-1920)/2,setsar=1,fps=30"
         cmd = [
             "ffmpeg", "-y", "-loglevel", "error",
-            "-ss", f"{start_sec:.2f}",
+            "-ss", f"{pre_seek:.2f}",
             "-i", str(movie_path),
+            "-ss", f"{in_seek:.2f}",
             "-t", f"{dur:.2f}",
             "-vf", filter_str,
             "-an",  # Strictly audio-muted
