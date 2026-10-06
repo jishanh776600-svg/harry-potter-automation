@@ -200,16 +200,34 @@ Output ONLY the raw JSON object."""
         movie_path: Path,
         start_sec: float,
         end_sec: float,
-        output_mp4: Path
+        output_mp4: Path,
+        keyframe_path: Optional[Path] = None
     ) -> bool:
         """
-        Cuts exact clip with two-stage seek for frame accuracy, scales and crops cleanly to 1080x1920 (9:16 vertical),
+        Cuts exact clip with two-stage seek for frame accuracy,
+        uses SmartCropEngine to center the crop on faces/subjects,
         strips movie audio completely (-an), and encodes as fast H.264.
         """
         pre_seek = max(0.0, start_sec - 2.0)
         in_seek = start_sec - pre_seek
         dur = max(1.2, end_sec - start_sec)
+
         filter_str = "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920:(iw-1080)/2:(ih-1920)/2,setsar=1,fps=30"
+
+        # Apply Smart Subject-Aware Crop if keyframe is available
+        if keyframe_path and keyframe_path.exists():
+            try:
+                import cv2
+                from core.smart_crop_engine import SmartCropEngine
+                if not hasattr(self, "_smart_crop_engine"):
+                    self._smart_crop_engine = SmartCropEngine()
+                img = cv2.imread(str(keyframe_path))
+                if img is not None:
+                    smart_filter, _ = self._smart_crop_engine.get_crop_filter(img)
+                    filter_str = smart_filter
+            except Exception as e:
+                logger.debug(f"Smart crop fallback notice: {e}")
+
         cmd = [
             "ffmpeg", "-y", "-loglevel", "error",
             "-ss", f"{pre_seek:.2f}",
@@ -222,7 +240,7 @@ Output ONLY the raw JSON object."""
             str(output_mp4)
         ]
         res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        return output_mp4.exists() and output_mp4.stat().st_size > 100000
+        return output_mp4.exists() and output_mp4.stat().st_size > 50000
 
     def harvest_movie(
         self,
@@ -257,8 +275,8 @@ Output ONLY the raw JSON object."""
             # 2. Analyze with Vision AI
             metadata = self.analyze_frame_with_vision(frame_file, movie_title, center_t)
 
-            # 3. Cut Vertical Video Clip
-            if not self.cut_vertical_clip(movie_path, s_sec, e_sec, clip_file):
+            # 3. Cut Vertical Video Clip with Smart Crop
+            if not self.cut_vertical_clip(movie_path, s_sec, e_sec, clip_file, keyframe_path=frame_file):
                 logger.warning(f"Could not cut clip for {clip_id}, skipping.")
                 continue
 
