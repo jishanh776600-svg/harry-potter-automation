@@ -1043,3 +1043,156 @@
 | Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | `category` | **Harry Potter** | 1 | `+10.7%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+## Learning Cycle — 2026-10-06 09:05:44 UTC
+
+- **Mature Videos Evaluated**: 2
+- **Channel Performance Baseline**: 55.31/100
+
+| Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `category` | **Harry Potter** | 1 | `+10.7%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+## Learning Cycle — 2026-10-06 11:50:18 UTC
+
+- **Mature Videos Evaluated**: 2
+- **Channel Performance Baseline**: 55.31/100
+
+| Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `category` | **Harry Potter** | 1 | `+10.7%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+## Learning Cycle — 2026-10-06 12:08:45 UTC
+
+- **Mature Videos Evaluated**: 2
+- **Channel Performance Baseline**: 55.31/100
+
+| Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `category` | **Harry Potter** | 1 | `+10.7%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+## Learning Cycle — 2026-10-06 12:27:14 UTC
+
+- **Mature Videos Evaluated**: 2
+- **Channel Performance Baseline**: 55.31/100
+
+| Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `category` | **Harry Potter** | 1 | `+10.7%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+## Learning Cycle — 2026-10-06 12:46:03 UTC
+
+- **Mature Videos Evaluated**: 2
+- **Channel Performance Baseline**: 55.31/100
+
+| Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `category` | **Harry Potter** | 1 | `+10.7%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+## Learning Cycle — 2026-10-06 13:04:19 UTC
+
+- **Mature Videos Evaluated**: 2
+- **Channel Performance Baseline**: 55.31/100
+
+| Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `category` | **Harry Potter** | 1 | `+10.7%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+## Learning Cycle — 2026-10-06 13:22:51 UTC
+
+- **Mature Videos Evaluated**: 2
+- **Channel Performance Baseline**: 55.31/100
+
+| Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `category` | **Harry Potter** | 1 | `+10.7%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+## Learning Cycle — 2026-10-06 13:43:09 UTC
+
+- **Mature Videos Evaluated**: 2
+- **Channel Performance Baseline**: 55.31/100
+
+| Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `category` | **Harry Potter** | 1 | `+10.7%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+## Learning Cycle — 2026-10-06 14:12:39 UTC
+
+- **Mature Videos Evaluated**: 2
+- **Channel Performance Baseline**: 55.31/100
+
+| Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `category` | **Harry Potter** | 1 | `+10.7%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+## Learning Cycle — 2026-10-06 14:32:35 UTC
+
+- **Mature Videos Evaluated**: 2
+- **Channel Performance Baseline**: 55.31/100
+
+| Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `category` | **Harry Potter** | 1 | `+10.7%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+## Learning Cycle — 2026-10-06 14:50:39 UTC
+
+- **Mature Videos Evaluated**: 2
+- **Channel Performance Baseline**: 55.31/100
+
+| Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `category` | **Harry Potter** | 1 | `+10.7%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+## Learning Cycle — 2026-10-06 15:08:41 UTC
+
+- **Mature Videos Evaluated**: 2
+- **Channel Performance Baseline**: 55.31/100
+
+| Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `category` | **Harry Potter** | 1 | `+10.7%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+## Learning Cycle — 2026-10-06 15:26:51 UTC
+
+- **Mature Videos Evaluated**: 2
+- **Channel Performance Baseline**: 55.31/100
+
+| Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `category` | **Harry Potter** | 1 | `+10.7%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+## Learning Cycle — 2026-10-06 15:44:41 UTC
+
+- **Mature Videos Evaluated**: 2
+- **Channel Performance Baseline**: 55.31/100
+
+| Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `category` | **Harry Potter** | 1 | `+10.7%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+## Learning Cycle — 2026-10-06 16:05:57 UTC
+
+- **Mature Videos Evaluated**: 2
+- **Channel Performance Baseline**: 55.31/100
+
+| Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `category` | **Harry Potter** | 1 | `+10.7%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+## Learning Cycle — 2026-10-06 16:31:22 UTC
+
+- **Mature Videos Evaluated**: 2
+- **Channel Performance Baseline**: 55.31/100
+
+| Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `category` | **Harry Potter** | 1 | `+10.7%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+## Learning Cycle — 2026-10-06 16:49:47 UTC
+
+- **Mature Videos Evaluated**: 2
+- **Channel Performance Baseline**: 55.31/100
+
+| Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `category` | **Harry Potter** | 1 | `+10.7%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
