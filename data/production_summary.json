@@ -4,9 +4,9 @@
   "block_reason": null,
   "requested_deficit": 0,
   "produced_count": 0,
-  "initial_stock": 10,
-  "final_stock": 10,
+  "initial_stock": 16,
+  "final_stock": 16,
   "target_stock": 8,
   "voice": "f5_cloned_narrator_v1",
-  "timestamp": "2026-10-07T07:30:31.423412Z"
+  "timestamp": "2026-10-07T20:41:57.850628Z"
 }
