@@ -214,8 +214,8 @@ class HPAutonomousRefillEngine:
             HarryPotterScript.status.in_(terminal_statuses)
         )
 
-        if content_type.startswith("discovery"):
-            type_filter = HarryPotterScript.content_type.in_(["discovery", "discovery_big", "discovery_short"])
+        if content_type.lower().startswith("discovery") or "discovery" in content_type.lower():
+            type_filter = HarryPotterScript.content_type.in_(["discovery", "discovery_big", "discovery_short", "DEEP_DISCOVERY", "DISCOVERY_SHORT", "deep_discovery", "DISCOVERY_BIG"])
         else:
             type_filter = (HarryPotterScript.content_type == content_type)
 

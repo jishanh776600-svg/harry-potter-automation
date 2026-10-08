@@ -142,6 +142,15 @@ def is_valid_ready_short(
         if name.startswith("short_man_") or name.startswith("short_job_"):
             return False, f"Foreign AL AMR production artifact rejected from HP vault: '{name}'"
 
+        is_hp_valid, hp_reason = validate_hp_content_identity(
+            filename=name,
+            metadata_properties=props,
+            title=props.get("title", ""),
+            description=item_or_path.get("description", "")
+        )
+        if not is_hp_valid:
+            return False, f"Content identity check failed: {hp_reason}"
+
         # Check HPRender
         if db and name.startswith("hps_"):
             try:

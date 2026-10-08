@@ -948,7 +948,7 @@ OUTPUT STRICT JSON:
             longest = result_beats[longest_idx]
 
             text = longest.get("narration_text", "").strip()
-            parts = [p.strip() for p in re.split(r'(?<=[.!?])\s+|(?<=,)\s+|(?<=;\s*)', text) if p.strip()]
+            parts = [p.strip() for p in re.split(r'(?<=[.!?])\s+|(?<=,)\s+|(?<=;)\s*', text) if p.strip()]
 
             if len(parts) >= 2:
                 mid = len(parts) // 2
