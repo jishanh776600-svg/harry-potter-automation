@@ -1004,7 +1004,9 @@ class UploadEngine:
                     res = youtube.videos().list(part="status,snippet,statistics", id=rec.youtube_video_id).execute()
                     items = res.get("items", [])
                     if not items:
-                        logger.warning(f"[RECONCILE] Video {rec.youtube_video_id} not found on YouTube.")
+                        logger.warning(f"[RECONCILE] Video {rec.youtube_video_id} not found on YouTube. Marking record as CANCELLED.")
+                        rec.status = "CANCELLED"
+                        db.commit()
                         continue
 
                     status_obj = items[0].get("status", {})
