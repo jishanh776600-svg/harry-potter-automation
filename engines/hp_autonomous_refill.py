@@ -46,7 +46,7 @@ from core.cloud_lock import CloudLockManager, CloudLockError
 from engines.drive_engine import DriveVaultEngine
 from engines.hp_script_engine import HarryPotterScriptEngine
 from engines.hp_render_engine import HPRenderEngine
-from engines.movie_retrieval_engine import MovieRetrievalEngine
+from core.vault_clip_selector import VaultClipSelector
 from engines.content_planner import ContentPlannerEngine
 from engines.hp_learning_strategy import HPLearningStrategy
 
@@ -371,7 +371,7 @@ class HPAutonomousRefillEngine:
 
         # Step 2: Headless Composition & Rendering (Deterministic Fingerprint Cache Check)
         from engines.hp_render_engine import (
-            compute_render_fingerprint, DEFAULT_BGM_TRACK,
+            compute_render_fingerprint, DEFAULT_BGM_TRACK, DEFAULT_BGM_VOLUME_DB,
             FRAMING_POLICY_VERSION, VISUAL_POLICY_VERSION
         )
         visual_pol = getattr(script, "visual_source_policy", VISUAL_POLICY_VERSION) or VISUAL_POLICY_VERSION
@@ -381,7 +381,7 @@ class HPAutonomousRefillEngine:
             visual_beats_json=getattr(script, "visual_beats_json", "") or "",
             voice_id=self.voice_id,
             bgm_track=DEFAULT_BGM_TRACK,
-            bgm_volume_db=-28.0,
+            bgm_volume_db=DEFAULT_BGM_VOLUME_DB,
             framing_policy_version=FRAMING_POLICY_VERSION,
             visual_policy=visual_pol
         )
@@ -428,27 +428,24 @@ class HPAutonomousRefillEngine:
                     existing_shots = []
 
             if not existing_shots:
-                logger.info(f"[Refill:Visual] Resolving movie shots for {script_id} via MovieRetrievalEngine...")
+                logger.info(f"[Refill:Visual] Resolving movie shots for {script_id} via VaultClipSelector...")
                 try:
-                    retrieval_engine = MovieRetrievalEngine()
-                    shots = retrieval_engine.process_script_shots(script_id, allow_download=True)
-                    accepted_shots_count = session.query(HPMovieClip).filter_by(
-                        script_id=script_id,
-                        match_status="ACCEPTED"
-                    ).count()
+                    vault_selector = VaultClipSelector()
+                    shots = vault_selector.resolve_script_shots(script_id, session=session, allow_download=True)
+                    accepted_shots_count = len(shots)
                     if accepted_shots_count == 0:
-                        logger.warning(f"[Refill:Visual] 0 movie shots for {script_id}. Quarantining script...")
+                        logger.warning(f"[Refill:Visual] 0 vault movie shots for {script_id}. Quarantining script...")
                         script.qa_status = "FAILED"
                         script.status = "QUARANTINED"
                         session.commit()
-                        return False, script_id, f"Visual retrieval yielded 0 accepted movie shots for {script_id}"
-                    logger.info(f"[Refill:Visual] Successfully resolved {accepted_shots_count} movie shots for {script_id}")
+                        return False, script_id, f"Vault retrieval yielded 0 accepted movie shots for {script_id}"
+                    logger.info(f"[Refill:Visual] Successfully resolved {accepted_shots_count} vault movie shots for {script_id}")
                 except Exception as ve:
                     logger.error(f"[Refill:Visual] Visual shot resolution failed for {script_id}: {ve}")
                     script.qa_status = "FAILED"
                     script.status = "QUARANTINED"
                     session.commit()
-                    return False, script_id, f"Visual retrieval exception: {ve}"
+                    return False, script_id, f"Vault retrieval exception: {ve}"
 
             try:
                 render_engine = HPRenderEngine()
@@ -550,6 +547,10 @@ class HPAutonomousRefillEngine:
 
             return True, script_id, None
         except Exception as ue:
+            try:
+                session.rollback()
+            except Exception:
+                pass
             logger.error(f"[Refill:Vault] Drive upload failed for {script_id}: {ue}")
             return False, script_id, f"Drive deposit failed: {ue}"
 

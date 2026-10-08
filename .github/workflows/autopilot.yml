@@ -1,19 +1,22 @@
 name: YouTube Shorts Cloud Publisher
 # ==============================================================================
-# SCHEDULED CLOUD PUBLISHER: Autonomous Releaser (4x Daily Slots)
-# Strictly publishes 4 public Shorts daily directly from Google Drive Vault.
+# SCHEDULED CLOUD PUBLISHER: Autonomous Releaser (3x Daily Slots in 8-Hour Gaps)
+# Strictly publishes 3 public Shorts daily directly from Google Drive Vault:
+# Slot 1: 02:30 UTC (08:00 AM IST)
+# Slot 2: 10:30 UTC (04:00 PM IST)
+# Slot 3: 18:30 UTC (12:00 AM Midnight IST)
 # Execution Time: ~30-45 seconds (Ultra-fast: Claim -> Download -> Upload -> Move)
 # ==============================================================================
 
 on:
   schedule:
-    # Tier 1: Precision Pre-Warm (10 min before slots): 01:50, 07:50, 13:50, 19:50 UTC
-    # Wakes runner early, claims video from Drive, pre-verifies FFmpeg & metadata, sleeps until exact :00.00 sharp
-    - cron: '50 1,7,13,19 * * *'
+    # Tier 1: Precision Pre-Warm (10 min before slots): 02:20, 10:20, 18:20 UTC
+    # Wakes runner early, claims video from Drive, pre-verifies FFmpeg & metadata, sleeps until exact :30.00 sharp
+    - cron: '20 2,10,18 * * *'
     
     # Tier 2: Safe 6-Minute Autonomous Watchdog & Catchup:
     # Safely above GitHub's 5-min threshold (:00, :06, :12, :18, :24, :30, :36, :42, :48, :54).
-    # Catches up any network/cloud glitch within 6 minutes (exits in ~3s if slots already fulfilled).
+    # Catches up any missed slot within 6 minutes (exits in ~3s if slots already fulfilled).
     - cron: '*/6 * * * *'
   workflow_dispatch: # Allows manual on-demand publishing from GitHub Web / Mobile
 
@@ -106,9 +109,9 @@ jobs:
           echo "VISUAL_SOURCE_PRIORITY=movie_footage" >> .env
           echo "DISCOVERY_ONLY=true" >> .env
           echo "TARGET_RESERVE_BUFFER=8" >> .env
-          echo "SHORTS_PER_DAY=4" >> .env
+          echo "SHORTS_PER_DAY=3" >> .env
           echo "NOVEL_SHORTS_PER_DAY=0" >> .env
-          echo "DISCOVERY_SHORTS_PER_DAY=4" >> .env
+          echo "DISCOVERY_SHORTS_PER_DAY=3" >> .env
           echo "SCHEDULING_HORIZON_HOURS=48" >> .env
           echo "PUBLISHING_ENABLED=true" >> .env
           echo "UPLOAD_ENABLED=true" >> .env

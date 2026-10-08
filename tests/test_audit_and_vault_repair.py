@@ -298,9 +298,9 @@ def test_scheduler_strictly_respects_slots_and_daily_limit(db_session):
     ref_time = datetime(2026, 8, 31, 7, 0, 0)  # 07:00 UTC (after 06:00 slot)
     next_slot = scheduler.calculate_next_available_slot(db_session, reference_time=ref_time)
 
-    # Must allocate 11:00 UTC, strictly from PUBLISHING_SLOTS_UTC
-    assert next_slot.hour == 11
-    assert next_slot.minute == 0
+    # Must allocate 10:30 UTC, strictly from PUBLISHING_SLOTS_UTC
+    assert next_slot.hour == 10
+    assert next_slot.minute == 30
     canonical_hours = [h for h, m, _ in PUBLISHING_SLOTS_UTC]
     assert next_slot.hour in canonical_hours
 

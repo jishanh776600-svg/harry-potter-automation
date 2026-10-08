@@ -152,9 +152,9 @@ PART_MARKER_FORMAT = os.getenv("PART_MARKER_FORMAT", "PART {:02d}")
 DISCOVERY_ONLY = os.getenv("DISCOVERY_ONLY", "true").lower() in ("true", "1", "yes")
 NICHE = os.getenv("NICHE", "Harry Potter")
 DEFAULT_LANGUAGE = os.getenv("DEFAULT_LANGUAGE", "en")
-SHORTS_PER_DAY = int(os.getenv("SHORTS_PER_DAY", "4"))
-NOVEL_SHORTS_PER_DAY = 0 if DISCOVERY_ONLY else int(os.getenv("NOVEL_SHORTS_PER_DAY", "2"))
-DISCOVERY_SHORTS_PER_DAY = SHORTS_PER_DAY if DISCOVERY_ONLY else int(os.getenv("DISCOVERY_SHORTS_PER_DAY", "2"))
+SHORTS_PER_DAY = int(os.getenv("SHORTS_PER_DAY", "3"))
+NOVEL_SHORTS_PER_DAY = 0 if DISCOVERY_ONLY else int(os.getenv("NOVEL_SHORTS_PER_DAY", "0"))
+DISCOVERY_SHORTS_PER_DAY = SHORTS_PER_DAY if DISCOVERY_ONLY else int(os.getenv("DISCOVERY_SHORTS_PER_DAY", "3"))
 TARGET_RESERVE_BUFFER = int(os.getenv("TARGET_RESERVE_BUFFER", "8"))
 SCHEDULING_HORIZON_HOURS = int(os.getenv("SCHEDULING_HORIZON_HOURS", "48"))
 PUBLISHING_PLATFORMS = [
@@ -206,9 +206,9 @@ BGM_VOLUME_DB = float(os.getenv("BGM_VOLUME_DB", "-18.0"))  # -18.0 dB relative 
 # Image Generation Fallback Provider (Permanently disabled; 100% movie footage policy enforced)
 IMAGE_PROVIDER = None
 
-# Publishing Slots (4 per day)
+# Publishing Slots (3 per day)
 from config.constants import PUBLISHING_SLOTS_UTC
-PUBLISH_TIME_SLOTS = ["02:00", "08:00", "14:00", "20:00"]
+PUBLISH_TIME_SLOTS = ["02:30", "10:30", "18:30"]
 
 # Self-Improvement & Strategy Execution (Phase 4)
 SELF_IMPROVEMENT_ENABLED = os.getenv("SELF_IMPROVEMENT_ENABLED", "false").lower() == "true"

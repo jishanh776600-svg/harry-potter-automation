@@ -82,19 +82,48 @@ class CaptionEngine:
             self._model = WhisperModel(self.model_size, device="cpu", compute_type="int8")
         return self._model
 
+    HP_CANON_LEXICON = {
+        "queryl": "Quirrell",
+        "quirrel": "Quirrell",
+        "queril": "Quirrell",
+        "profit": "Prophet",
+        "gringot": "Gringotts",
+        "gringots": "Gringotts",
+        "gringot's": "Gringotts",
+        "griffindor": "Gryffindor",
+        "slitherin": "Slytherin",
+        "raven claw": "Ravenclaw",
+        "huffle puff": "Hufflepuff",
+        "dumbledor": "Dumbledore",
+        "mcgonagal": "McGonagall",
+        "hermione": "Hermione",
+        "hagrid": "Hagrid",
+        "voldemort": "Voldemort",
+    }
+
     def transcribe_words(self, audio_path: Path) -> List[Dict[str, Any]]:
-        """Extracts word-level timestamp entries."""
+        """Extracts word-level timestamp entries with Harry Potter lexicon enforcement."""
         model = self._get_whisper_model()
-        segments, _ = model.transcribe(str(audio_path), word_timestamps=True, language="en")
+        hp_prompt = "Harry Potter, Quirrell, Gringotts, Voldemort, Dumbledore, McGonagall, Hermione, Hogwarts, The Daily Prophet, Gryffindor, Slytherin, Ravenclaw, Hufflepuff"
+        segments, _ = model.transcribe(str(audio_path), word_timestamps=True, language="en", initial_prompt=hp_prompt)
+
+        def _clean_token(token: str) -> str:
+            clean_w = token.strip()
+            w_lower = re.sub(r"[^\w']", "", clean_w.lower())
+            if w_lower in self.HP_CANON_LEXICON:
+                canon_val = self.HP_CANON_LEXICON[w_lower]
+                punct = "".join([c for c in clean_w if not c.isalnum() and c != "'"])
+                return f"{canon_val}{punct}"
+            return clean_w
 
         words = []
         for segment in segments:
             if segment.words:
                 for w in segment.words:
-                    clean_w = w.word.strip()
-                    if clean_w:
+                    fixed_w = _clean_token(w.word)
+                    if fixed_w:
                         words.append({
-                            "word": clean_w,
+                            "word": fixed_w,
                             "start": round(w.start, 2),
                             "end": round(w.end, 2)
                         })
@@ -102,9 +131,10 @@ class CaptionEngine:
                 text_words = segment.text.strip().split()
                 dur = (segment.end - segment.start) / max(len(text_words), 1)
                 for idx, tw in enumerate(text_words):
-                    if tw.strip():
+                    fixed_w = _clean_token(tw)
+                    if fixed_w:
                         words.append({
-                            "word": tw.strip(),
+                            "word": fixed_w,
                             "start": round(segment.start + (idx * dur), 2),
                             "end": round(segment.start + ((idx + 1) * dur), 2)
                         })

@@ -75,6 +75,36 @@ AUXILIARY_DATABASES: Dict[str, Dict[str, Any]] = {
             );
             CREATE INDEX IF NOT EXISTS idx_sf_hash ON short_fingerprints(fingerprint_hash);
         """
+    },
+    "franchise_visual_vault": {
+        "filename": "franchise_visual_vault.db",
+        "local_path": DATABASE_DIR / "franchise_visual_vault.db",
+        "table": "franchise_clips",
+        "init_sql": """
+            CREATE TABLE IF NOT EXISTS franchise_clips (
+                clip_id TEXT PRIMARY KEY,
+                movie_number INTEGER NOT NULL,
+                movie_title TEXT NOT NULL,
+                start_seconds REAL NOT NULL,
+                end_seconds REAL NOT NULL,
+                duration_seconds REAL NOT NULL,
+                primary_subject TEXT NOT NULL,
+                characters_present TEXT,
+                character_expressions TEXT,
+                visible_objects_props TEXT,
+                spells_magic_actions TEXT,
+                action_description TEXT NOT NULL,
+                lore_context TEXT,
+                location_setting TEXT,
+                shot_scale TEXT,
+                camera_motion TEXT,
+                lighting_and_mood TEXT,
+                search_tags TEXT,
+                drive_file_id TEXT,
+                drive_category TEXT,
+                local_path TEXT
+            );
+        """
     }
 }
 

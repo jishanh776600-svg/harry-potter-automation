@@ -113,16 +113,16 @@ def run_full_port_verification():
         
         canonical_times = [(h, m) for h, m, _ in PUBLISHING_SLOTS_UTC]
         print(f"  Canonical Slot Times: {canonical_times}")
-        assert canonical_times == [(2, 0), (8, 0), (14, 0), (20, 0)], "Slot times mismatch!"
-        assert DAILY_SHORTS_LIMIT == 4, f"DAILY_SHORTS_LIMIT is {DAILY_SHORTS_LIMIT}, expected 4"
+        assert canonical_times == [(2, 30), (10, 30), (18, 30)], "Slot times mismatch!"
+        assert DAILY_SHORTS_LIMIT == 3, f"DAILY_SHORTS_LIMIT is {DAILY_SHORTS_LIMIT}, expected 3"
         
         for s in vacant_slots[:8]:
             print(f"    Available Slot: {s.strftime('%Y-%m-%d %H:%M UTC')}")
             assert (s.hour, s.minute) in canonical_times, f"Non-canonical slot time: {s}"
         
-        assert len(vacant_slots) >= 7, f"Expected at least 7-8 vacant slots in 48h horizon, got {len(vacant_slots)}"
+        assert len(vacant_slots) >= 5, f"Expected at least 5-6 vacant slots in 48h horizon, got {len(vacant_slots)}"
         test_results["test_3_horizon_allocation"] = "PASSED"
-        print("  --> [TEST 3 PASSED]: 4-slot/day horizon (02:00, 08:00, 14:00, 20:00 UTC) verified.")
+        print("  --> [TEST 3 PASSED]: 3-slot/day horizon (02:30, 10:30, 18:30 UTC) verified.")
     except Exception as e:
         test_results["test_3_horizon_allocation"] = f"FAILED: {e}"
         print(f"  --> [TEST 3 FAILED]: {e}")

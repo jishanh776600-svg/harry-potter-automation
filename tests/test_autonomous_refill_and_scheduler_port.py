@@ -46,10 +46,10 @@ class TestAutonomousRefillAndSchedulerPort(unittest.TestCase):
         self.assertEqual(EXPECTED_GOOGLE_ACCOUNT, "jishanh760@gmail.com")
         self.assertEqual(EXPECTED_DRIVE_ROOT_ID, "11K6v7PjLsnb8fVCsAm00YGmamvv4ygzC")
         self.assertEqual(EXPECTED_YOUTUBE_CHANNEL_ID, "UCsghEXDa3EzxI4d93cjT-bQ")
-        self.assertEqual(DAILY_SHORTS_LIMIT, 4)
+        self.assertEqual(DAILY_SHORTS_LIMIT, 3)
         self.assertEqual(TARGET_RESERVE_BUFFER, 8)
-        self.assertEqual(len(PUBLISHING_SLOTS_UTC), 4)
-        expected_slots = [(2, 0), (8, 0), (14, 0), (20, 0)]
+        self.assertEqual(len(PUBLISHING_SLOTS_UTC), 3)
+        expected_slots = [(2, 30), (10, 30), (18, 30)]
         actual_slots = [(h, m) for h, m, _ in PUBLISHING_SLOTS_UTC]
         self.assertEqual(actual_slots, expected_slots)
 

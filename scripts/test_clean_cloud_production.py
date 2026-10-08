@@ -34,13 +34,12 @@ def run_test():
     assert KOKORO_VOICE == 'af_bella', f'Unexpected default voice: {KOKORO_VOICE}'
     assert GOOGLE_DRIVE_VAULT_ROOT == 'Yt_harry_potter_automation', f'Unexpected vault root: {GOOGLE_DRIVE_VAULT_ROOT}'
     assert TARGET_RESERVE_BUFFER == 8, f'Unexpected buffer target: {TARGET_RESERVE_BUFFER}'
-    assert SHORTS_PER_DAY == 4, f'Unexpected daily shorts limit: {SHORTS_PER_DAY}'
+    assert SHORTS_PER_DAY == 3, f'Unexpected daily shorts limit: {SHORTS_PER_DAY}'
     assert SCHEDULING_HORIZON_HOURS == 48, f'Unexpected scheduling horizon: {SCHEDULING_HORIZON_HOURS}'
-    assert PUBLISHING_SLOTS_UTC == [(2, 0, '02:00 UTC (07:30 AM IST)'), (8, 0, '08:00 UTC (01:30 PM IST)'), (14, 0, '14:00 UTC (07:30 PM IST)'), (20, 0, '20:00 UTC (01:30 AM IST)')], f'Unexpected slots: {PUBLISHING_SLOTS_UTC}'
+    assert PUBLISHING_SLOTS_UTC == [(2, 30, '02:30 UTC (08:00 AM IST)'), (10, 30, '10:30 UTC (04:00 PM IST)'), (18, 30, '18:30 UTC (12:00 AM IST)')], f'Unexpected slots: {PUBLISHING_SLOTS_UTC}'
     print('  [+] Channel Safety Gate: LOCKED to UCsghEXDa3EzxI4d93cjT-bQ')
     print('  [+] Publishing & Upload: LOCKED to False')
-    print('  [+] Permanent Voice: LOCKED to af_bella (Bella Only)')
-    print('  [+] Buffer & Scheduling: 8 Reserve / 4 per Day / 48h Horizon')
+    print('  [+] Buffer & Scheduling: 8 Reserve / 3 per Day / 48h Horizon')
 
     # 2. Drive Vault Architecture
     print('\n[2/7] Drive Vault Architecture & Inventory...')

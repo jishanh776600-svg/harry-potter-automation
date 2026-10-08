@@ -173,8 +173,16 @@ def resolve_vault_file_metadata(candidate: Dict[str, Any], db: Optional[Session]
                     if len(title) > 95:
                         title = f"{hp_script.chapter_title} [{pt}] | Harry Potter #Shorts"
                 else:
-                    topic_clean = clean_hps_id.replace("hps_disc_", "").replace("_b1", "").replace("_", " ").title()
-                    if "Mirror Of Erised" in topic_clean:
+                    topic_clean = clean_hps_id.replace("hps_disc_", "").replace("_b1", "").replace("_b3", "").replace("_b5", "").replace("_b8", "").replace("_", " ").title()
+                    if hp_script.suggested_title:
+                        title = hp_script.suggested_title
+                    elif "Dementor" in topic_clean or "Chocolate" in topic_clean:
+                        title = "Why Lupin REALLY Gave Harry Chocolate on the Train | Harry Potter #Shorts"
+                    elif "Luna" in topic_clean or "Thestral" in topic_clean:
+                        title = "The Tragic Reason Luna Was Barefoot in the Snow | Harry Potter #Shorts"
+                    elif "Snape" in topic_clean and ("Tear" in topic_clean or "Prince" in topic_clean):
+                        title = "The Secret Hidden in Snape's Final Silvery Tear | Harry Potter #Shorts"
+                    elif "Mirror Of Erised" in topic_clean:
                         title = "The Secret Inscription on the Mirror of Erised | Harry Potter #Shorts"
                     elif "Neville Remembrall" in topic_clean:
                         title = "The Movie Secret in Neville's Remembrall | Harry Potter #Shorts"
@@ -184,7 +192,7 @@ def resolve_vault_file_metadata(candidate: Dict[str, Any], db: Optional[Session]
                         title = "The Poltergeist Deleted from the Movies | Harry Potter #Shorts"
                     elif "Dursleys" in topic_clean or "Dumbledore Explains Dursleys" in topic_clean:
                         title = "Why Harry REALLY Had to Stay with the Dursleys | Harry Potter #Shorts"
-                    elif "Patronus" in topic_clean or "Prince" in topic_clean:
+                    elif "Patronus" in topic_clean:
                         title = "The Secret Meaning Behind Snape's Patronus | Harry Potter #Shorts"
                     else:
                         title = f"{topic_clean} | Harry Potter Discovery #Shorts"
@@ -1764,12 +1772,13 @@ class ShortsPipeline:
             except Exception as rec_err:
                 logger.warning(f"Reconciliation check notice: {rec_err}")
 
-            # 2. Slot Due Audit for Today (02:00, 08:00, 14:00, 20:00 UTC)
-            from config.constants import get_business_day_bounds_utc, DAILY_SHORTS_LIMIT, PUBLISHING_SLOTS_UTC
+            # 2. Slot Due Audit for Today (02:30, 10:30, 18:30 UTC / 08:00 AM, 04:00 PM, 12:00 AM IST)
+            from config.constants import DAILY_SHORTS_LIMIT, PUBLISHING_SLOTS_UTC
             from datetime import time as dtime
-            today_start, today_end = get_business_day_bounds_utc()
             now_utc = datetime.utcnow()
             today_date = now_utc.date()
+            today_start = datetime.combine(today_date, dtime.min)
+            today_end = datetime.combine(today_date, dtime.max)
 
             today_slot_times = [
                 datetime.combine(today_date, dtime(hour, minute))
@@ -1779,13 +1788,13 @@ class ShortsPipeline:
             published_today = db.query(UploadRecord).filter(
                 UploadRecord.status.in_(["PUBLISHED", "SUCCESS"]),
                 UploadRecord.published_at >= today_start,
-                UploadRecord.published_at < today_end
+                UploadRecord.published_at <= today_end
             ).count()
 
             scheduled_today = db.query(UploadRecord).filter(
                 UploadRecord.status == "SCHEDULED",
                 UploadRecord.scheduled_publish_at >= now_utc,
-                UploadRecord.scheduled_publish_at < today_end
+                UploadRecord.scheduled_publish_at <= today_end
             ).count()
 
             total_booked_today = published_today + scheduled_today
@@ -1795,7 +1804,7 @@ class ShortsPipeline:
 
             console.print(
                 f"[cyan][*] Slot Due Audit (Today):[/cyan] "
-                f"Slots Passed/Due: [bold]{len(due_slots)}/4[/bold] | "
+                f"Slots Passed/Due: [bold]{len(due_slots)}/{DAILY_SHORTS_LIMIT}[/bold] | "
                 f"Published: [bold]{published_today}[/bold] | "
                 f"Scheduled: [bold]{scheduled_today}[/bold] | "
                 f"Total Booked: [bold]{total_booked_today}/{DAILY_SHORTS_LIMIT}[/bold]"
@@ -1807,7 +1816,7 @@ class ShortsPipeline:
 
             if slots_needed <= 0:
                 next_slots = [s for s in today_slot_times if s > (now_utc + lead_buffer)]
-                next_slot_str = next_slots[0].strftime("%H:%M UTC") if next_slots else "Tomorrow 02:00 UTC"
+                next_slot_str = next_slots[0].strftime("%H:%M UTC") if next_slots else f"Tomorrow {PUBLISHING_SLOTS_UTC[0][0]:02d}:{PUBLISHING_SLOTS_UTC[0][1]:02d} UTC"
                 console.print(f"[bold yellow][*] All {len(due_slots)} due slot(s) for today have already been fulfilled. Next release slot is at {next_slot_str}.[/bold yellow]")
                 return {
                     "status": "NO_DUE_SLOTS",
@@ -1870,7 +1879,8 @@ class ShortsPipeline:
                 title = resolved_meta["title"]
                 description = resolved_meta["description"]
 
-                job_id = chosen_file.get("properties", {}).get("job_id") or f"job_live_{file_id[:8]}"
+                script_candidate_id = resolved_meta.get("script_id") or (name.replace(".mp4", "") if name.startswith("hps_") else None)
+                job_id = chosen_file.get("properties", {}).get("job_id") or (f"job_{script_candidate_id}" if script_candidate_id else f"job_live_{file_id[:8]}")
                 job = db.query(Job).filter_by(id=job_id).first()
                 if not job:
                     job = Job(id=job_id, state=JobState.READY_TO_UPLOAD.value)
@@ -1898,6 +1908,7 @@ class ShortsPipeline:
                 metadata = {
                     "title": title,
                     "description": description,
+                    "script_id": resolved_meta.get("script_id") or script_candidate_id,
                     "tags": [
                         "Harry Potter", "Wizarding World", "Hogwarts", "Harry Potter Lore",
                         "Harry Potter Facts", "Movie Facts", "Shorts", "Harry Potter Shorts",

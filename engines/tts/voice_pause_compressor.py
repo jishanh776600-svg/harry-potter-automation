@@ -31,8 +31,8 @@ import soundfile as sf
 logger = logging.getLogger("VoicePauseCompressor")
 
 PAUSE_COMPRESSION_FACTOR: float = 0.70
-DEFAULT_MAX_PAUSE_SEC: float = 0.14   # 30% reduction from 0.20s
-DEFAULT_TARGET_PAUSE_SEC: float = 0.105 # 30% reduction from 0.15s
+DEFAULT_MAX_PAUSE_SEC: float = 0.105   # 25% tighter (0.14s -> 0.105s permanent)
+DEFAULT_TARGET_PAUSE_SEC: float = 0.080 # 25% tighter (0.105s -> 0.080s permanent)
 DEFAULT_SILENCE_RMS_THRESH: float = 0.012
 DEFAULT_FRAME_MS: float = 10.0
 PRE_SPEECH_PAD_MS: float = 25.0   # 25ms hangover prevents clipping attack consonants while eliminating drag

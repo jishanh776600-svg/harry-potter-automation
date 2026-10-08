@@ -69,14 +69,8 @@ class SmartCropEngine:
             c1 = primary_x + primary_w / 2.0
             c2 = sec_x + sec_w / 2.0
             dist = abs(c1 - c2)
-            target_crop_w = int(h * (9.0 / 16.0))
-
-            if dist > (target_crop_w * 0.85):
-                # Faces too far apart to fit in single 9:16 crop without chopping one
-                return int((c1 + c2) / 2.0), "FACE_MULTI_WIDE"
-            else:
-                # Both fit, center on primary face slightly weighted towards group
-                return int(c1 * 0.7 + c2 * 0.3), "FACE_MULTI"
+            # Always keep full-bleed 9:16 immersion centered on primary subject
+            return int(primary_x + primary_w / 2.0), "FACE_PRIMARY"
 
         # 3. Non-face Object / Prop Saliency Detection
         try:
@@ -103,12 +97,17 @@ class SmartCropEngine:
         # Fallback to physical frame center
         return int(w / 2.0), "CENTER_DEFAULT"
 
-    def get_crop_filter(self, image_np: np.ndarray) -> Tuple[str, Dict[str, Any]]:
+    def get_crop_filter(self, image_np: np.ndarray, target_x_pct: Optional[float] = None) -> Tuple[str, Dict[str, Any]]:
         """
         Returns the optimal FFmpeg video filter string for 1080x1920 9:16 output.
+        If target_x_pct is provided (0.0 to 1.0), centers crop horizontally at that fraction.
         """
         h, w = image_np.shape[:2]
-        subject_x, det_type = self.detect_subject_x_center(image_np)
+        if target_x_pct is not None:
+            subject_x = int(w * max(0.0, min(1.0, target_x_pct)))
+            det_type = "EXPLICIT_TARGET_ROI"
+        else:
+            subject_x, det_type = self.detect_subject_x_center(image_np)
 
         target_w = int(h * (9.0 / 16.0))
         # Ensure even numbers
@@ -148,3 +147,30 @@ class SmartCropEngine:
             "crop_w": target_w,
             "det_type": det_type
         }
+
+    def get_filter_for_clip(self, clip_path: Path, target_x_pct: Optional[float] = None) -> str:
+        """
+        Extracts sample frame from a video clip and returns the optimal FFmpeg filter
+        to conform it to 1080x1920 @ 30fps with smart subject centering.
+        """
+        default_filter = "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920:(iw-1080)/2:(ih-1920)/2,setsar=1,fps=30"
+        try:
+            cap = cv2.VideoCapture(str(clip_path))
+            total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) or 1)
+            target_frame_idx = max(0, min(total_frames - 1, total_frames // 3))
+            cap.set(cv2.CAP_PROP_POS_FRAMES, target_frame_idx)
+            ret, frame = cap.read()
+            cap.release()
+
+            if not ret or frame is None:
+                return default_filter
+
+            h, w = frame.shape[:2]
+            # If already vertical (9:16 or close), just scale cleanly
+            if h > w and (w / max(h, 1)) <= 0.65:
+                return "scale=1080:1920,setsar=1,fps=30"
+
+            filter_str, _ = self.get_crop_filter(frame, target_x_pct=target_x_pct)
+            return filter_str
+        except Exception:
+            return default_filter

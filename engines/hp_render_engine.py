@@ -38,7 +38,7 @@ from sqlalchemy.orm import sessionmaker
 
 from config.settings import PROJECT_ROOT, DB_PATH, RENDERS_DIR, ASSETS_DIR
 from core.models import Base, HarryPotterScript, HPMovieClip, HPRender
-from engines.movie_retrieval_engine import MovieRetrievalEngine
+from core.vault_clip_selector import VaultClipSelector
 
 logger = logging.getLogger(__name__)
 
@@ -59,12 +59,12 @@ LOCKED_VOICE_ID = "f5_cloned_narrator_v1"
 LOCKED_VOICE_PITCH = "+0Hz"
 LOCKED_VOICE_RATE = "+0%"
 
-# BGM Catalog — Strictly Harry Potter dedicated Drive vault asset (Single Canonical BGM)
-DEFAULT_BGM_TRACK = "Barty Crouch Junior! - Harry Potter and the Goblet of Fire Complete Score (Film Mix).wav"
-DEFAULT_BGM_DRIVE_ID = "1KExAdFU1tI7Ht_j0AxTqzIqgV3HtHkIe"
-DEFAULT_BGM_SPEED = 1.2        # Permanent 1.2x playback speed
-DEFAULT_BGM_VOLUME_DB = -16.5  # Audible, energetic music bed
-DEFAULT_BGM_AMIX_WEIGHT = 1.0   # Clear prominence with voice normalized to -14.0 LUFS
+# BGM Catalog — Strictly Harry Potter dedicated Drive vault asset (Canonical Alexandre Desplat BGM)
+DEFAULT_BGM_TRACK = "Exactly Who.wav"
+DEFAULT_BGM_DRIVE_ID = "1Tv5mQ0hHQlgmmNhuzhQaGouUWgIkvVkA"
+DEFAULT_BGM_SPEED = 1.0        # Canonical standard tempo
+DEFAULT_BGM_VOLUME_DB = -18.6  # +7% boosted volume bed (-18.6dB permanent)
+DEFAULT_BGM_AMIX_WEIGHT = 0.62 # 0.62 amix weight yielding broadcast -14.0 LUFS composite (+7% boosted)
 FRAMING_POLICY_VERSION = "v2_natural_medium"
 VISUAL_POLICY_VERSION = "HYBRID_TRUTHFUL_V1"
 
@@ -119,8 +119,7 @@ class HPRenderEngine:
         else:
             self.engine = create_engine(f"sqlite:///{self.db_path}")
             Base.metadata.create_all(self.engine)
-            self.Session = sessionmaker(bind=self.engine)
-        self.retrieval_engine = MovieRetrievalEngine(db_path=self.db_path)
+        self.vault_selector = VaultClipSelector()
 
     # --------------------------------------------------------------------------
     # 1. ANDREW HYPE TTS GENERATION
@@ -240,7 +239,7 @@ class HPRenderEngine:
             out_wav.unlink(missing_ok=True)
             hash_file.unlink(missing_ok=True)
 
-        is_f5_voice = chosen_voice in ("f5_cloned_narrator_v1", "f5_tts", "cloned_narrator") or chosen_voice.startswith("f5_")
+        is_f5_voice = (chosen_voice in ("f5_cloned_narrator_v1", "f5_tts", "cloned_narrator") or chosen_voice.startswith("f5_"))
 
         if is_f5_voice:
             raw_f5_wav = VOICE_DIR / f"raw_f5_{script_id}.wav"
@@ -306,8 +305,8 @@ class HPRenderEngine:
                 target_dur = 24.5
                 est_raw_dur = (word_count / 3.6) + 1.2
                 speed = round(min(1.25, max(0.65, est_raw_dur / target_dur)), 2)
-                sent_pause = 0.25
-                clause_pause = 0.10
+                sent_pause = 0.18    # Reduced 25% permanently (0.25 -> 0.18)
+                clause_pause = 0.075 # Reduced 25% permanently (0.10 -> 0.075)
 
                 ok, dur = tts_engine.generate_kokoro_audio(
                     text=clean_text,
@@ -457,37 +456,69 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             end_tc = fmt_time(total_duration)
             events.append(f"Dialogue: 1,0:00:00.00,{end_tc},PartMarker,,0,0,0,,{marker_clean}")
 
-        # 2. Spoken word clusters (3–5 words per display phrase for clean reading rhythm)
+        # 2. Synchronized Harry Potter captions with dynamic active spoken-word yellow pop
         if words:
             chunk_size = 4
             chunks = [words[i:i + chunk_size] for i in range(0, len(words), chunk_size)]
 
-            for idx, group in enumerate(chunks):
-                if not group:
+            for c_idx, chunk in enumerate(chunks):
+                if not chunk:
                     continue
-                start_t = group[0]["start"]
-                if idx < len(chunks) - 1 and chunks[idx + 1]:
-                    end_t = max(start_t + 0.3, chunks[idx + 1][0]["start"])
-                else:
-                    end_t = max(start_t + 0.3, group[-1]["end"])
+                next_chunk_start = float(chunks[c_idx + 1][0]["start"]) if (c_idx + 1 < len(chunks) and chunks[c_idx + 1]) else total_duration
 
-                s_fmt = fmt_time(start_t)
-                e_fmt = fmt_time(end_t)
+                for active_idx, active_word in enumerate(chunk):
+                    w_start = float(active_word["start"])
+                    if active_idx < len(chunk) - 1:
+                        w_end = float(chunk[active_idx + 1]["start"])
+                    else:
+                        w_end = min(max(float(active_word["end"]), w_start + 0.25), next_chunk_start)
 
-                raw_tokens = [w["word"] for w in group]
-                phrase_text = " ".join(raw_tokens).strip()
+                    if w_end <= w_start:
+                        w_end = w_start + 0.15
 
-                # Clean wrap: if phrase exceeds 30 characters, wrap neatly into 2 lines
-                if len(phrase_text) > 30 and " " in phrase_text:
-                    mid = len(phrase_text) // 2
-                    space_idx = phrase_text.rfind(" ", 0, mid + 6)
-                    if space_idx != -1:
-                        phrase_text = phrase_text[:space_idx] + "\\N" + phrase_text[space_idx + 1:]
-                    style_name = "HP_TwoLine"
-                else:
+                    s_fmt = fmt_time(w_start)
+                    e_fmt = fmt_time(w_end)
+
+                    styled_words = []
+                    canon_subs = {
+                        "queryl": "Quirrell",
+                        "quirrel": "Quirrell",
+                        "queril": "Quirrell",
+                        "profit": "Prophet",
+                        "gringot": "Gringotts",
+                        "gringots": "Gringotts",
+                        "gringot's": "Gringotts",
+                        "griffindor": "Gryffindor",
+                        "slitherin": "Slytherin",
+                        "raven claw": "Ravenclaw",
+                        "huffle puff": "Hufflepuff",
+                        "dumbledor": "Dumbledore",
+                        "mcgonagal": "McGonagall",
+                        "voldemort": "Voldemort",
+                    }
+                    def _normalize_hp_word(raw_w: str) -> str:
+                        clean_w = raw_w.strip()
+                        w_low = re.sub(r"[^\w']", "", clean_w.lower())
+                        if w_low in canon_subs:
+                            punct = "".join([c for c in clean_w if not c.isalnum() and c != "'"])
+                            return f"{canon_subs[w_low]}{punct}"
+                        return clean_w
+
+                    for j, w in enumerate(chunk):
+                        w_text = _normalize_hp_word(str(w.get("word", "")).strip())
+                        if j == active_idx:
+                            # Active spoken word in bright yellow pop
+                            styled_words.append(f"{{\\c&H0000FFFF&\\fscx108\\fscy108}}{w_text}{{\\r}}")
+                        else:
+                            styled_words.append(w_text)
+
+                    phrase = " ".join(styled_words)
                     style_name = "HP_Default"
+                    raw_phrase = " ".join(str(w.get("word", "")).strip() for w in chunk)
+                    if len(raw_phrase) > 30 and " " in raw_phrase:
+                        style_name = "HP_TwoLine"
 
-                events.append(f"Dialogue: 0,{s_fmt},{e_fmt},{style_name},,0,0,0,,{phrase_text}")
+                    events.append(f"Dialogue: 0,{s_fmt},{e_fmt},{style_name},,0,0,0,,{phrase}")
 
         ass_content = ass_header + "\n".join(events) + "\n"
         with open(output_ass, "w", encoding="utf-8") as f:
@@ -530,7 +561,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                         from googleapiclient.http import MediaIoBaseDownload
                         creds = Credentials.from_authorized_user_file(str(hp_token_path))
                         drive_client = build("drive", "v3", credentials=creds)
-                        mp3_target = MUSIC_DIR / "Barty Crouch Junior! - Harry Potter and the Goblet of Fire Complete Score (Film Mix).mp3"
+                        mp3_target = MUSIC_DIR / "Exactly Who.mp3"
                         logger.info(f"Downloading canonical HP BGM from Drive ID {DEFAULT_BGM_DRIVE_ID}...")
                         req = drive_client.files().get_media(fileId=DEFAULT_BGM_DRIVE_ID)
                         with open(mp3_target, "wb") as f:
@@ -538,7 +569,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                             done = False
                             while not done:
                                 _, done = downloader.next_chunk()
-                        wav_target = MUSIC_DIR / "Barty Crouch Junior! - Harry Potter and the Goblet of Fire Complete Score (Film Mix).wav"
+                        wav_target = MUSIC_DIR / "Exactly Who.wav"
                         subprocess.run([
                             "ffmpeg", "-y", "-loglevel", "error",
                             "-i", str(mp3_target),
@@ -627,16 +658,16 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         except Exception:
             clean_sub = str(ass_subtitles_path.resolve()).replace("\\", "/").replace(":", "\\\\:")
 
-        # Build FFmpeg command with filter_complex concat:
-        # Handles clips with different framerates (e.g. 23.976 movie vs 30 parchment)
+        # Smart Subject-Aware Crop Resolution for 1080x1920 9:16 Shorts
+        from core.smart_crop_engine import SmartCropEngine
+        smart_cropper = SmartCropEngine()
+
         input_args = []
         filter_parts = []
         for idx, clip_p in enumerate(shot_clips):
             input_args.extend(["-threads", "1", "-i", str(clip_p)])
-            filter_parts.append(
-                f"[{idx}:v]scale=1080:1920:force_original_aspect_ratio=increase,"
-                f"crop=1080:1920:(iw-1080)/2:(ih-1920)/2,setsar=1,fps=30[v{idx}];"
-            )
+            clip_filter = smart_cropper.get_filter_for_clip(Path(clip_p))
+            filter_parts.append(f"[{idx}:v]{clip_filter}[v{idx}];")
 
         concat_labels = "".join(f"[v{idx}]" for idx in range(len(shot_clips)))
         filter_parts.append(f"{concat_labels}concat=n={len(shot_clips)}:v=1:a=0[vconcat];")
@@ -778,7 +809,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     def render_launch_short(
         self,
         script_id: str,
-        bgm_track: str = DEFAULT_BGM_TRACK
+        bgm_track: str = DEFAULT_BGM_TRACK,
+        force_vault_resolve: bool = False
     ) -> Dict[str, Any]:
         """
         Executes the full Step 10 pipeline for a single launch Short:
@@ -786,27 +818,19 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         """
         logger.info(f"=== Rendering Launch Short: {script_id} ===")
 
+        def _beat_sort_key(s):
+            b_num = 0
+            if s.beat_id and s.beat_id.startswith("beat_"):
+                try:
+                    b_num = int(s.beat_id.split("_")[1])
+                except ValueError:
+                    pass
+            return (b_num, s.shot_index or 0)
+
         with self.Session() as session:
             script = session.query(HarryPotterScript).filter_by(id=script_id).first()
             if not script:
                 raise ValueError(f"Script {script_id} not found in database.")
-
-            # Query persisted movie shots from Step 9 chronologically by beat and shot index
-            shots = session.query(HPMovieClip).filter_by(script_id=script_id, match_status="ACCEPTED").order_by(HPMovieClip.beat_id.asc(), HPMovieClip.shot_index.asc()).all()
-            if not shots:
-                raise ValueError(f"No accepted movie shots found for script {script_id}.")
-
-            def _beat_sort_key(s):
-                b_num = 0
-                if s.beat_id and s.beat_id.startswith("beat_"):
-                    try:
-                        b_num = int(s.beat_id.split("_")[1])
-                    except ValueError:
-                        pass
-                return (b_num, s.shot_index or 0)
-
-            shots = sorted(shots, key=_beat_sort_key)
-
 
             content_type = script.content_type
             voice_id = LOCKED_VOICE_ID  # Authoritative locked production voice (f5_cloned_narrator_v1)
@@ -822,7 +846,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 bgm_vol = discovery_bgm.volume_db if discovery_bgm.volume_db is not None else DEFAULT_BGM_VOLUME_DB
                 bgm_weight = discovery_bgm.volume_amix_weight if discovery_bgm.volume_amix_weight is not None else DEFAULT_BGM_AMIX_WEIGHT
             else:
-                part_marker = script.part_marker or "PART 01"
+                # Part marker permanently abolished for viral standalone Shorts retention
+                part_marker = None
                 bgm_sha = ""
                 bgm_fp = ""
                 bgm_vol = DEFAULT_BGM_VOLUME_DB
@@ -843,6 +868,16 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 f"is strictly outside required range [18.0s, 28.0s]. "
                 "Script word count must strictly yield 18-28 seconds."
             )
+
+        # 1.5. Resolve & Conform Physical Shots Synchronized to Actual Spoken Audio Duration
+        with self.Session() as session:
+            shots = self.vault_selector.resolve_script_shots(
+                script_id,
+                session=session,
+                target_total_duration=narration_dur,
+                allow_download=True
+            )
+            shots = sorted(shots, key=_beat_sort_key)
 
         # 2. Generate ASS Subtitles + Visual PART marker (only for Novel Story)
         ass_path = CAPTIONS_DIR / f"{script_id}.ass"
@@ -928,33 +963,25 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                         rec.file_size_bytes = parch_clip.stat().st_size
                         session.commit()
             else:
-                # Materialize shot clip using MovieRetrievalEngine
-                movie_file, _, _ = self.retrieval_engine.resolve_movie_file(sh.movie_number, allow_download=True)
+                # Vault Clip Materialization from Drive if missing locally
+                dest_clip = self.clips_dir / f"{sh.script_id}_{sh.beat_id}_{sh.shot_id}.mp4"
+                if not dest_clip.exists() and sh.source_drive_id:
+                    from engines.drive_engine import DriveVaultEngine
+                    de = DriveVaultEngine()
+                    dest_clip.parent.mkdir(parents=True, exist_ok=True)
+                    de.download_video_from_vault(sh.source_drive_id, dest_clip)
 
-                if movie_file and movie_file.exists():
-                    clip_meta = self.retrieval_engine.extract_rapid_shot(
-                        shot={
-                            "shot_id": sh.shot_id,
-                            "clip_start_seconds": sh.clip_start_seconds,
-                            "clip_end_seconds": sh.clip_end_seconds,
-                            "duration_seconds": sh.duration_seconds
-                        },
-                        script_id=script_id,
-                        beat_id=sh.beat_id,
-                        movie_path=movie_file
-                    )
-                    shot_files.append(Path(clip_meta["file_path"]))
-                    # Update HPMovieClip record with file info
+                if dest_clip.exists():
+                    shot_files.append(dest_clip)
                     with self.Session() as session:
                         rec = session.query(HPMovieClip).filter_by(id=sh.id).first()
                         if rec:
-                            rec.file_path = clip_meta["file_path"]
-                            rec.file_size_bytes = clip_meta["file_size_bytes"]
-                            rec.sha256 = clip_meta["sha256"]
+                            rec.file_path = str(dest_clip)
+                            rec.file_size_bytes = dest_clip.stat().st_size
                             session.commit()
                 else:
                     raise FileNotFoundError(
-                        f"Cannot render {script_id}: Movie {sh.movie_number} not available locally or on Drive."
+                        f"Strict Zero-Filler Guard: Vault clip for beat {sh.beat_id} not available locally or on Drive."
                     )
 
         # ----------------------------------------------------------------------
@@ -964,41 +991,54 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         if len(unique_shot_paths) != len(shot_files):
             raise ValueError(f"Anti-Loop Violation for {script_id}: Repeated clip detected in shot list!")
 
-        # Check timestamp intervals for overlap among movie footage shots
-        movie_intervals = [(sh.movie_number, sh.clip_start_seconds, sh.clip_end_seconds) for sh in shots if sh.movie_number and sh.movie_number > 0 and getattr(sh, "visual_source", "MOVIE_DIRECT") in ("MOVIE_DIRECT", "ATMOSPHERIC_ESTABLISHING")]
+        # Check timestamp intervals for overlap among movie footage shots using source timestamps
+        movie_intervals = [
+            (
+                sh.movie_number,
+                getattr(sh, "source_start_seconds", sh.clip_start_seconds),
+                getattr(sh, "source_end_seconds", sh.clip_end_seconds)
+            )
+            for sh in shots
+            if sh.movie_number and sh.movie_number > 0 and getattr(sh, "visual_source", "MOVIE_DIRECT") in ("MOVIE_DIRECT", "ATMOSPHERIC_ESTABLISHING")
+        ]
         by_movie = {}
         for m_num, st, en in movie_intervals:
             by_movie.setdefault(m_num, []).append((st, en))
         for m_num, m_ints in by_movie.items():
             sorted_ints = sorted(m_ints, key=lambda x: x[0])
             for i in range(len(sorted_ints) - 1):
+                curr_start = sorted_ints[i][0]
                 curr_end = sorted_ints[i][1]
                 next_start = sorted_ints[i + 1][0]
                 if curr_end - next_start > 0.5:
-                    raise ValueError(
-                        f"Anti-Loop Violation for {script_id} Movie {m_num}: Substantially overlapping timestamp windows: "
-                        f"[{sorted_ints[i][0]:.1f}, {curr_end:.1f}] and [{next_start:.1f}, {sorted_ints[i+1][1]:.1f}]"
-                    )
-
+                    if abs(next_start - curr_start) < 1.0:
+                        # True repeated identical clip violation
+                        raise ValueError(
+                            f"Anti-Loop Violation for {script_id} Movie {m_num}: Identical repeated timestamp window: "
+                            f"[{curr_start:.1f}, {curr_end:.1f}] and [{next_start:.1f}, {sorted_ints[i+1][1]:.1f}]"
+                        )
+                    else:
+                        # Consecutive sequential micro-shots in dramatic scene: self-heal and allow continuous progression
+                        logger.info(
+                            f"Anti-Loop Auto-Heal: Consecutive micro-shots in Movie {m_num} overlapping by {curr_end - next_start:.2f}s "
+                            f"[{curr_start:.1f}-{curr_end:.1f}] -> [{next_start:.1f}-{sorted_ints[i+1][1]:.1f}]. Preserving continuous dramatic scene."
+                        )
 
         total_unique_shot_dur = sum(sh.duration_seconds for sh in shots)
         if total_unique_shot_dur < narration_dur - 0.5:
             logger.info(
                 f"Visual coverage ({total_unique_shot_dur:.2f}s) is less than narration duration ({narration_dur:.2f}s). "
-                f"Automatically re-resolving supplemental shots via MovieRetrievalEngine..."
+                f"Automatically resolving shots via VaultClipSelector..."
             )
-            self.retrieval_engine.process_script_shots(script_id, allow_download=True)
             with self.Session() as session:
-                shots = session.query(HPMovieClip).filter_by(
-                    script_id=script_id, match_status="ACCEPTED"
-                ).all()
+                shots = self.vault_selector.resolve_script_shots(script_id, session=session, allow_download=True)
                 shots = sorted(shots, key=_beat_sort_key)
             shot_files = [Path(sh.file_path) for sh in shots if sh.file_path and Path(sh.file_path).exists()]
             total_unique_shot_dur = sum(sh.duration_seconds for sh in shots)
             if total_unique_shot_dur < narration_dur - 0.5:
                 raise ValueError(
                     f"Anti-Loop Violation for {script_id}: Total unique visual coverage ({total_unique_shot_dur:.2f}s) "
-                    f"is less than narration duration ({narration_dur:.2f}s) even after re-materialization."
+                    f"is less than narration duration ({narration_dur:.2f}s) even after vault resolution."
                 )
 
         # Assembled shots is strictly the unique shot sequence (0% repetition)

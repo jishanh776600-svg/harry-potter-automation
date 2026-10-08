@@ -336,10 +336,11 @@ class HarryPotterScriptEngine:
                 f"ESTIMATED DURATION OUT OF BOUNDS: {estimated_duration}s (target: {min_duration}-{max_duration}s)."
             )
 
-        # 6. Visual Beat Coverage & Movie-Only Policy Check
-        if not visual_beats or len(visual_beats) < 3:
+        # 6. Visual Beat Coverage & Micro-Beats Pacing (Minimum 8, target 10-11 beats)
+        target_min_beats = 8
+        if not visual_beats or len(visual_beats) < target_min_beats:
             feedback.append(
-                f"INSUFFICIENT VISUAL BEATS: {len(visual_beats)} beats found (minimum 3 required)."
+                f"INSUFFICIENT VISUAL BEATS: {len(visual_beats)} beats found (minimum {target_min_beats} required, target 10-11 micro-beats for fast vertical pacing)."
             )
 
         for b in visual_beats:
@@ -381,8 +382,8 @@ class HarryPotterScriptEngine:
             score -= 30.0
         if forbidden_visuals_detected:
             score -= 50.0
-        if len(visual_beats) < 3:
-            score -= 20.0
+        if len(visual_beats) < target_min_beats:
+            score -= 25.0
 
         # 8. Discovery Editorial Value & Anti-Recap Gate (Discovery ONLY — Novel Story 100% Isolated)
         editorial_res = None
@@ -409,7 +410,7 @@ class HarryPotterScriptEngine:
             and len(literary_terms_detected) == 0
             and min_words <= word_count <= max_words
             and min_duration <= estimated_duration <= max_duration
-            and len(visual_beats) >= 3
+            and len(visual_beats) >= target_min_beats
             and (is_novel or (editorial_res is not None and editorial_res.passed))
         )
 
@@ -552,9 +553,9 @@ class HarryPotterScriptEngine:
                 word_count_within_tier_bounds = False
                 reasons.append(f"Check Word Count Failed: {word_count} words outside Deep Discovery target bounds (220-300)")
         elif effective_tier == "MICRO_DISCOVERY":
-            if word_count < 62 or word_count > 85:
+            if word_count < 74 or word_count > 88:
                 word_count_within_tier_bounds = False
-                reasons.append(f"Check Word Count Failed: {word_count} words outside Micro Discovery bounds (62-85 for 25s ± 2-3s)")
+                reasons.append(f"Check Word Count Failed: {word_count} words outside Micro Discovery bounds (74-88 for 21-25s safe Shorts window)")
 
         # Check M: Discovery Editorial Value Gate (viewer value, anti-recap, explanatory depth)
         editorial_res = DiscoveryNarrativeEngine.evaluate_discovery_editorial_value(
@@ -667,7 +668,7 @@ MANDATORY STORYTELLING RULES:
 3. MOVIE FOOTAGE ONLY VISUAL POLICY:
    - This project uses 100% genuine Harry Potter MOVIE FOOTAGE (Movies 1-8).
    - Every single sentence you write MUST describe an action or event that is genuinely VISIBLE in the Harry Potter films.
-   - Break narration into 3 to 4 sequential visual beats matching existing movie scenes.
+   - Break narration into strictly 8 to 11 sequential micro-beats matching existing movie scenes (cuts every 1.8s to 2.8s for fast vertical video pacing).
    - If the novel contains a detail the movies never showed, focus your storytelling on what the movies ACTUALLY show!
 
 4. HARD INVARIANTS:
@@ -741,7 +742,11 @@ RULES:
 - Word count: Exactly 65 to 78 spoken words (STRICT PROGRAMMATIC RANGE: 62 to 85 words for 22.0s-28.0s duration; target 25s).
 - First substantive sentence must communicate the subject and difference.
 - Avoid narrative story transitions ("Meanwhile", "Later", "The next morning", "He then").
-- Visual Beats: 3-4 beats. Classify each beat as DIRECT or CONTEXTUAL in visual_requirement.
+- Visual Beats: Exactly 8 to 11 micro-beats (1.8s - 2.8s each). Classify each beat as DIRECT or CONTEXTUAL in visual_requirement.
+- STRICT VISUAL INVENTORY CONSTRAINT (ZERO MISMATCH RULE):
+  * Every visual beat MUST describe a real, filmed movie shot from the Harry Potter film franchise.
+  * Disambiguate characters explicitly: specify EXACT full names (e.g. 'Barty Crouch Jr.' NOT just 'Crouch', 'Draco Malfoy' NOT just 'Malfoy').
+  * NEVER describe an imaginary, book-only action as if filmed. In retrieval_hints, provide the exact character name, key action words, and film scene setting.
 {feedback_str}
 OUTPUT STRICT JSON:
 {{
@@ -907,6 +912,101 @@ OUTPUT STRICT JSON:
             return self._build_behind_the_scenes_prompt(candidate, revision_feedback)
         else:
             return self._build_fact_trivia_prompt(candidate, revision_feedback)
+
+    # ── Vertical Video Micro-Beats Pacing Enforcer ──────────────────────────────
+
+    def _enforce_micro_beats(
+        self,
+        beats: List[Dict[str, Any]],
+        full_text: str = "",
+        target_duration: float = 24.0,
+        target_min: int = 8,
+        target_max: int = 11,
+    ) -> List[Dict[str, Any]]:
+        """
+        Enforces fast-paced vertical video pacing (strictly 8 to 11 micro-beats, ~1.8s - 2.8s per beat).
+        Prevents long, static shots and clip looping.
+        """
+        if not beats:
+            return []
+
+        result_beats = [dict(b) for b in beats]
+
+        # Step 1: Subdivide beats until we reach target_min (8-9 beats minimum)
+        max_subdivide_iter = 20
+        iter_count = 0
+        while len(result_beats) < target_min and iter_count < max_subdivide_iter:
+            iter_count += 1
+            # Find the longest beat or the beat with the most narration words
+            longest_idx = max(
+                range(len(result_beats)),
+                key=lambda i: (
+                    result_beats[i].get("duration_seconds", 0.0),
+                    len(str(result_beats[i].get("narration_text", "")).split())
+                )
+            )
+            longest = result_beats[longest_idx]
+
+            text = longest.get("narration_text", "").strip()
+            parts = [p.strip() for p in re.split(r'(?<=[.!?])\s+|(?<=,)\s+|(?<=;\s*)', text) if p.strip()]
+
+            if len(parts) >= 2:
+                mid = len(parts) // 2
+                part1_text = " ".join(parts[:mid])
+                part2_text = " ".join(parts[mid:])
+            else:
+                words = text.split()
+                if len(words) >= 4:
+                    mid = len(words) // 2
+                    part1_text = " ".join(words[:mid])
+                    part2_text = " ".join(words[mid:])
+                else:
+                    part1_text = text
+                    part2_text = text
+
+            dur = longest.get("duration_seconds", target_duration / len(result_beats))
+            dur1 = round(dur / 2.0, 2)
+            dur2 = round(dur - dur1, 2)
+
+            vis = longest.get("visual_requirement", "")
+
+            b1 = dict(longest)
+            b1["narration_text"] = part1_text
+            b1["duration_seconds"] = dur1
+            b1["visual_requirement"] = f"[Action Focus] {vis}"
+
+            b2 = dict(longest)
+            b2["narration_text"] = part2_text
+            b2["duration_seconds"] = dur2
+            b2["visual_requirement"] = f"[Detail/Reaction Focus] {vis}"
+
+            result_beats = result_beats[:longest_idx] + [b1, b2] + result_beats[longest_idx+1:]
+
+        # Step 2: If we have more than target_max, merge shortest adjacent beats
+        while len(result_beats) > target_max:
+            shortest_idx = min(
+                range(len(result_beats) - 1),
+                key=lambda i: result_beats[i].get("duration_seconds", 0) + result_beats[i+1].get("duration_seconds", 0)
+            )
+            b1 = result_beats[shortest_idx]
+            b2 = result_beats[shortest_idx + 1]
+            merged = dict(b1)
+            merged["narration_text"] = f"{b1.get('narration_text', '')} {b2.get('narration_text', '')}".strip()
+            merged["duration_seconds"] = round(b1.get("duration_seconds", 0) + b2.get("duration_seconds", 0), 2)
+            merged["visual_requirement"] = b1.get("visual_requirement", "")
+            result_beats = result_beats[:shortest_idx] + [merged] + result_beats[shortest_idx+2:]
+
+        # Step 3: Re-index beat IDs and rebalance duration so sum matches target_duration
+        total_d = sum(b.get("duration_seconds", 0) for b in result_beats)
+        if total_d > 0 and target_duration > 0:
+            scale = target_duration / total_d
+            for b in result_beats:
+                b["duration_seconds"] = round(b.get("duration_seconds", 0) * scale, 2)
+
+        for idx, b in enumerate(result_beats, 1):
+            b["beat_id"] = f"beat_{idx}"
+
+        return result_beats
 
     # ── Deterministic Fallback Scripts (Offline / Quota Fail-Safe) ──────────────
 
@@ -1234,61 +1334,139 @@ OUTPUT STRICT JSON:
         elif "gc0029_0031" in c_id or "letters" in c_id or "fireplace" in c_id:
             # Short 6: Novel Story — The Fireplace Letters Explosion (Book 1 Ch 3)
             return {
-                "hook": "Uncle Vernon was determined that Harry would never read his letter.",
-                "development": "He boarded up the windows and nailed the mail slot shut. On Sunday morning, Vernon smiled happily because no mail arrived on Sundays. Then the fireplace began to rumble. Suddenly, hundreds of letters shot out like popcorn! Envelopes swirled through the entire room as Harry jumped high to catch one.",
-                "payoff": "Uncle Vernon panicked, realizing magic was impossible to keep out.",
+                "hook": "Uncle Vernon vowed Harry would never read his Hogwarts letter.",
+                "development": "He furiously ripped up every envelope that arrived. He nailed wooden boards straight across the door slot. He even burned letters in the fireplace flames. On Sunday morning, Vernon smiled smugly—no mail on Sundays. Outside, dozens of mysterious owls gathered silently. Suddenly, the fireplace began to shake violently! Hundreds of letters exploded out like fireworks. Harry leaped high into the air to catch one.",
+                "payoff": "Vernon tackled Harry in panic, realizing magic was unstoppable!",
                 "visual_beats": [
                     {
                         "beat_id": "beat_1",
-                        "narration_text": "Uncle Vernon was determined that Harry would never read his letter. He boarded up the windows and nailed the mail slot shut.",
-                        "visual_requirement": "Uncle Vernon frantically hammering wooden planks across the mail slot and burning envelopes",
+                        "narration_text": "Uncle Vernon vowed Harry would never read his Hogwarts letter.",
+                        "visual_requirement": "Uncle Vernon tearing up Hogwarts envelopes in hallway with a furious expression",
                         "characters": ["Uncle Vernon"],
                         "location": "Number 4 Privet Drive hallway",
-                        "action": "Furious man hammering boards over door slot and destroying mail",
-                        "objects": ["Hammer", "Wooden planks", "Envelopes"],
-                        "emotional_context": "Desperation and stubborn denial",
+                        "action": "Angry man tearing up magical letters",
+                        "objects": ["Envelopes", "Hogwarts seal"],
+                        "emotional_context": "Stubborn denial and anger",
                         "preferred_movie_number": 1,
-                        "source_grounding": "Movie 1, 00:10:05–00:10:35 / Book 1 Chapter 3",
-                        "retrieval_hints": ["Vernon", "hammer", "mail slot", "Privet Drive", "letter"]
+                        "source_grounding": "Movie 1, 00:09:44 / Book 1 Chapter 3",
+                        "retrieval_hints": ["HP_M01_VERNON_TEAR_LETTERS", "Vernon", "tearing", "envelopes", "Privet Drive"]
                     },
                     {
                         "beat_id": "beat_2",
-                        "narration_text": "On Sunday morning, Vernon smiled happily because no mail arrived on Sundays. Then the fireplace began to rumble.",
-                        "visual_requirement": "Uncle Vernon sitting smugly holding tea cup smiling, suddenly looking alarmed as fireplace begins trembling and shaking",
-                        "characters": ["Uncle Vernon", "Harry Potter"],
-                        "location": "Privet Drive living room",
-                        "action": "Smug smile turning to sudden alarm as brick fireplace shakes",
-                        "objects": ["Tea cup", "Fireplace"],
-                        "emotional_context": "False confidence shifting to sudden dread",
+                        "narration_text": "He furiously ripped up every envelope that arrived.",
+                        "visual_requirement": "Young Harry Potter in his cupboard under the stairs peeking out curiously",
+                        "characters": ["Harry Potter"],
+                        "location": "Cupboard under the stairs",
+                        "action": "Young Harry watching the strange arrival of letters with quiet wonder",
+                        "objects": ["Glasses", "Cupboard door"],
+                        "emotional_context": "Curiosity and hope",
                         "preferred_movie_number": 1,
-                        "source_grounding": "Movie 1, 00:10:45–00:11:05 / Book 1 Chapter 3",
-                        "retrieval_hints": ["Sunday", "Vernon smiling", "no post", "fireplace shaking"]
+                        "source_grounding": "Movie 1, 00:09:54 / Book 1 Chapter 3",
+                        "retrieval_hints": ["HP_M01_HARRY_PEEK_CUPBOARD", "Harry", "cupboard", "watching", "young"]
                     },
                     {
                         "beat_id": "beat_3",
-                        "narration_text": "Suddenly, hundreds of letters shot out like popcorn! Envelopes swirled through the entire room as Harry jumped high to catch one.",
-                        "visual_requirement": "A whirlwind of Hogwarts envelopes blasting out of the fireplace, filling the room while Harry leaps in the air grabbing for one",
-                        "characters": ["Harry Potter", "Uncle Vernon", "Aunt Petunia"],
-                        "location": "Privet Drive living room",
-                        "action": "Hundreds of envelopes flying like a magical storm, boy jumping to snatch letter",
-                        "objects": ["Flying envelopes", "Green ink letters"],
-                        "emotional_context": "High-energy magic, excitement, and chaos",
+                        "narration_text": "He nailed wooden boards straight across the door slot.",
+                        "visual_requirement": "Young Harry Potter listening under stairs as Uncle Vernon hammers wooden boards across door",
+                        "characters": ["Harry Potter", "Uncle Vernon"],
+                        "location": "Cupboard under stairs / Front door",
+                        "action": "Young Harry listening under stairs as Uncle Vernon hammers wooden boards across door",
+                        "objects": ["Cupboard", "Hammer", "Toy soldiers"],
+                        "emotional_context": "Desperate stubborn denial",
                         "preferred_movie_number": 1,
-                        "source_grounding": "Movie 1, 00:11:05–00:11:35 / Book 1 Chapter 3",
-                        "retrieval_hints": ["letters flying", "fireplace", "Harry jumping", "living room"]
+                        "source_grounding": "Movie 1, 00:09:50 / Book 1 Chapter 3",
+                        "retrieval_hints": ["HP_M01_HARRY_CUPBOARD_HAMMER", "Vernon", "hammer", "mail slot", "Privet Drive"]
                     },
                     {
                         "beat_id": "beat_4",
-                        "narration_text": "Uncle Vernon panicked, realizing magic was impossible to keep out.",
-                        "visual_requirement": "Uncle Vernon struggling to hold Harry back as envelopes swirl chaotically around the terrified Dursley family",
-                        "characters": ["Uncle Vernon", "Harry Potter", "Dudley Dursley"],
-                        "location": "Privet Drive living room",
-                        "action": "Uncle tackling Harry away from letters amid spinning paper storm",
-                        "objects": ["Letters", "Living room furniture"],
-                        "emotional_context": "Complete overwhelm and magical inevitability",
+                        "narration_text": "He even burned letters in the fireplace flames.",
+                        "visual_requirement": "Uncle Vernon crouching by the fireplace gleefully burning letters in the bright flames",
+                        "characters": ["Uncle Vernon"],
+                        "location": "Privet Drive living room fireplace",
+                        "action": "Vernon laughing and burning letters in fireplace",
+                        "objects": ["Fireplace", "Flames", "Envelopes"],
+                        "emotional_context": "Malicious glee and destruction",
                         "preferred_movie_number": 1,
-                        "source_grounding": "Movie 1, 00:11:30–00:11:55 / Book 1 Chapter 3",
-                        "retrieval_hints": ["Vernon panicking", "letters", "tackle", "chaos"]
+                        "source_grounding": "Movie 1, 00:10:28 / Book 1 Chapter 3",
+                        "retrieval_hints": ["HP_M01_VERNON_BURN_LETTERS", "Vernon", "fireplace", "burning", "fire", "letters"]
+                    },
+                    {
+                        "beat_id": "beat_5",
+                        "narration_text": "On Sunday morning, Vernon smiled smugly—no mail on Sundays.",
+                        "visual_requirement": "Uncle Vernon sitting at breakfast table smiling smugly eating a biscuit",
+                        "characters": ["Uncle Vernon"],
+                        "location": "Privet Drive living room",
+                        "action": "Uncle Vernon grinning arrogantly and holding up a biscuit",
+                        "objects": ["Biscuit", "Table"],
+                        "emotional_context": "Smug false confidence",
+                        "preferred_movie_number": 1,
+                        "source_grounding": "Movie 1, 00:11:15 / Book 1 Chapter 3",
+                        "retrieval_hints": ["HP_M01_VERNON_SUNDAY_BISCUIT", "Vernon", "smiling", "Sunday", "biscuit", "living room"]
+                    },
+                    {
+                        "beat_id": "beat_6",
+                        "narration_text": "Outside, dozens of mysterious owls gathered silently.",
+                        "visual_requirement": "Privet Drive street with dozens of owls perched silently on rooftops and fences",
+                        "characters": ["Owls"],
+                        "location": "Privet Drive exterior",
+                        "action": "Flock of owls gathering in daylight all along the neighborhood",
+                        "objects": ["Owls", "Rooftops", "Street"],
+                        "emotional_context": "Eerie magical omen",
+                        "preferred_movie_number": 1,
+                        "source_grounding": "Movie 1, 00:11:10 / Book 1 Chapter 3",
+                        "retrieval_hints": ["HP_M01_PRIVET_OWLS_ROOF", "owls", "Privet Drive", "roof", "street", "flock"]
+                    },
+                    {
+                        "beat_id": "beat_7",
+                        "narration_text": "Suddenly, the fireplace began to shake violently!",
+                        "visual_requirement": "Uncle Vernon smile freezing in horror as the brick fireplace begins to rumble violently",
+                        "characters": ["Uncle Vernon", "Aunt Petunia"],
+                        "location": "Privet Drive living room",
+                        "action": "Vernon smile freezing in horror as the brick fireplace begins to rumble violently",
+                        "objects": ["Fireplace", "Living room"],
+                        "emotional_context": "Sudden anxiety and dread",
+                        "preferred_movie_number": 1,
+                        "source_grounding": "Movie 1, 00:11:22 / Book 1 Chapter 3",
+                        "retrieval_hints": ["HP_M01_VERNON_FREEZE_RUMBLE", "Vernon", "frozen", "shock", "fireplace", "rumble"]
+                    },
+                    {
+                        "beat_id": "beat_8",
+                        "narration_text": "Hundreds of letters exploded out like fireworks.",
+                        "visual_requirement": "Hundreds of Hogwarts letters blasting violently out of fireplace into room",
+                        "characters": ["Hogwarts Letters"],
+                        "location": "Privet Drive fireplace",
+                        "action": "Whirlwind of flying letters shooting out into living room",
+                        "objects": ["Fireplace", "Flying envelopes", "Hogwarts seal"],
+                        "emotional_context": "Explosive magical spectacle",
+                        "preferred_movie_number": 1,
+                        "source_grounding": "Movie 1, 00:11:30 / Book 1 Chapter 3",
+                        "retrieval_hints": ["HP_M01_LETTERS_EXPLODE_FIREPLACE", "letters shooting", "fireplace", "explosion", "envelopes"]
+                    },
+                    {
+                        "beat_id": "beat_9",
+                        "narration_text": "Harry leaped high into the air to catch one.",
+                        "visual_requirement": "Harry Potter leaping joyfully in air catching a Hogwarts letter in the storm",
+                        "characters": ["Harry Potter"],
+                        "location": "Privet Drive living room",
+                        "action": "Harry jumping with huge smile grabbing letter mid-air",
+                        "objects": ["Flying letters", "Hogwarts envelope"],
+                        "emotional_context": "Pure joy and triumphant magic",
+                        "preferred_movie_number": 1,
+                        "source_grounding": "Movie 1, 00:11:49 / Book 1 Chapter 3",
+                        "retrieval_hints": ["HP_M01_HARRY_LEAP_CATCH_LETTER", "Harry jumping", "catch letter", "flying letters", "smile"]
+                    },
+                    {
+                        "beat_id": "beat_10",
+                        "narration_text": "Vernon tackled Harry in panic, realizing magic was unstoppable!",
+                        "visual_requirement": "Uncle Vernon tackling Harry in hallway amidst swirling paper storm",
+                        "characters": ["Uncle Vernon", "Harry Potter"],
+                        "location": "Privet Drive hallway by stairs",
+                        "action": "Vernon frantically pinning Harry as paper tornado fills the house",
+                        "objects": ["Flying letters", "Stairs"],
+                        "emotional_context": "Desperate chaotic panic",
+                        "preferred_movie_number": 1,
+                        "source_grounding": "Movie 1, 00:11:54 / Book 1 Chapter 3",
+                        "retrieval_hints": ["HP_M01_VERNON_TACKLE_HALLWAY", "Vernon tackle", "Harry", "letters swirling", "hallway"]
                     }
                 ]
             }
@@ -1599,6 +1777,10 @@ OUTPUT STRICT JSON:
 
                         full_script = f"{parsed.get('hook', '')} {parsed.get('development', '')} {parsed.get('payoff', '')}".strip()
                         v_beats = parsed.get("visual_beats", [])
+                        words_temp = full_script.split()
+                        dur_temp = round(len(words_temp) / 3.15, 1) if words_temp else 24.0
+                        v_beats = self._enforce_micro_beats(v_beats, full_text=full_script, target_duration=dur_temp, target_min=8, target_max=11)
+                        parsed["visual_beats"] = v_beats
 
                         # QA Evaluation
                         eval_res = self.evaluate_script_qa(
@@ -1634,6 +1816,10 @@ OUTPUT STRICT JSON:
             script_data = self._get_deterministic_script(candidate)
             full_script = f"{script_data['hook']} {script_data['development']} {script_data['payoff']}".strip()
             v_beats = script_data.get("visual_beats", [])
+            words_temp = full_script.split()
+            dur_temp = round(len(words_temp) / 3.15, 1) if words_temp else 24.0
+            v_beats = self._enforce_micro_beats(v_beats, full_text=full_script, target_duration=dur_temp, target_min=8, target_max=11)
+            script_data["visual_beats"] = v_beats
             qa_result = self.evaluate_script_qa(
                 script_text=full_script,
                 visual_beats=v_beats,
@@ -1696,6 +1882,15 @@ OUTPUT STRICT JSON:
                 "visual_source_policy": "HYBRID_TRUTHFUL" if b.get("is_novel_only") else "MOVIE_FOOTAGE_ONLY"
             })
 
+        # Micro-Beats Pacing Enforcer (strictly 8 to 11 beats, cuts every ~1.8s - 2.8s)
+        clean_beats = self._enforce_micro_beats(
+            clean_beats,
+            full_text=full_text,
+            target_duration=est_duration,
+            target_min=8,
+            target_max=11
+        )
+
         # Calculate visual PART marker (VISUAL ONLY — NEVER SPOKEN)
         slot_num = getattr(candidate, "batch_slot", None) or 1
         part_marker = f"PART {slot_num:02d}"
@@ -1720,7 +1915,7 @@ OUTPUT STRICT JSON:
             movie_chunk = candidate.movie_chunk_id
             movie_excerpt = f"Movie Shows: {candidate.movie_shows} | Omits: {candidate.movie_omits_or_changes}"
 
-        script_id = f"hps_{candidate.id}"
+        script_id = str(candidate.id) if str(candidate.id).startswith("hps_") else f"hps_{candidate.id}"
 
         # Persist or update in SQLite
         existing = db.query(HarryPotterScript).filter_by(id=script_id).first()

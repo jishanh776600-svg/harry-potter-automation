@@ -34,10 +34,9 @@ class JobState(str, Enum):
 
 
 PUBLISHING_SLOTS_UTC = [
-    (2, 0, "02:00 UTC (07:30 AM IST)"),
-    (8, 0, "08:00 UTC (01:30 PM IST)"),
-    (14, 0, "14:00 UTC (07:30 PM IST)"),
-    (20, 0, "20:00 UTC (01:30 AM IST)"),
+    (2, 30, "02:30 UTC (08:00 AM IST)"),
+    (10, 30, "10:30 UTC (04:00 PM IST)"),
+    (18, 30, "18:30 UTC (12:00 AM IST)"),
 ]
 
 # Canonical Business Timezone (Asia/Kolkata / IST = UTC+5:30)
@@ -303,7 +302,7 @@ OPTIMAL_WORD_COUNT = 65
 
 # Scheduling & Target Capacity
 SCHEDULING_HORIZON_HOURS = 48
-DAILY_SHORTS_LIMIT = 4
+DAILY_SHORTS_LIMIT = 3
 TARGET_RESERVE_BUFFER = 8
 PUBLISHING_PLATFORMS = ["youtube", "instagram", "facebook"]
 
