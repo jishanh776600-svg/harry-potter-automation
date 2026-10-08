@@ -1,12 +1,12 @@
 {
   "action": "MAINTAIN_BUFFER",
-  "outcome": "SUCCEEDED",
-  "block_reason": null,
-  "requested_deficit": 6,
-  "produced_count": 4,
-  "initial_stock": 2,
-  "final_stock": 6,
+  "outcome": "FAILED",
+  "block_reason": "Discovery Big candidate 'hps_disc_harry_scar_horcrux_connection_b6' failed: Rendering failed: Cloned voice synthesis failed: F5-TTS FAIL-CLOSED: Required canonical reference speaker audio not found at any of: [PosixPath('/home/runner/work/harry-potter-automation/harry-potter-automation/data/voice_cloning/f5_tts/reference/selected_reference_speaker_24k.wav'), PosixPath('/home/runner/work/harry-potter-automation/harry-potter-automation/data/reference_audio/selected_reference_speaker_24k.wav')]; Discovery Big candidate 'hps_disc_draco_malfoy_invisibility_cloak_train_b6' failed: Vault retrieval exception: Strict Zero-Filler Guard: Could not find canonical vault clip for hps_disc_draco_malfoy_invisibility_cloak_train_b6 beat beat_9 ('DIRECT Close-up of the train compartment door slid'). Production aborted to prevent visual mismatch.",
+  "requested_deficit": 5,
+  "produced_count": 0,
+  "initial_stock": 3,
+  "final_stock": 3,
   "target_stock": 8,
   "voice": "f5_cloned_narrator_v1",
-  "timestamp": "2026-10-08T12:14:58.498394Z"
+  "timestamp": "2026-10-08T14:00:17.176369Z"
 }
