@@ -1785,17 +1785,31 @@ class ShortsPipeline:
                 for hour, minute, _ in PUBLISHING_SLOTS_UTC
             ]
 
-            published_today = db.query(UploadRecord).filter(
+            published_today_records = db.query(UploadRecord).filter(
                 UploadRecord.status.in_(["PUBLISHED", "SUCCESS"]),
                 UploadRecord.published_at >= today_start,
                 UploadRecord.published_at <= today_end
-            ).count()
+            ).all()
+            published_hp_records = [
+                r for r in published_today_records
+                if (r.job_id or "").replace("job_", "").startswith("hps_")
+                or "harry potter" in str(r.title or "").lower()
+                or "hogwarts" in str(r.title or "").lower()
+            ]
+            published_today = len(published_hp_records)
 
-            scheduled_today = db.query(UploadRecord).filter(
+            scheduled_today_records = db.query(UploadRecord).filter(
                 UploadRecord.status == "SCHEDULED",
                 UploadRecord.scheduled_publish_at >= now_utc,
                 UploadRecord.scheduled_publish_at <= today_end
-            ).count()
+            ).all()
+            scheduled_hp_records = [
+                r for r in scheduled_today_records
+                if (r.job_id or "").replace("job_", "").startswith("hps_")
+                or "harry potter" in str(r.title or "").lower()
+                or "hogwarts" in str(r.title or "").lower()
+            ]
+            scheduled_today = len(scheduled_hp_records)
 
             total_booked_today = published_today + scheduled_today
 

@@ -1749,7 +1749,112 @@
 - **Target Duration**: 24.0s
 - **Subtype Weights**: {"DISCOVERY_BOOK_MOVIE_DIFFERENCE": 1.0, "DISCOVERY_OMITTED_SCENE": 1.0, "DISCOVERY_CHARACTER_ORIGIN": 1.0, "DISCOVERY_LORE_DEEP_DIVE": 1.0, "DISCOVERY_BEHIND_THE_SCENES": 1.0, "DISCOVERY_FORESHADOWING_PROPHECY": 1.0, "DISCOVERY_MAGICAL_OBJECT": 1.0, "DISCOVERY_MOVIE_DETAIL": 1.0}
 
-### [HP Learning Cycle #126] 2026-10-08 13:53:30 UTC
+### [HP Learning Cycle #130] 2026-10-08 12:19:03 UTC
+- **Trigger/Reason**: Closed-loop performance adaptation from mature snapshots
+- **Content Mix**: Novel Story: 50.0% | Discovery: 50.0%
+- **Target Duration**: 24.0s
+- **Subtype Weights**: {"DISCOVERY_BOOK_MOVIE_DIFFERENCE": 1.0, "DISCOVERY_OMITTED_SCENE": 1.0, "DISCOVERY_CHARACTER_ORIGIN": 1.0, "DISCOVERY_LORE_DEEP_DIVE": 1.0, "DISCOVERY_BEHIND_THE_SCENES": 1.0, "DISCOVERY_FORESHADOWING_PROPHECY": 1.0, "DISCOVERY_MAGICAL_OBJECT": 1.0, "DISCOVERY_MOVIE_DETAIL": 1.0}
+
+## Learning Cycle — 2026-10-08 12:41:15 UTC
+
+- **Mature Videos Evaluated**: 2
+- **Channel Performance Baseline**: 57.09/100
+
+| Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `category` | **Harry Potter** | 1 | `+7.1%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+### [HP Learning Cycle #131] 2026-10-08 12:41:57 UTC
+- **Trigger/Reason**: Closed-loop performance adaptation from mature snapshots
+- **Content Mix**: Novel Story: 50.0% | Discovery: 50.0%
+- **Target Duration**: 24.0s
+- **Subtype Weights**: {"DISCOVERY_BOOK_MOVIE_DIFFERENCE": 1.0, "DISCOVERY_OMITTED_SCENE": 1.0, "DISCOVERY_CHARACTER_ORIGIN": 1.0, "DISCOVERY_LORE_DEEP_DIVE": 1.0, "DISCOVERY_BEHIND_THE_SCENES": 1.0, "DISCOVERY_FORESHADOWING_PROPHECY": 1.0, "DISCOVERY_MAGICAL_OBJECT": 1.0, "DISCOVERY_MOVIE_DETAIL": 1.0}
+
+## Learning Cycle — 2026-10-08 13:00:46 UTC
+
+- **Mature Videos Evaluated**: 2
+- **Channel Performance Baseline**: 57.09/100
+
+| Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `category` | **Harry Potter** | 1 | `+7.1%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+### [HP Learning Cycle #132] 2026-10-08 13:02:14 UTC
+- **Trigger/Reason**: Closed-loop performance adaptation from mature snapshots
+- **Content Mix**: Novel Story: 50.0% | Discovery: 50.0%
+- **Target Duration**: 24.0s
+- **Subtype Weights**: {"DISCOVERY_BOOK_MOVIE_DIFFERENCE": 1.0, "DISCOVERY_OMITTED_SCENE": 1.0, "DISCOVERY_CHARACTER_ORIGIN": 1.0, "DISCOVERY_LORE_DEEP_DIVE": 1.0, "DISCOVERY_BEHIND_THE_SCENES": 1.0, "DISCOVERY_FORESHADOWING_PROPHECY": 1.0, "DISCOVERY_MAGICAL_OBJECT": 1.0, "DISCOVERY_MOVIE_DETAIL": 1.0}
+
+## Learning Cycle — 2026-10-08 13:28:13 UTC
+
+- **Mature Videos Evaluated**: 2
+- **Channel Performance Baseline**: 57.09/100
+
+| Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `category` | **Harry Potter** | 1 | `+7.1%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+### [HP Learning Cycle #133] 2026-10-08 13:28:55 UTC
+- **Trigger/Reason**: Closed-loop performance adaptation from mature snapshots
+- **Content Mix**: Novel Story: 50.0% | Discovery: 50.0%
+- **Target Duration**: 24.0s
+- **Subtype Weights**: {"DISCOVERY_BOOK_MOVIE_DIFFERENCE": 1.0, "DISCOVERY_OMITTED_SCENE": 1.0, "DISCOVERY_CHARACTER_ORIGIN": 1.0, "DISCOVERY_LORE_DEEP_DIVE": 1.0, "DISCOVERY_BEHIND_THE_SCENES": 1.0, "DISCOVERY_FORESHADOWING_PROPHECY": 1.0, "DISCOVERY_MAGICAL_OBJECT": 1.0, "DISCOVERY_MOVIE_DETAIL": 1.0}
+
+## Learning Cycle — 2026-10-08 14:11:51 UTC
+
+- **Mature Videos Evaluated**: 2
+- **Channel Performance Baseline**: 57.09/100
+
+| Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `category` | **Harry Potter** | 1 | `+7.1%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+### [HP Learning Cycle #134] 2026-10-08 14:12:54 UTC
+- **Trigger/Reason**: Closed-loop performance adaptation from mature snapshots
+- **Content Mix**: Novel Story: 50.0% | Discovery: 50.0%
+- **Target Duration**: 24.0s
+- **Subtype Weights**: {"DISCOVERY_BOOK_MOVIE_DIFFERENCE": 1.0, "DISCOVERY_OMITTED_SCENE": 1.0, "DISCOVERY_CHARACTER_ORIGIN": 1.0, "DISCOVERY_LORE_DEEP_DIVE": 1.0, "DISCOVERY_BEHIND_THE_SCENES": 1.0, "DISCOVERY_FORESHADOWING_PROPHECY": 1.0, "DISCOVERY_MAGICAL_OBJECT": 1.0, "DISCOVERY_MOVIE_DETAIL": 1.0}
+
+## Learning Cycle — 2026-10-08 14:39:29 UTC
+
+- **Mature Videos Evaluated**: 2
+- **Channel Performance Baseline**: 57.09/100
+
+| Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `category` | **Harry Potter** | 1 | `+7.1%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+### [HP Learning Cycle #135] 2026-10-08 14:40:01 UTC
+- **Trigger/Reason**: Closed-loop performance adaptation from mature snapshots
+- **Content Mix**: Novel Story: 50.0% | Discovery: 50.0%
+- **Target Duration**: 24.0s
+- **Subtype Weights**: {"DISCOVERY_BOOK_MOVIE_DIFFERENCE": 1.0, "DISCOVERY_OMITTED_SCENE": 1.0, "DISCOVERY_CHARACTER_ORIGIN": 1.0, "DISCOVERY_LORE_DEEP_DIVE": 1.0, "DISCOVERY_BEHIND_THE_SCENES": 1.0, "DISCOVERY_FORESHADOWING_PROPHECY": 1.0, "DISCOVERY_MAGICAL_OBJECT": 1.0, "DISCOVERY_MOVIE_DETAIL": 1.0}
+
+## Learning Cycle — 2026-10-08 14:58:02 UTC
+
+- **Mature Videos Evaluated**: 2
+- **Channel Performance Baseline**: 57.09/100
+
+| Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `category` | **Harry Potter** | 1 | `+7.1%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+### [HP Learning Cycle #136] 2026-10-08 14:58:32 UTC
+- **Trigger/Reason**: Closed-loop performance adaptation from mature snapshots
+- **Content Mix**: Novel Story: 50.0% | Discovery: 50.0%
+- **Target Duration**: 24.0s
+- **Subtype Weights**: {"DISCOVERY_BOOK_MOVIE_DIFFERENCE": 1.0, "DISCOVERY_OMITTED_SCENE": 1.0, "DISCOVERY_CHARACTER_ORIGIN": 1.0, "DISCOVERY_LORE_DEEP_DIVE": 1.0, "DISCOVERY_BEHIND_THE_SCENES": 1.0, "DISCOVERY_FORESHADOWING_PROPHECY": 1.0, "DISCOVERY_MAGICAL_OBJECT": 1.0, "DISCOVERY_MOVIE_DETAIL": 1.0}
+
+## Learning Cycle — 2026-10-08 15:21:17 UTC
+
+- **Mature Videos Evaluated**: 2
+- **Channel Performance Baseline**: 57.09/100
+
+| Feature Type | Feature Value | Samples | Rel Lift | Confidence | Weight | Update Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `category` | **Harry Potter** | 1 | `+7.1%` | `INSUFFICIENT_EVIDENCE` | **1.00** | Insufficient evidence (N=1 < 3). Weight held neutral at 1.00. |
+
+### [HP Learning Cycle #137] 2026-10-08 15:21:49 UTC
 - **Trigger/Reason**: Closed-loop performance adaptation from mature snapshots
 - **Content Mix**: Novel Story: 50.0% | Discovery: 50.0%
 - **Target Duration**: 24.0s

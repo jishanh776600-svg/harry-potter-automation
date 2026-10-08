@@ -256,6 +256,9 @@ class SystemDataProvider:
                 if db:
                     try:
                         for p in public_shorts:
+                            p_title = str(p.get("title", "")).lower()
+                            if "harry potter" not in p_title and "hogwarts" not in p_title and not str(p.get("title", "")).startswith("hps_"):
+                                continue
                             vid = p["id"]
                             p_dt = _parse_yt_iso(p["published_at"]) if p["published_at"] else now
                             rec = db.query(UploadRecord).filter(UploadRecord.youtube_video_id == vid).first()
@@ -279,6 +282,9 @@ class SystemDataProvider:
                                     rec.published_at = p_dt
 
                         for s in scheduled_shorts:
+                            s_title = str(s.get("title", "")).lower()
+                            if "harry potter" not in s_title and "hogwarts" not in s_title and not str(s.get("title", "")).startswith("hps_"):
+                                continue
                             vid = s["id"]
                             s_dt = _parse_yt_iso(s["publish_at"]) if s["publish_at"] else now
                             rec = db.query(UploadRecord).filter(UploadRecord.youtube_video_id == vid).first()

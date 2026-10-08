@@ -1,23 +1,24 @@
 name: YouTube Shorts Cloud Publisher
 # ==============================================================================
-# SCHEDULED CLOUD PUBLISHER: Autonomous Releaser (3x Daily Slots in 8-Hour Gaps)
+# SCHEDULED CLOUD PUBLISHER: Autonomous Releaser (3x Daily Slots)
 # Strictly publishes 3 public Shorts daily directly from Google Drive Vault:
 # Slot 1: 02:30 UTC (08:00 AM IST)
 # Slot 2: 10:30 UTC (04:00 PM IST)
-# Slot 3: 18:30 UTC (12:00 AM Midnight IST)
+# Slot 3: 14:30 UTC (08:00 PM IST)
 # Execution Time: ~30-45 seconds (Ultra-fast: Claim -> Download -> Upload -> Move)
 # ==============================================================================
 
 on:
   schedule:
-    # Tier 1: Precision Pre-Warm (10 min before slots): 02:20, 10:20, 18:20 UTC
-    # Wakes runner early, claims video from Drive, pre-verifies FFmpeg & metadata, sleeps until exact :30.00 sharp
-    - cron: '20 2,10,18 * * *'
-    
-    # Tier 2: Safe 6-Minute Autonomous Watchdog & Catchup:
-    # Safely above GitHub's 5-min threshold (:00, :06, :12, :18, :24, :30, :36, :42, :48, :54).
-    # Catches up any missed slot within 6 minutes (exits in ~3s if slots already fulfilled).
-    - cron: '*/6 * * * *'
+    # Tier 1: Precision Pre-Warm (10 min before slots): 02:20, 10:20, 14:20 UTC
+    - cron: '20 2,10,14 * * *'
+
+    # Tier 2: Exact slot release triggers: 02:30, 10:30, 14:30 UTC
+    - cron: '30 2,10,14 * * *'
+
+    # Tier 3: Autonomous Watchdog & Missed Slot Catchup (every 15 min):
+    # Runs within GitHub Actions reliable window to catch up any missed slot immediately
+    - cron: '*/15 * * * *'
   workflow_dispatch: # Allows manual on-demand publishing from GitHub Web / Mobile
 
 permissions:
