@@ -28,17 +28,6 @@ class VisualMismatchGuard:
         self.models_dir = models_dir or (PROJECT_ROOT / "data" / "models")
         self.yunet_model = self.models_dir / "face_detection_yunet_2023mar.onnx"
         self.detector = None
-        if self.yunet_model.exists():
-            try:
-                self.detector = cv2.FaceDetectorYN.create(
-                    model=str(self.yunet_model),
-                    config="",
-                    input_size=(640, 640),
-                    score_threshold=0.35,
-                    nms_threshold=0.3
-                )
-            except Exception as e:
-                logger.warning(f"Could not load YuNet detector: {e}")
 
     def extract_audit_frame(self, video_path: Path) -> Optional[Any]:
         """Extracts the representative midpoint frame from a video file."""
@@ -104,12 +93,18 @@ class VisualMismatchGuard:
                 if "draco" in ch_low and "lucius" in clip_subj and "draco" not in clip_chars:
                     return False, 0.1, f"Mismatch: Expecting Draco Malfoy, but clip is Lucius Malfoy"
 
-        # Rule 2: Physical Character Presence Check
-        face_count = self.check_face_presence(frame)
-        if expected_any_person and face_count == 0:
-            # Check if metadata explicitly confirms it is a landscape/prop/close-up without face
-            prop_or_spell = any(kw in narration_text.lower() for kw in ["goblet", "wand", "potion", "fire", "castle", "train", "broom", "snitch"])
-            if not prop_or_spell and len(chars) > 0:
-                logger.info(f"Guard warning: Expected character {chars[0]} but 0 faces detected in frame.")
+        # Rule 2: Physical File Integrity Check
+        if not clip_path.exists() or clip_path.stat().st_size < 1000:
+            return False, 0.0, f"Candidate clip file is missing or corrupted: {clip_path}"
 
-        return True, 0.95, "Passed visual integrity check."
+        # Rule 3: Visual Subject & Prop Integrity
+        if clip_metadata:
+            # Check for conflicting entities
+            for ch in chars:
+                ch_low = ch.lower()
+                if "snape" in ch_low and "lockhart" in clip_subj:
+                    return False, 0.1, "Mismatch: Expecting Severus Snape, but clip is Lockhart"
+                if "dumbledore" in ch_low and "vernon" in clip_subj:
+                    return False, 0.1, "Mismatch: Expecting Dumbledore, but clip is Vernon Dursley"
+
+        return True, 0.98, "Passed visual integrity check via verified database metadata."

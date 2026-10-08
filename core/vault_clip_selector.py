@@ -150,6 +150,8 @@ class VaultClipSelector:
         query_text: str,
         preferred_characters: Optional[List[str]] = None,
         preferred_props: Optional[List[str]] = None,
+        preferred_location: Optional[str] = None,
+        preferred_action: Optional[str] = None,
         movie_number: Optional[int] = None,
         retrieval_hints: Optional[List[str]] = None,
         min_duration: float = 1.0,
@@ -213,6 +215,9 @@ class VaultClipSelector:
                                 f"[BEAST GROUND TRUTH TIER-1 MATCH] '{query_text[:45]}' -> {cid} "
                                 f"(Scene: {gt_clip.get('scene_heading')}, score: {gt_clip['match_score']:.1f})"
                             )
+                            gt_clip.setdefault("visible_objects_props", gt_clip.get("objects", "[]"))
+                            gt_clip.setdefault("location_setting", gt_clip.get("locations", ""))
+                            gt_clip.setdefault("characters_present", gt_clip.get("primary_characters", "[]"))
                             return gt_clip
                         else:
                             logger.warning(f"Vision audit rejected ground truth clip {cid}: {reason}")
@@ -220,15 +225,20 @@ class VaultClipSelector:
             logger.warning(f"Tier-1 Beast Ground Truth Matcher error: {gt_err}")
 
         # --------------------------------------------------------------------------
+        # --------------------------------------------------------------------------
         # TIER 2: FRANCHISE VISUAL VAULT (1,234+ Canonical Pre-Cut Vault Clips)
+        # Deterministic Multi-Field Structured Sourcing & Scoring
         # --------------------------------------------------------------------------
         conn = get_connection(self.db_path)
         cur = conn.cursor()
 
         clean_terms = self._extract_clean_keywords(query_text)
         search_terms = list(clean_terms)
+        if preferred_action:
+            search_terms.extend(self._extract_clean_keywords(preferred_action))
+        if preferred_location:
+            search_terms.extend(self._extract_clean_keywords(preferred_location))
 
-        # Include characters, props, and retrieval hints in search tokens
         for char in active_characters:
             search_terms.extend(self._extract_clean_keywords(char))
         for prop in (preferred_props or []):
@@ -236,11 +246,53 @@ class VaultClipSelector:
         for hint in (retrieval_hints or []):
             search_terms.extend(self._extract_clean_keywords(hint))
 
-        # Deduplicate while preserving order
         unique_terms = list(dict.fromkeys(search_terms))
-        candidates: List[Dict[str, Any]] = []
+        candidates_dict: Dict[str, Dict[str, Any]] = {}
 
-        # FTS Query Execution (soft movie preference in scoring rather than hard SQL exclusion)
+        # 1. Targeted Character Queries (pulls all clips featuring requested characters)
+        for char in active_characters:
+            char_clean = char.strip()
+            if len(char_clean) > 2:
+                try:
+                    cur.execute(
+                        "SELECT fc.* FROM franchise_clips fc WHERE fc.characters_present LIKE ? OR fc.primary_subject LIKE ? LIMIT 40",
+                        [f"%{char_clean}%", f"%{char_clean}%"]
+                    )
+                    for row in cur.fetchall():
+                        r = dict(row)
+                        candidates_dict[r["clip_id"]] = r
+                except Exception as e:
+                    logger.warning(f"Character targeted query notice: {e}")
+
+        # 2. Targeted Prop / Object Queries (pulls all clips featuring requested props)
+        for prop in (preferred_props or []):
+            prop_clean = prop.strip()
+            if len(prop_clean) > 2:
+                try:
+                    cur.execute(
+                        "SELECT fc.* FROM franchise_clips fc WHERE fc.visible_objects_props LIKE ? OR fc.primary_subject LIKE ? OR fc.action_description LIKE ? LIMIT 40",
+                        [f"%{prop_clean}%", f"%{prop_clean}%", f"%{prop_clean}%"]
+                    )
+                    for row in cur.fetchall():
+                        r = dict(row)
+                        candidates_dict[r["clip_id"]] = r
+                except Exception as e:
+                    logger.warning(f"Prop targeted query notice: {e}")
+
+        # 3. Targeted Location Queries (pulls clips from requested setting)
+        if preferred_location and len(preferred_location.strip()) > 2:
+            try:
+                cur.execute(
+                    "SELECT fc.* FROM franchise_clips fc WHERE fc.location_setting LIKE ? LIMIT 30",
+                    [f"%{preferred_location.strip()}%"]
+                )
+                for row in cur.fetchall():
+                    r = dict(row)
+                    candidates_dict[r["clip_id"]] = r
+            except Exception as e:
+                logger.warning(f"Location targeted query notice: {e}")
+
+        # 4. FTS Semantic Search
         if unique_terms:
             fts_query = " OR ".join(unique_terms[:12])
             sql = """
@@ -252,14 +304,17 @@ class VaultClipSelector:
             """
             try:
                 cur.execute(sql, [fts_query])
-                candidates = [dict(row) for row in cur.fetchall()]
+                for row in cur.fetchall():
+                    r = dict(row)
+                    if r["clip_id"] not in candidates_dict:
+                        candidates_dict[r["clip_id"]] = r
             except Exception as e:
                 logger.warning(f"FTS query failed for '{fts_query}': {e}")
-                candidates = []
 
         conn.close()
+        candidates = list(candidates_dict.values())
 
-        # Strict Zero-Filler Guard: If FTS produced 0 candidate matches, return None
+        # Strict Zero-Filler Guard: If candidate pool is empty, return None
         if not candidates:
             logger.warning(f"Zero candidates matched beat query: '{query_text[:60]}'")
             return None
@@ -288,50 +343,50 @@ class VaultClipSelector:
 
             score = 10.0
 
-            # Character Matching
+            # ------------------------------------------------------------------
+            # Field 1: Character Matching & Strict Elimination
+            # ------------------------------------------------------------------
             chars_cand = cand.get("characters_present", "[]")
             try:
                 cand_chars_list = json.loads(chars_cand) if isinstance(chars_cand, str) else chars_cand
             except Exception:
                 cand_chars_list = []
             cand_chars_lower = set(c.lower() for c in cand_chars_list)
-            subj_lower = cand.get("primary_subject", "").lower()
+            subj_lower = str(cand.get("primary_subject", "")).lower()
 
-            # Crowd dilution penalty (avoid wide/generic crowd shots masquerading as specific characters)
             crowd_penalty = 0.6 if len(cand_chars_list) > 6 else 1.0
+            has_any_char_match = False
+            char_match_count = 0
 
             for idx, char in enumerate(active_characters):
                 char_low = char.lower()
                 char_parts = [p for p in char_low.split() if len(p) > 2 and p not in HONORIFICS]
                 if not char_parts:
                     char_parts = [p for p in char_low.split() if len(p) > 2]
-                is_in_query = any(p in q_lower for p in char_parts) if char_parts else (char_low in q_lower)
                 has_char = any(char_low in ccl or ccl in char_low or any(p in ccl for p in char_parts) for ccl in cand_chars_lower)
                 is_subj = any(p in subj_lower for p in char_parts) if char_parts else (char_low in subj_lower)
-                is_lead_char = (idx == 0)
+                is_lead = (idx == 0)
 
-                if is_in_query and is_lead_char:
-                    if has_char:
-                        score += 100.0 * crowd_penalty
-                    if is_subj:
-                        score += 120.0
-                elif is_in_query:
-                    if has_char:
-                        score += 50.0 * crowd_penalty
-                    if is_subj:
-                        score += 60.0
-                elif is_lead_char:
-                    if has_char:
-                        score += 30.0 * crowd_penalty
-                    if is_subj:
-                        score += 40.0
-                else:
-                    if has_char:
-                        score += 15.0 * crowd_penalty
-                    if is_subj:
-                        score += 20.0
+                if has_char or is_subj:
+                    char_match_count += 1
+                    has_any_char_match = True
+                    if is_lead:
+                        score += 300.0 * crowd_penalty
+                        if is_subj:
+                            score += 150.0
+                    else:
+                        score += 150.0 * crowd_penalty
+                        if is_subj:
+                            score += 80.0
 
-            # Props & Objects Matching
+            # Character Disqualification: If beat explicitly named characters, penalize candidates with wrong characters
+            if active_characters and char_match_count == 0:
+                if len(cand_chars_list) > 0 and subj_lower not in ("none", "general", "establishing", "landscape", "object", "scene"):
+                    score -= 500.0
+
+            # ------------------------------------------------------------------
+            # Field 2: Props & Objects Matching & Strict Elimination
+            # ------------------------------------------------------------------
             objs_cand = cand.get("visible_objects_props", "[]")
             try:
                 cand_objs_list = json.loads(objs_cand) if isinstance(objs_cand, str) else objs_cand
@@ -339,28 +394,50 @@ class VaultClipSelector:
                 cand_objs_list = []
             cand_objs_lower = set(p.lower() for p in cand_objs_list)
 
-            for prop in (preferred_props or []):
-                prop_low = prop.lower()
-                if prop_low in q_lower:
-                    if any(prop_low in col for col in cand_objs_lower):
-                        score += 50.0
-                    if prop_low in subj_lower:
-                        score += 60.0
-
-            # Direct Primary Subject Keyword Match (+50 per matched keyword)
-            for t in unique_terms:
-                if len(t) > 3 and t in subj_lower:
-                    score += 50.0
-
-            # Action Description / Lore / Tags Keyword Matching (+10 per matched keyword)
             act_text = (
                 str(cand.get("action_description") or "") + " " +
                 str(cand.get("lore_context") or "") + " " +
                 str(cand.get("search_tags") or "")
             ).lower()
+
+            has_any_prop_match = False
+            if preferred_props:
+                prop_match_count = 0
+                for prop in preferred_props:
+                    prop_low = prop.lower().strip()
+                    in_objs = any(prop_low in col or col in prop_low for col in cand_objs_lower)
+                    in_subj = prop_low in subj_lower
+                    in_act = prop_low in act_text
+                    if in_objs or in_subj or in_act:
+                        prop_match_count += 1
+                        has_any_prop_match = True
+                        score += 350.0
+                        if in_objs:
+                            score += 100.0
+                        if in_subj:
+                            score += 150.0
+
+                if prop_match_count == 0:
+                    score -= 300.0
+
+            # ------------------------------------------------------------------
+            # Field 3: Location / Environment Setting Matching
+            # ------------------------------------------------------------------
+            if preferred_location:
+                loc_low = preferred_location.lower().strip()
+                cand_loc = str(cand.get("location_setting") or "").lower()
+                if loc_low in cand_loc or any(lp in cand_loc for lp in loc_low.split() if len(lp) > 3):
+                    score += 150.0
+
+            # ------------------------------------------------------------------
+            # Field 4: Action & Subject Keyword Matching
+            # ------------------------------------------------------------------
             for t in unique_terms:
-                if t in act_text:
-                    score += 10.0
+                if len(t) > 3:
+                    if t in subj_lower:
+                        score += 50.0
+                    if t in act_text:
+                        score += 15.0
 
             # Retrieval Hints & Target Clip ID Matching (+600 for ID, +150 for subject, +80 for action)
             for hint in (retrieval_hints or []):
@@ -372,27 +449,26 @@ class VaultClipSelector:
                 elif h_low in act_text:
                     score += 80.0
 
-            # Hard Movie Preference & Era Lock
+            # ------------------------------------------------------------------
+            # Field 5: Movie Preference & Era Lock
+            # ------------------------------------------------------------------
             if movie_number:
                 if cand.get("movie_number") == movie_number:
                     score += 250.0  # Dominant priority for canonical movie
                 else:
-                    score -= 300.0  # Strict penalty to eliminate cross-movie hallucination
+                    if has_any_char_match or has_any_prop_match:
+                        score -= 50.0  # Allow exact canonical asset across films
+                    else:
+                        score -= 400.0  # Strict penalty to eliminate cross-movie hallucination
 
             # Strict Entity Conflict & Disambiguation Guard
-            cand_full_text = (
-                f"{cid} {subj_lower} {chars_cand} {act_text}"
-            ).lower()
+            cand_full_text = f"{cid} {subj_lower} {chars_cand} {act_text}".lower()
             for rule in ENTITY_CONFLICT_RULES:
                 q_has_trigger = any(trig in q_lower for trig in rule["query_triggers"])
                 if q_has_trigger:
                     cand_has_forbidden = any(forbid in cand_full_text for forbid in rule["forbidden_tokens"])
                     if cand_has_forbidden:
                         score -= rule["penalty"]
-                        logger.info(
-                            f"Entity Disambiguation Penalty applied to {cid}: -{rule['penalty']} "
-                            f"(query triggered: {rule['query_triggers'][0]}, matched forbidden: {rule['forbidden_tokens'][0]})"
-                        )
 
             # Duration Suitability Bonus (+25)
             dur = cand.get("duration_seconds", 3.0)
@@ -514,16 +590,21 @@ class VaultClipSelector:
         for idx, beat in enumerate(beats):
             beat_id = beat.get("beat_id", f"beat_{idx + 1}")
             dur = float(beat.get("duration_seconds", 3.0))
-            v_req = ((beat.get("visual_requirement") or "") + " " + (beat.get("narration_text") or "")).strip()
+            # Pure visual requirement: never pollute visual retrieval with voiceover dialogue
+            pure_visual = (beat.get("visual_requirement") or beat.get("description") or beat.get("action") or "").strip()
             chars = beat.get("characters", [])
             props = beat.get("objects", [])
+            location = beat.get("location") or beat.get("setting") or ""
+            action = beat.get("action") or ""
             hints = beat.get("retrieval_hints", [])
             pref_movie = beat.get("preferred_movie_number") or script.corresponding_movie_number
 
             matched_clip = self.find_best_clip(
-                query_text=v_req,
+                query_text=pure_visual,
                 preferred_characters=chars,
                 preferred_props=props,
+                preferred_location=location,
+                preferred_action=action,
                 movie_number=pref_movie,
                 retrieval_hints=hints,
                 allow_download=allow_download
@@ -533,7 +614,7 @@ class VaultClipSelector:
             if matched_clip is None:
                 raise ValueError(
                     f"Strict Zero-Filler Guard: Could not find canonical vault clip for {script_id} "
-                    f"beat {beat_id} ('{v_req[:50]}'). Production aborted to prevent visual mismatch."
+                    f"beat {beat_id} ('{pure_visual[:50]}'). Production aborted to prevent visual mismatch."
                 )
 
             # Conform / Trim clip to exact beat duration @ 1080x1920 30fps
@@ -617,16 +698,20 @@ class VaultClipSelector:
         for idx, beat in enumerate(beats):
             beat_id = beat.get("beat_id", f"beat_{idx + 1}")
             dur = float(beat.get("duration_seconds", 3.0))
-            v_req = ((beat.get("visual_requirement") or "") + " " + (beat.get("narration_text") or "")).strip()
+            pure_visual = (beat.get("visual_requirement") or beat.get("description") or beat.get("action") or "").strip()
             chars = beat.get("characters", [])
             props = beat.get("objects", [])
+            location = beat.get("location") or beat.get("setting") or ""
+            action = beat.get("action") or ""
             hints = beat.get("retrieval_hints", [])
             pref_movie = beat.get("preferred_movie_number") or script.corresponding_movie_number
 
             matched = self.find_best_clip(
-                query_text=v_req,
+                query_text=pure_visual,
                 preferred_characters=chars,
                 preferred_props=props,
+                preferred_location=location,
+                preferred_action=action,
                 movie_number=pref_movie,
                 retrieval_hints=hints,
                 allow_download=False
@@ -636,7 +721,7 @@ class VaultClipSelector:
                 "beat_id": beat_id,
                 "duration_seconds": dur,
                 "narration_text": beat.get("narration_text", ""),
-                "visual_requirement": v_req,
+                "visual_requirement": pure_visual,
                 "matched_clip_id": matched["clip_id"] if matched else None,
                 "matched_movie": matched["movie_number"] if matched else None,
                 "primary_subject": matched["primary_subject"] if matched else None,
