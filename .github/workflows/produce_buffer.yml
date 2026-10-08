@@ -154,9 +154,9 @@ jobs:
           echo "VISUAL_SOURCE_PRIORITY=movie_footage" >> .env
           echo "DISCOVERY_ONLY=true" >> .env
           echo "TARGET_RESERVE_BUFFER=8" >> .env
-          echo "SHORTS_PER_DAY=4" >> .env
+          echo "SHORTS_PER_DAY=3" >> .env
           echo "NOVEL_SHORTS_PER_DAY=0" >> .env
-          echo "DISCOVERY_SHORTS_PER_DAY=4" >> .env
+          echo "DISCOVERY_SHORTS_PER_DAY=3" >> .env
           echo "SCHEDULING_HORIZON_HOURS=48" >> .env
           echo "PUBLISHING_ENABLED=false" >> .env
           echo "UPLOAD_ENABLED=false" >> .env
@@ -177,7 +177,7 @@ jobs:
           BATCH_COUNT="${{ inputs.batch_count }}"
           TARGET_BUFFER="${{ inputs.target_buffer }}"
           VOICE_INPUT="${{ inputs.active_voice }}"
-          VOICE_FLAG="--voice ${VOICE_INPUT:-af_bella}"
+          VOICE_FLAG="--voice ${VOICE_INPUT:-f5_cloned_narrator_v1}"
           UNLOCK_FLAG=""
           if [ "${{ inputs.force_unlock }}" = "true" ]; then
             UNLOCK_FLAG="--force-unlock"
