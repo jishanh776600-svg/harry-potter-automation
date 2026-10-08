@@ -1,0 +1,90 @@
+{
+  "selected_reference": {
+    "candidate_id": "barty_cand_07",
+    "source_short": "data/reference_analysis/barty_crouch_audio.wav",
+    "transcript_text": "To put that into perspective, even Hermione only got 10. After graduation, he began following Voldemort.",
+    "duration_s": 5.28,
+    "start_time_s": 21.44,
+    "end_time_s": 26.72,
+    "composite_quality_score": 44.13,
+    "snr_proxy_db": 15.14,
+    "spectral_flatness": 0.0246,
+    "phonetic_diversity": 1.0,
+    "raw_wav_path": "data/voice_cloning/f5_tts/reference/selected_reference_speaker.wav",
+    "conditioned_24k_wav_path": "data/voice_cloning/f5_tts/reference/selected_reference_speaker_24k.wav"
+  },
+  "all_evaluated_candidates": [
+    {
+      "candidate_id": "barty_cand_07",
+      "source_audio": "data/reference_analysis/barty_crouch_audio.wav",
+      "text": "To put that into perspective, even Hermione only got 10. After graduation, he began following Voldemort.",
+      "duration_s": 5.28,
+      "snr_proxy_db": 15.14,
+      "rms_stability": 0.455,
+      "spectral_flatness": 0.0246,
+      "phonetic_diversity": 1.0,
+      "composite_quality_score": 44.13,
+      "wav_path": "data/voice_cloning/f5_tts/reference/candidates/barty_cand_07.wav"
+    },
+    {
+      "candidate_id": "barty_cand_06",
+      "source_audio": "data/reference_analysis/barty_crouch_audio.wav",
+      "text": "When he graduated, he earned 12 OWL certificates. To put that into perspective, even Hermione only got 10.",
+      "duration_s": 5.96,
+      "snr_proxy_db": 17.77,
+      "rms_stability": 0.499,
+      "spectral_flatness": 0.026,
+      "phonetic_diversity": 0.972,
+      "composite_quality_score": 43.76,
+      "wav_path": "data/voice_cloning/f5_tts/reference/candidates/barty_cand_06.wav"
+    },
+    {
+      "candidate_id": "barty_cand_18",
+      "source_audio": "data/reference_analysis/barty_crouch_audio.wav",
+      "text": "So even when he disguised himself as Mad Eye Moody, he kept the same habit. Barty Crouch Jr. had always desperately wanted his father's approval,",
+      "duration_s": 6.84,
+      "snr_proxy_db": 16.62,
+      "rms_stability": 0.475,
+      "spectral_flatness": 0.0273,
+      "phonetic_diversity": 0.98,
+      "composite_quality_score": 43.31,
+      "wav_path": "data/voice_cloning/f5_tts/reference/candidates/barty_cand_18.wav"
+    },
+    {
+      "candidate_id": "barty_cand_19",
+      "source_audio": "data/reference_analysis/barty_crouch_audio.wav",
+      "text": "Barty Crouch Jr. had always desperately wanted his father's approval, but his own father personally sent him to Askeban.",
+      "duration_s": 5.68,
+      "snr_proxy_db": 14.68,
+      "rms_stability": 0.457,
+      "spectral_flatness": 0.0276,
+      "phonetic_diversity": 0.974,
+      "composite_quality_score": 42.5,
+      "wav_path": "data/voice_cloning/f5_tts/reference/candidates/barty_cand_19.wav"
+    },
+    {
+      "candidate_id": "barty_cand_05",
+      "source_audio": "data/reference_analysis/barty_crouch_audio.wav",
+      "text": "Magical Cooperation at the Ministry of Magic, and he was also a top student from a young age.",
+      "duration_s": 4.96,
+      "snr_proxy_db": 14.86,
+      "rms_stability": 0.461,
+      "spectral_flatness": 0.0276,
+      "phonetic_diversity": 0.972,
+      "composite_quality_score": 42.49,
+      "wav_path": "data/voice_cloning/f5_tts/reference/candidates/barty_cand_05.wav"
+    },
+    {
+      "candidate_id": "barty_cand_24",
+      "source_audio": "data/reference_analysis/barty_crouch_audio.wav",
+      "text": "His soul was completely sucked away, leaving behind nothing but an empty shell with no thoughts or memories.",
+      "duration_s": 4.8,
+      "snr_proxy_db": 13.8,
+      "rms_stability": 0.436,
+      "spectral_flatness": 0.029,
+      "phonetic_diversity": 1.0,
+      "composite_quality_score": 42.46,
+      "wav_path": "data/voice_cloning/f5_tts/reference/candidates/barty_cand_24.wav"
+    }
+  ]
+}

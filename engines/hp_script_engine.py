@@ -930,7 +930,24 @@ OUTPUT STRICT JSON:
         if not beats:
             return []
 
-        result_beats = [dict(b) for b in beats]
+        result_beats = []
+        for b in beats:
+            if isinstance(b, dict):
+                result_beats.append(dict(b))
+            elif isinstance(b, str):
+                result_beats.append({
+                    "narration_text": b,
+                    "visual_requirement": b,
+                    "description": b,
+                })
+            elif hasattr(b, "__dict__"):
+                result_beats.append(dict(b.__dict__))
+            else:
+                result_beats.append({
+                    "narration_text": str(b),
+                    "visual_requirement": str(b),
+                    "description": str(b),
+                })
 
         # Step 1: Subdivide beats until we reach target_min (8-9 beats minimum)
         max_subdivide_iter = 20

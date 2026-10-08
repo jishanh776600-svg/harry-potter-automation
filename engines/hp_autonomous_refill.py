@@ -53,6 +53,7 @@ from engines.hp_learning_strategy import HPLearningStrategy
 logger = logging.getLogger("hp_autonomous_refill")
 
 MAX_RUN_REFILL_CEILING = int(os.getenv("MAX_RUN_REFILL_CEILING", "4"))
+CIRCUIT_BREAKER_MAX_FAILURES = int(os.getenv("CIRCUIT_BREAKER_MAX_FAILURES", "5"))
 
 
 @dataclass
@@ -742,13 +743,13 @@ class HPAutonomousRefillEngine:
             # Real Resilient Production Loop
             # Step A: Produce Novel Story Shorts
             for idx in range(novel_needed):
-                if consecutive_failures >= 2:
-                    logger.error("[Refill] Circuit breaker tripped: 2 consecutive failures. Aborting batch early.")
+                if consecutive_failures >= CIRCUIT_BREAKER_MAX_FAILURES:
+                    logger.error(f"[Refill] Circuit breaker tripped: {CIRCUIT_BREAKER_MAX_FAILURES} consecutive failures. Aborting batch early.")
                     telemetry.circuit_breaker_tripped = True
                     break
 
                 slot_produced = False
-                while not slot_produced and consecutive_failures < 2:
+                while not slot_produced and consecutive_failures < CIRCUIT_BREAKER_MAX_FAILURES:
                     success, sid, reason = self._produce_next_novel_story(session, excluded_script_ids)
                     if success:
                         produced_count += 1
@@ -770,7 +771,7 @@ class HPAutonomousRefillEngine:
                             excluded_script_ids.add(f"hps_{sid}")
                         telemetry.failure_reasons.append(f"Novel Story candidate '{sid or idx+1}' failed: {reason}")
                         logger.warning(f"[Refill] Candidate '{sid}' failed. Trying next candidate from pool...")
-                        if consecutive_failures >= 2:
+                        if consecutive_failures >= CIRCUIT_BREAKER_MAX_FAILURES:
                             telemetry.circuit_breaker_tripped = True
                             break
 
@@ -778,13 +779,13 @@ class HPAutonomousRefillEngine:
             if not telemetry.circuit_breaker_tripped:
                 # B1: Discovery Big
                 for idx in range(disc_big_needed):
-                    if consecutive_failures >= 2:
-                        logger.error("[Refill] Circuit breaker tripped: 2 consecutive failures. Aborting batch early.")
+                    if consecutive_failures >= CIRCUIT_BREAKER_MAX_FAILURES:
+                        logger.error(f"[Refill] Circuit breaker tripped: {CIRCUIT_BREAKER_MAX_FAILURES} consecutive failures. Aborting batch early.")
                         telemetry.circuit_breaker_tripped = True
                         break
 
                     slot_produced = False
-                    while not slot_produced and consecutive_failures < 2:
+                    while not slot_produced and consecutive_failures < CIRCUIT_BREAKER_MAX_FAILURES:
                         success, sid, reason = self._produce_next_discovery(session, excluded_script_ids, discovery_format="DISCOVERY_BIG")
                         if success:
                             produced_count += 1
@@ -807,19 +808,19 @@ class HPAutonomousRefillEngine:
                                 excluded_script_ids.add(f"hps_{sid}")
                             telemetry.failure_reasons.append(f"Discovery Big candidate '{sid or idx+1}' failed: {reason}")
                             logger.warning(f"[Refill] Candidate '{sid}' failed. Trying next candidate from pool...")
-                            if consecutive_failures >= 2:
+                            if consecutive_failures >= CIRCUIT_BREAKER_MAX_FAILURES:
                                 telemetry.circuit_breaker_tripped = True
                                 break
 
                 # B2: Discovery Short
                 for idx in range(disc_short_needed):
-                    if consecutive_failures >= 2:
-                        logger.error("[Refill] Circuit breaker tripped: 2 consecutive failures. Aborting batch early.")
+                    if consecutive_failures >= CIRCUIT_BREAKER_MAX_FAILURES:
+                        logger.error(f"[Refill] Circuit breaker tripped: {CIRCUIT_BREAKER_MAX_FAILURES} consecutive failures. Aborting batch early.")
                         telemetry.circuit_breaker_tripped = True
                         break
 
                     slot_produced = False
-                    while not slot_produced and consecutive_failures < 2:
+                    while not slot_produced and consecutive_failures < CIRCUIT_BREAKER_MAX_FAILURES:
                         success, sid, reason = self._produce_next_discovery(session, excluded_script_ids, discovery_format="DISCOVERY_SHORT")
                         if success:
                             produced_count += 1
@@ -842,7 +843,7 @@ class HPAutonomousRefillEngine:
                                 excluded_script_ids.add(f"hps_{sid}")
                             telemetry.failure_reasons.append(f"Discovery Short candidate '{sid or idx+1}' failed: {reason}")
                             logger.warning(f"[Refill] Candidate '{sid}' failed. Trying next candidate from pool...")
-                            if consecutive_failures >= 2:
+                            if consecutive_failures >= CIRCUIT_BREAKER_MAX_FAILURES:
                                 telemetry.circuit_breaker_tripped = True
                                 break
 

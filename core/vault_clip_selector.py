@@ -129,6 +129,7 @@ class VaultClipSelector:
         self.clips_dir = clips_output_dir or (PROJECT_ROOT / "data" / "clips")
         self.clips_dir.mkdir(parents=True, exist_ok=True)
         self.used_clip_ids: Set[str] = set()
+        self.used_intervals: List[Tuple[int, float, float]] = []
         self.drive_engine: Optional[DriveVaultEngine] = None
         self.smart_crop = SmartCropEngine()
         self.visual_guard = VisualMismatchGuard()
@@ -183,7 +184,18 @@ class VaultClipSelector:
             )
             if gt_clip and gt_clip.get("match_score", 0) >= 70.0:
                 cid = gt_clip["clip_id"]
-                if cid not in self.used_clip_ids:
+                cand_m = gt_clip.get("movie_number")
+                cand_s = gt_clip.get("start_seconds")
+                cand_e = gt_clip.get("end_seconds")
+                has_conflict = False
+                if cand_m is not None and cand_s is not None and cand_e is not None:
+                    for um, us, ue in self.used_intervals:
+                        if um == int(cand_m):
+                            overlap = min(ue, float(cand_e)) - max(us, float(cand_s))
+                            if overlap > 0.5 or abs(float(cand_s) - us) < 1.5:
+                                has_conflict = True
+                                break
+                if cid not in self.used_clip_ids and not has_conflict:
                     local_p = Path(gt_clip["local_path"])
                     if local_p.exists() and local_p.stat().st_size > 1000:
                         passed, conf, reason = self.visual_guard.verify_clip_against_beat(
@@ -195,6 +207,8 @@ class VaultClipSelector:
                         )
                         if passed:
                             self.used_clip_ids.add(cid)
+                            if cand_m is not None and cand_s is not None and cand_e is not None:
+                                self.used_intervals.append((int(cand_m), float(cand_s), float(cand_e)))
                             logger.info(
                                 f"[BEAST GROUND TRUTH TIER-1 MATCH] '{query_text[:45]}' -> {cid} "
                                 f"(Scene: {gt_clip.get('scene_heading')}, score: {gt_clip['match_score']:.1f})"
@@ -256,6 +270,21 @@ class VaultClipSelector:
             cid = cand["clip_id"]
             if cid in self.used_clip_ids:
                 continue
+
+            # Anti-Loop Timestamp Guard: Reject clips with overlapping or adjacent timestamp windows in same movie
+            cand_m = cand.get("movie_number")
+            cand_s = cand.get("start_seconds")
+            cand_e = cand.get("end_seconds")
+            if cand_m is not None and cand_s is not None and cand_e is not None:
+                has_conflict = False
+                for um, us, ue in self.used_intervals:
+                    if um == int(cand_m):
+                        overlap = min(ue, float(cand_e)) - max(us, float(cand_s))
+                        if overlap > 0.5 or abs(float(cand_s) - us) < 1.5:
+                            has_conflict = True
+                            break
+                if has_conflict:
+                    continue
 
             score = 10.0
 
@@ -429,6 +458,12 @@ class VaultClipSelector:
                     continue
 
                 self.used_clip_ids.add(cid)
+                if best_clip.get("movie_number") is not None and best_clip.get("start_seconds") is not None and best_clip.get("end_seconds") is not None:
+                    self.used_intervals.append((
+                        int(best_clip["movie_number"]),
+                        float(best_clip["start_seconds"]),
+                        float(best_clip["end_seconds"])
+                    ))
                 best_clip["match_score"] = candidate_score
                 best_clip["local_path"] = str(local_p)
                 return best_clip
@@ -614,3 +649,4 @@ class VaultClipSelector:
 
     def reset_used(self):
         self.used_clip_ids.clear()
+        self.used_intervals.clear()
