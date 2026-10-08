@@ -293,9 +293,9 @@ class UploadEngine:
                 hp_script = db.query(HarryPotterScript).filter(HarryPotterScript.id.ilike(f"%{resolved_script_id}%")).first()
 
             if hp_script:
-                allowed_voices = ("af_bella", "bella", "male_18", "MALE_18_FenrirOnyx_DarkBaritone", "f5_tts")
-                if hp_script.voice_id not in allowed_voices and not str(hp_script.voice_id).startswith(("af_bella", "f5")):
-                    return False, f"Gate 16 Failed: Harry Potter voice '{hp_script.voice_id}' is invalid (af_bella required)"
+                allowed_voices = ("af_bella", "bella", "af_sarah", "sarah", "male_18", "MALE_18_FenrirOnyx_DarkBaritone", "f5_tts", "f5_cloned_narrator_v1", "en-GB-RyanNeural", "en-GB-SoniaNeural")
+                if hp_script.voice_id not in allowed_voices and not str(hp_script.voice_id).startswith(("af_bella", "af_sarah", "f5", "en-GB")):
+                    return False, f"Gate 16 Failed: Harry Potter voice '{hp_script.voice_id}' is invalid"
                 ct = str(hp_script.content_type).lower()
                 if ct not in ("novel_story", "discovery", "discovery_big", "discovery_short", "deep_discovery"):
                     return False, f"Gate 16 Failed: Invalid content type '{hp_script.content_type}'"
