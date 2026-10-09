@@ -119,7 +119,7 @@ ENTITY_CONFLICT_RULES = [
     }
 ]
 
-MIN_CONFIDENCE_SCORE = 35.0
+MIN_CONFIDENCE_SCORE = 200.0
 
 
 def get_character_variants(char_name: str) -> List[str]:
@@ -484,44 +484,90 @@ class VaultClipSelector:
                 str(cand.get("search_tags") or "")
             ).lower()
 
+            DISTINCTIVE_CANONICAL_PROPS = {
+                "marauder's map", "marauder map", "marauders map", "mirror of erised",
+                "tom riddle's diary", "riddle's diary", "riddle diary", "diary", "sorting hat",
+                "triwizard cup", "goblet of fire", "prophecy", "prophecy orb", "glass orb",
+                "howler", "remembrall", "invisibility cloak", "pensieve", "resurrection stone",
+                "elder wand", "deluminator", "basilisk fang", "sword of gryffindor",
+                "firebolt", "nimbus 2000", "golden snitch", "quaffle", "bludger",
+                "monster book", "devil's snare", "mandrake", "time turner", "time-turner",
+                "ford anglia", "flying car", "hogwarts express", "knight bus", "dark mark",
+                "parchment"
+            }
+
             has_any_prop_match = False
+            has_distinctive_prop_match = False
             if preferred_props:
                 prop_match_count = 0
+                has_distinctive_prop_req = any(
+                    any(dp in p.lower() for dp in DISTINCTIVE_CANONICAL_PROPS)
+                    for p in preferred_props
+                )
                 for prop in preferred_props:
                     prop_low = prop.lower().strip()
                     prop_clean = re.sub(r"[^a-z0-9\s]", " ", prop_low).strip()
                     p_tokens = [w for w in prop_clean.split() if len(w) > 2 and w not in STOPWORDS]
+                    is_distinctive = any(dp in prop_low for dp in DISTINCTIVE_CANONICAL_PROPS)
 
+                    # Check match: candidate object must be exact or contain prop, or all significant tokens must match
                     in_objs = any(
-                        (prop_low in col or col in prop_low) or
-                        (p_tokens and all(t in re.sub(r"[^a-z0-9\s]", " ", col) for t in p_tokens))
+                        (prop_low == col or prop_low in col) or
+                        (p_tokens and len(p_tokens) > 1 and all(t in re.sub(r"[^a-z0-9\s]", " ", col) for t in p_tokens))
                         for col in cand_objs_lower
                     )
                     in_subj = (
                         prop_low in subj_lower or
-                        (p_tokens and all(t in re.sub(r"[^a-z0-9\s]", " ", subj_lower) for t in p_tokens))
+                        (p_tokens and len(p_tokens) > 1 and all(t in re.sub(r"[^a-z0-9\s]", " ", subj_lower) for t in p_tokens))
                     )
                     in_act = (
                         prop_low in act_text or
-                        (p_tokens and all(t in re.sub(r"[^a-z0-9\s]", " ", act_text) for t in p_tokens))
+                        (p_tokens and len(p_tokens) > 1 and all(t in re.sub(r"[^a-z0-9\s]", " ", act_text) for t in p_tokens))
                     )
                     if in_objs or in_subj or in_act:
-                        prop_match_count += 1
-                        has_any_prop_match = True
-                        score += 350.0
-                        if in_objs:
-                            score += 100.0
-                        if in_subj:
-                            score += 150.0
+                        if is_distinctive:
+                            # Candidate MUST contain the distinctive keyword itself, not just a generic modifier
+                            distinctive_keywords = [dp for dp in DISTINCTIVE_CANONICAL_PROPS if dp in prop_low]
+                            matched_distinctive_kw = any(
+                                any(dk in col for dk in distinctive_keywords) for col in cand_objs_lower
+                            ) or any(dk in subj_lower for dk in distinctive_keywords) or any(dk in act_text for dk in distinctive_keywords)
 
-                if prop_match_count == 0:
-                    score -= 300.0
+                            if matched_distinctive_kw:
+                                prop_match_count += 1
+                                has_any_prop_match = True
+                                has_distinctive_prop_match = True
+                                score += 450.0
+                                if in_subj:
+                                    score += 200.0
+                        else:
+                            prop_match_count += 1
+                            has_any_prop_match = True
+                            score += 50.0
 
-            # Character Disqualification: If beat explicitly named characters, penalize candidates with wrong characters
-            # (Do not disqualify if candidate is a direct prop match or object shot)
-            if active_characters and char_match_count == 0 and not has_any_prop_match:
-                if len(cand_chars_list) > 0 and subj_lower not in ("none", "general", "establishing", "landscape", "object", "scene", "the parchment", "parchment"):
-                    score -= 500.0
+                if has_distinctive_prop_req and not has_distinctive_prop_match:
+                    score -= 1500.0
+
+            # Character Disqualification: Strict Canonical Entity Enforcement
+            if active_characters:
+                lead_char = active_characters[0]
+                lead_vars = [v.lower() for v in get_character_variants(lead_char)]
+                has_lead = any(v in subj_lower or any(v in ccl for ccl in cand_chars_lower) for v in lead_vars)
+
+                # If primary_subject is a person but NOT one of the active characters:
+                if subj_lower not in ("none", "general", "scene", "landscape", "establishing", "object", "the parchment", "parchment"):
+                    is_subj_active = any(any(v in subj_lower for v in [ac.lower()] + [x.lower() for x in get_character_variants(ac)]) for ac in active_characters)
+                    if not is_subj_active and len(cand_chars_list) > 0:
+                        score -= 1500.0
+
+                if char_match_count == 0:
+                    # ZERO requested characters matched: lethal penalty
+                    if len(cand_chars_list) > 0:
+                        score -= 2500.0  # Instant elimination if candidate shows people other than requested
+                    elif not has_distinctive_prop_match:
+                        score -= 1000.0
+                elif not has_lead and len(active_characters) > 1 and len(cand_chars_list) > 0:
+                    # Missing the primary lead subject when other characters were matched
+                    score -= 600.0
 
             # ------------------------------------------------------------------
             # Field 3: Location / Environment Setting Matching

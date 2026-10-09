@@ -255,6 +255,26 @@ class HPAutonomousRefillEngine:
                 full_exclusions.add(script.id)
                 return self._get_or_create_candidate_script(session, content_type, full_exclusions)
 
+            # Quality & integrity check: scripts with fake dummy boilerplate text cannot be rendered
+            text_low = (script.full_text or "").lower()
+            if "something unforgettable" in text_low or "reshaped the fate of the entire" in text_low:
+                logger.warning(f"[Refill:Pool] Script {script.id} contains generic dummy boilerplate. Quarantining...")
+                script.qa_status = "FAILED"
+                script.status = "QUARANTINED"
+                session.commit()
+                full_exclusions.add(script.id)
+                return self._get_or_create_candidate_script(session, content_type, full_exclusions)
+
+            # Franchise Vault Movie Availability Check: Vault currently has cataloged clips for Movies 1-5 only
+            m_num = script.corresponding_movie_number or script.book_number
+            if m_num and int(m_num) > 5:
+                logger.warning(f"[Refill:Pool] Script {script.id} requires Movie {m_num} footage which is not yet cataloged in vault. Quarantining...")
+                script.qa_status = "FAILED"
+                script.status = "QUARANTINED"
+                session.commit()
+                full_exclusions.add(script.id)
+                return self._get_or_create_candidate_script(session, content_type, full_exclusions)
+
             logger.info(f"[Refill:Pool] Found existing undeposited script: {script.id} ({content_type})")
             return script
 
@@ -412,7 +432,7 @@ class HPAutonomousRefillEngine:
                 match_status="ACCEPTED"
             ).all()
 
-            # STRICT PURGE: Reject and re-resolve if any existing shots used corrupt atmospheric fillers or point to missing files
+            # STRICT PURGE: Reject and re-resolve if any existing shots used corrupt atmospheric fillers, point to missing files, have low scores, or point to raw movie files
             if existing_shots:
                 has_corrupt_shots = any(
                     getattr(sh, "retrieval_query", "") == "Hogwarts Castle atmospheric transition"
@@ -422,8 +442,16 @@ class HPAutonomousRefillEngine:
                     not sh.file_path or not Path(sh.file_path).exists()
                     for sh in existing_shots
                 )
-                if has_corrupt_shots or has_missing_files:
-                    logger.warning(f"[Refill:Visual] Found invalid/missing placeholder shots for {script_id}. Purging...")
+                has_raw_source = any(
+                    sh.source_mode != "CLOUD_MATERIALIZED" or (sh.source_drive_id and "mkv" in str(getattr(sh, "source_asset_id", "")).lower())
+                    for sh in existing_shots
+                )
+                has_low_score = any(
+                    getattr(sh, "retrieval_score", 0) < 200.0
+                    for sh in existing_shots
+                )
+                if has_corrupt_shots or has_missing_files or has_raw_source or has_low_score:
+                    logger.warning(f"[Refill:Visual] Found invalid/legacy shots for {script_id}. Purging...")
                     session.query(HPMovieClip).filter_by(script_id=script_id).delete()
                     session.commit()
                     existing_shots = []

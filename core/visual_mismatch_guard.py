@@ -77,34 +77,47 @@ class VisualMismatchGuard:
             or len(chars) > 0
         )
 
-        # Rule 1: Subject metadata consistency
+        # Rule 1: Subject metadata consistency & Strict Character Validation
         if clip_metadata:
             clip_subj = str(clip_metadata.get("primary_subject", "")).lower()
-            clip_chars = str(clip_metadata.get("characters_present", "[]")).lower()
+            chars_cand_raw = clip_metadata.get("characters_present", "[]")
+            try:
+                clip_chars_list = json.loads(chars_cand_raw) if isinstance(chars_cand_raw, str) else (chars_cand_raw or [])
+            except Exception:
+                clip_chars_list = []
+            clip_chars_lower = set(c.lower() for c in clip_chars_list)
+            clip_chars_str = str(clip_metadata.get("characters_present", "[]")).lower()
 
             # Direct character contradiction check
             for ch in chars:
                 ch_low = ch.lower()
-                # If expecting Crouch Jr, candidate must NOT be Crouch Sr
                 if "crouch jr" in ch_low and ("crouch sr" in clip_subj or "senior" in clip_subj):
                     return False, 0.1, f"Mismatch: Expecting Crouch Jr, but clip is {clip_subj}"
                 if "crouch sr" in ch_low and ("crouch jr" in clip_subj or "junior" in clip_subj):
                     return False, 0.1, f"Mismatch: Expecting Crouch Sr, but clip is {clip_subj}"
-                if "draco" in ch_low and "lucius" in clip_subj and "draco" not in clip_chars:
+                if "draco" in ch_low and "lucius" in clip_subj and "draco" not in clip_chars_str:
                     return False, 0.1, f"Mismatch: Expecting Draco Malfoy, but clip is Lucius Malfoy"
+                if "snape" in ch_low and "lockhart" in clip_subj:
+                    return False, 0.1, f"Mismatch: Expecting Severus Snape, but clip is Lockhart"
+                if "dumbledore" in ch_low and "vernon" in clip_subj:
+                    return False, 0.1, f"Mismatch: Expecting Dumbledore, but clip is Vernon Dursley"
+
+            # Strict Character Presence Check: If beat specifies characters, clip CANNOT feature entirely different people
+            if chars:
+                from core.vault_clip_selector import get_character_variants
+                has_any_expected = False
+                for ch in chars:
+                    variants = [v.lower() for v in get_character_variants(ch)]
+                    if any(v in clip_subj or any(v in ccl or ccl in v for ccl in clip_chars_lower) for v in variants):
+                        has_any_expected = True
+                        break
+
+                if not has_any_expected:
+                    if clip_chars_list or clip_subj not in ("none", "general", "scene", "landscape", "establishing", "object", "the parchment", "parchment"):
+                        return False, 0.0, f"Mismatch: Expecting {chars}, but clip features {clip_subj} ({clip_chars_list})"
 
         # Rule 2: Physical File Integrity Check
         if not clip_path.exists() or clip_path.stat().st_size < 1000:
             return False, 0.0, f"Candidate clip file is missing or corrupted: {clip_path}"
-
-        # Rule 3: Visual Subject & Prop Integrity
-        if clip_metadata:
-            # Check for conflicting entities
-            for ch in chars:
-                ch_low = ch.lower()
-                if "snape" in ch_low and "lockhart" in clip_subj:
-                    return False, 0.1, "Mismatch: Expecting Severus Snape, but clip is Lockhart"
-                if "dumbledore" in ch_low and "vernon" in clip_subj:
-                    return False, 0.1, "Mismatch: Expecting Dumbledore, but clip is Vernon Dursley"
 
         return True, 0.98, "Passed visual integrity check via verified database metadata."
