@@ -1032,7 +1032,12 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 f"Automatically resolving shots via VaultClipSelector..."
             )
             with self.Session() as session:
-                shots = self.vault_selector.resolve_script_shots(script_id, session=session, allow_download=True)
+                shots = self.vault_selector.resolve_script_shots(
+                    script_id,
+                    session=session,
+                    target_total_duration=narration_dur,
+                    allow_download=True
+                )
                 shots = sorted(shots, key=_beat_sort_key)
             shot_files = [Path(sh.file_path) for sh in shots if sh.file_path and Path(sh.file_path).exists()]
             total_unique_shot_dur = sum(sh.duration_seconds for sh in shots)

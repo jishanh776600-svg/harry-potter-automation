@@ -696,6 +696,75 @@ class VaultClipSelector:
         logger.warning(f"All {len(scored)} candidates for '{query_text[:50]}' failed physical file check or vision audit.")
         return None
 
+    def get_clip_by_id(
+        self,
+        clip_id: str,
+        drive_file_id: Optional[str] = None,
+        allow_download: bool = True
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Directly retrieves a clip by ID from franchise_visual_vault.db.
+        Guarantees exact canonical asset matching (0% visual mismatch).
+        Downloads asset from Google Drive if not yet cached locally.
+        """
+        try:
+            conn = get_connection(self.db_path)
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM franchise_clips WHERE clip_id = ?", (clip_id,))
+            row = cur.fetchone()
+            conn.close()
+        except Exception as e:
+            logger.error(f"Failed to query franchise_clips for {clip_id}: {e}")
+            return None
+
+        if not row:
+            logger.warning(f"Clip {clip_id} not found in franchise_visual_vault.db.")
+            return None
+
+        best_clip = dict(row)
+        if drive_file_id and not best_clip.get("drive_file_id"):
+            best_clip["drive_file_id"] = drive_file_id
+
+        vault_clips_dir = PROJECT_ROOT / "data" / "franchise_vault_clips"
+        local_p = Path(best_clip.get("local_path") or "")
+
+        # Check if local path is valid on this system
+        if not local_p.exists() or local_p.stat().st_size == 0:
+            alt_path = vault_clips_dir / f"{clip_id}.mp4"
+            if alt_path.exists() and alt_path.stat().st_size > 1000:
+                local_p = alt_path
+                best_clip["local_path"] = str(local_p)
+
+        # If still missing, attempt Google Drive download if allowed
+        if (not local_p.exists() or local_p.stat().st_size == 0) and best_clip.get("drive_file_id") and allow_download:
+            dest = vault_clips_dir / f"{clip_id}.mp4"
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            logger.info(f"Downloading verified clip {clip_id} from Drive ID {best_clip['drive_file_id']}...")
+            try:
+                de = self._get_drive_engine()
+                de.download_video_from_vault(best_clip["drive_file_id"], dest)
+                if dest.exists() and dest.stat().st_size > 1000:
+                    local_p = dest
+                    best_clip["local_path"] = str(local_p)
+            except Exception as de_err:
+                logger.error(f"Failed to download vault clip {clip_id} from Drive: {de_err}")
+                return None
+
+        if local_p.exists() and local_p.stat().st_size > 1000:
+            self.used_clip_ids.add(clip_id)
+            if best_clip.get("movie_number") is not None and best_clip.get("start_seconds") is not None and best_clip.get("end_seconds") is not None:
+                self.used_intervals.append((
+                    int(best_clip["movie_number"]),
+                    float(best_clip["start_seconds"]),
+                    float(best_clip["end_seconds"])
+                ))
+            best_clip["match_score"] = 1500.0
+            best_clip["local_path"] = str(local_p)
+            return best_clip
+
+        logger.warning(f"Clip {clip_id} file not found locally or on Drive.")
+        return None
+
     def resolve_script_shots(
         self,
         script_id: str,
@@ -742,25 +811,37 @@ class VaultClipSelector:
         for idx, beat in enumerate(beats):
             beat_id = beat.get("beat_id", f"beat_{idx + 1}")
             dur = max(1.2, float(beat.get("duration_seconds", 3.0)))
-            # Pure visual requirement: never pollute visual retrieval with voiceover dialogue
-            pure_visual = (beat.get("visual_requirement") or beat.get("description") or beat.get("action") or "").strip()
-            chars = beat.get("characters", [])
-            props = beat.get("objects", [])
-            location = beat.get("location") or beat.get("setting") or ""
-            action = beat.get("action") or ""
-            hints = beat.get("retrieval_hints", [])
-            pref_movie = beat.get("preferred_movie_number") or script.corresponding_movie_number
+            clip_id_target = beat.get("clip_id")
+            matched_clip = None
 
-            matched_clip = self.find_best_clip(
-                query_text=pure_visual,
-                preferred_characters=chars,
-                preferred_props=props,
-                preferred_location=location,
-                preferred_action=action,
-                movie_number=pref_movie,
-                retrieval_hints=hints,
-                allow_download=allow_download
-            )
+            # 1. Exact clip_id direct retrieval (100% VISUAL-FIRST GUARANTEE)
+            if clip_id_target:
+                matched_clip = self.get_clip_by_id(
+                    clip_id_target,
+                    drive_file_id=beat.get("drive_file_id"),
+                    allow_download=allow_download
+                )
+
+            # 2. Semantic fallback if not pre-linked
+            if not matched_clip:
+                pure_visual = (beat.get("visual_requirement") or beat.get("description") or beat.get("action") or "").strip()
+                chars = beat.get("characters", [])
+                props = beat.get("objects", [])
+                location = beat.get("location") or beat.get("setting") or ""
+                action = beat.get("action") or ""
+                hints = beat.get("retrieval_hints", [])
+                pref_movie = beat.get("preferred_movie_number") or script.corresponding_movie_number
+
+                matched_clip = self.find_best_clip(
+                    query_text=pure_visual,
+                    preferred_characters=chars,
+                    preferred_props=props,
+                    preferred_location=location,
+                    preferred_action=action,
+                    movie_number=pref_movie,
+                    retrieval_hints=hints,
+                    allow_download=allow_download
+                )
 
             # Strict Zero-Filler Guard: Random placeholders permanently banned
             if matched_clip is None:
