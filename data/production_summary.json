@@ -1,12 +1,12 @@
 {
   "action": "MAINTAIN_BUFFER",
   "outcome": "SUCCEEDED",
-  "block_reason": "Discovery Big candidate 'hps_disc_weasleys_wizard_wheezes_funding_b4' failed: Rendering failed: Hard Duration Gate Violation for hps_disc_weasleys_wizard_wheezes_funding_b4: Narration duration 17.48s is strictly outside required range [18.0s, 28.0s]. Script word count must strictly yield 18-28 seconds.",
-  "requested_deficit": 8,
+  "block_reason": "Discovery Big candidate 'hps_disc_weasleys_wizard_wheezes_funding_b4' failed: Rendering failed: Hard Duration Gate Violation for hps_disc_weasleys_wizard_wheezes_funding_b4: Narration duration 17.61s is strictly outside required range [18.0s, 28.0s]. Script word count must strictly yield 18-28 seconds.; Discovery Big candidate 'hps_disc_barty_crouch_tongue_flick_b4' failed: Vault retrieval exception: Strict Zero-Filler Guard: Could not find canonical vault clip for hps_disc_barty_crouch_tongue_flick_b4 beat beat_1 ('The Goblet of Fire burning with mystical blue fire'). Production aborted to prevent visual mismatch.; Discovery Short candidate 'hps_disc_bartycrouch_jr_winky_quidditch_b4' failed: Vault retrieval exception: Strict Zero-Filler Guard: Could not find canonical vault clip for hps_disc_bartycrouch_jr_winky_quidditch_b4 beat beat_6 ('[Detail/Reaction Focus]'). Production aborted to prevent visual mismatch.",
+  "requested_deficit": 5,
   "produced_count": 4,
-  "initial_stock": 0,
-  "final_stock": 4,
+  "initial_stock": 3,
+  "final_stock": 7,
   "target_stock": 8,
   "voice": "f5_cloned_narrator_v1",
-  "timestamp": "2026-10-09T09:51:14.175202Z"
+  "timestamp": "2026-10-09T11:35:03.496927Z"
 }
