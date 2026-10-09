@@ -1,12 +1,12 @@
 {
   "action": "MAINTAIN_BUFFER",
   "outcome": "FAILED",
-  "block_reason": "Discovery Big candidate 'hps_disc_deathday_party_b2' failed: Vault retrieval exception: name 'v_req' is not defined; Discovery Big candidate 'hps_disc_neville_chosen_one_prophecy_b5' failed: Vault retrieval exception: name 'v_req' is not defined; Discovery Big candidate 'hps_disc_tom_riddle_orphanage_childhood_b6' failed: Vault retrieval exception: name 'v_req' is not defined; Discovery Big candidate 'hps_disc_house_elves_spew_slavery_b4' failed: Vault retrieval exception: name 'v_req' is not defined; Discovery Big candidate 'hps_disc_sirius_azkaban_secret_escape_b3' failed: Vault retrieval exception: name 'v_req' is not defined",
+  "block_reason": "Discovery Big candidate 'hps_disc_harry_scar_horcrux_connection_b6' failed: Vault retrieval exception: name 'v_req' is not defined; Discovery Big candidate 'hps_disc_draco_malfoy_invisibility_cloak_train_b6' failed: Vault retrieval exception: name 'v_req' is not defined; Discovery Big candidate 'hps_disc_peter_pettigrew_silver_hand_strangle_b7' failed: Vault retrieval exception: name 'v_req' is not defined; Discovery Big candidate 'hps_disc_voldemort_cursed_dada_job_b6' failed: Vault retrieval exception: name 'v_req' is not defined; Discovery Big candidate 'hps_disc_dudley_dursley_redemption_b7' failed: Vault retrieval exception: name 'v_req' is not defined",
   "requested_deficit": 7,
   "produced_count": 0,
   "initial_stock": 1,
   "final_stock": 1,
   "target_stock": 8,
   "voice": "f5_cloned_narrator_v1",
-  "timestamp": "2026-10-09T00:09:02.805645Z"
+  "timestamp": "2026-10-09T06:29:45.694722Z"
 }
