@@ -1,12 +1,11 @@
 {
-  "action": "MAINTAIN_BUFFER",
-  "outcome": "FAILED",
-  "block_reason": "Discovery Big candidate 'vf_m1_the_secrets_of_gringotts_vault_1303s' failed: Rendering failed: cannot access local variable 'pure_visual' where it is not associated with a value; Discovery Big candidate 'vf_m1_the_journey_to_hogwarts_begins_01903s' failed: Rendering failed: cannot access local variable 'pure_visual' where it is not associated with a value; Discovery Big candidate 'vf_m1_harry_potter_s_secret_hogwarts_137s' failed: Rendering failed: cannot access local variable 'pure_visual' where it is not associated with a value; Discovery Big candidate 'vf_m1_harry_potter_the_hidden_serpen_00323s' failed: Rendering failed: cannot access local variable 'pure_visual' where it is not associated with a value; Discovery Big candidate 'vf_m1_harry_potter_s_secret_hogwarts_137s_812' failed: Rendering failed: cannot access local variable 'pure_visual' where it is not associated with a value",
-  "requested_deficit": 6,
-  "produced_count": 0,
+  "action": "PRODUCE_BATCH",
+  "outcome": "SUCCEEDED",
+  "block_reason": null,
+  "requested_count": 1,
+  "produced_count": 1,
   "initial_stock": 2,
-  "final_stock": 2,
-  "target_stock": 8,
+  "final_stock": 3,
   "voice": "f5_cloned_narrator_v1",
-  "timestamp": "2026-10-09T13:05:48.829269Z"
+  "timestamp": "2026-10-09T13:17:32.657610Z"
 }
