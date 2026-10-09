@@ -1,12 +1,12 @@
 {
   "action": "MAINTAIN_BUFFER",
-  "outcome": "SUCCEEDED",
-  "block_reason": "Discovery Big candidate 'hps_disc_weasleys_wizard_wheezes_funding_b4' failed: Rendering failed: Hard Duration Gate Violation for hps_disc_weasleys_wizard_wheezes_funding_b4: Narration duration 17.61s is strictly outside required range [18.0s, 28.0s]. Script word count must strictly yield 18-28 seconds.; Discovery Big candidate 'hps_disc_barty_crouch_tongue_flick_b4' failed: Vault retrieval exception: Strict Zero-Filler Guard: Could not find canonical vault clip for hps_disc_barty_crouch_tongue_flick_b4 beat beat_1 ('The Goblet of Fire burning with mystical blue fire'). Production aborted to prevent visual mismatch.; Discovery Short candidate 'hps_disc_bartycrouch_jr_winky_quidditch_b4' failed: Vault retrieval exception: Strict Zero-Filler Guard: Could not find canonical vault clip for hps_disc_bartycrouch_jr_winky_quidditch_b4 beat beat_6 ('[Detail/Reaction Focus]'). Production aborted to prevent visual mismatch.",
-  "requested_deficit": 5,
-  "produced_count": 4,
-  "initial_stock": 3,
-  "final_stock": 7,
+  "outcome": "FAILED",
+  "block_reason": "Discovery Big candidate 'vf_m1_the_secrets_of_gringotts_vault_1303s' failed: REJECTED_INVALID_CLIP_COUNT; Discovery Big candidate 'vf_m1_the_journey_to_hogwarts_begins_01903s' failed: REJECTED_INVALID_CLIP_COUNT; Discovery Big candidate 'vf_m1_harry_potter_s_secret_hogwarts_137s' failed: REJECTED_INVALID_CLIP_COUNT; Discovery Big candidate 'vf_m1_harry_potter_the_hidden_serpen_00323s' failed: REJECTED_INVALID_CLIP_COUNT; Discovery Big candidate 'vf_m1_harry_potter_s_secret_hogwarts_137s_8133' failed: REJECTED_INVALID_CLIP_COUNT",
+  "requested_deficit": 6,
+  "produced_count": 0,
+  "initial_stock": 2,
+  "final_stock": 2,
   "target_stock": 8,
   "voice": "f5_cloned_narrator_v1",
-  "timestamp": "2026-10-09T11:35:03.496927Z"
+  "timestamp": "2026-10-09T12:15:48.615211Z"
 }
