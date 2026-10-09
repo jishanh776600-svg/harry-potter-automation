@@ -210,7 +210,7 @@ class HPAutonomousRefillEngine:
             logger.warning(f"Notice querying UploadRecord exclusions: {ue}")
 
         # 1. Look for existing scripts in HarryPotterScript table not yet deposited/published/scheduled
-        terminal_statuses = ["DEPOSITED", "PUBLISHED", "SCHEDULED", "PROCESSING", "QUARANTINED"]
+        terminal_statuses = ["PUBLISHED", "SCHEDULED", "PROCESSING", "QUARANTINED"]
         deposited_scripts = session.query(HarryPotterScript.id).filter(
             HarryPotterScript.status.in_(terminal_statuses)
         )

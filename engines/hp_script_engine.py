@@ -1690,65 +1690,181 @@ OUTPUT STRICT JSON:
                 ]
             }
 
-        # Generic novel / discovery fallback
-        summary_raw = (
-            getattr(candidate, "story_event_summary", None)
-            or getattr(candidate, "novel_fact_summary", None)
-            or getattr(candidate, "thesis", None)
-            or getattr(candidate, "title", None)
-            or "A crucial secret was uncovered in the wizarding world"
+        # Generic novel / discovery fallback: dynamically build lore, characters, and beats
+        cand_beats = getattr(candidate, "visual_beats_json", None)
+        if cand_beats:
+            try:
+                parsed_beats = json.loads(cand_beats) if isinstance(cand_beats, str) else cand_beats
+                if isinstance(parsed_beats, list) and len(parsed_beats) >= 2:
+                    hook_t = getattr(candidate, "hook_concept", "") or getattr(candidate, "suggested_title", "")
+                    dev_t = getattr(candidate, "novel_fact_summary", "") or getattr(candidate, "story_event_summary", "")
+                    payoff_t = getattr(candidate, "payoff_conclusion", "") or getattr(candidate, "insider_epiphany", "") or getattr(candidate, "payoff_text", "")
+                    if hook_t and dev_t:
+                        return {
+                            "hook": hook_t,
+                            "development": dev_t,
+                            "payoff": payoff_t or "This crucial scene left an indelible mark on the wizarding world.",
+                            "visual_beats": parsed_beats
+                        }
+            except Exception:
+                pass
+
+        c_id_lower = str(getattr(candidate, "id", "")).lower()
+        fact_summary = (
+            getattr(candidate, "novel_fact_summary", None)
+            or getattr(candidate, "story_event_summary", None)
+            or getattr(candidate, "movie_omits_or_changes", None)
+            or getattr(candidate, "hook_concept", None)
+            or getattr(candidate, "suggested_title", None)
+            or ""
         )
-        words = str(summary_raw).split()[:40]
-        event_str = " ".join(words)
-        b_title = getattr(candidate, "book_title", f"Book {getattr(candidate, 'book_number', 1)}")
+        combined_text = f"{c_id_lower} {str(fact_summary).lower()}"
+
+        # Detect primary characters from candidate text and ID
+        detected_chars = []
+        character_candidates = [
+            (["lily", "lily evans", "lily potter"], "Lily Evans"),
+            (["snape", "severus snape"], "Severus Snape"),
+            (["james potter", "james"], "James Potter"),
+            (["barty crouch", "crouch jr", "crouch"], "Barty Crouch Jr."),
+            (["ludo bagman", "bagman"], "Ludo Bagman"),
+            (["winky"], "Winky"),
+            (["dobby"], "Dobby"),
+            (["kreacher"], "Kreacher"),
+            (["remus lupin", "lupin", "moony"], "Remus Lupin"),
+            (["sirius black", "sirius", "padfoot"], "Sirius Black"),
+            (["peter pettigrew", "wormtail", "pettigrew"], "Peter Pettigrew"),
+            (["albus dumbledore", "dumbledore"], "Albus Dumbledore"),
+            (["lord voldemort", "voldemort", "tom riddle"], "Lord Voldemort"),
+            (["draco malfoy", "draco"], "Draco Malfoy"),
+            (["lucius malfoy", "lucius"], "Lucius Malfoy"),
+            (["neville longbottom", "neville"], "Neville Longbottom"),
+            (["luna lovegood", "luna"], "Luna Lovegood"),
+            (["hermione granger", "hermione"], "Hermione Granger"),
+            (["ron weasley", "ron"], "Ron Weasley"),
+            (["fred weasley", "george weasley", "fred", "george", "weasleys"], "Fred Weasley"),
+            (["minerva mcgonagall", "mcgonagall"], "Professor McGonagall"),
+            (["rubeus hagrid", "hagrid"], "Rubeus Hagrid"),
+            (["dudley dursley", "dudley"], "Dudley Dursley"),
+            (["petunia dursley", "petunia"], "Petunia Dursley"),
+            (["vernon dursley", "vernon"], "Vernon Dursley"),
+            (["harry potter", "harry"], "Harry Potter")
+        ]
+        for tokens, canonical_name in character_candidates:
+            if any(t in combined_text for t in tokens):
+                if canonical_name not in detected_chars:
+                    detected_chars.append(canonical_name)
+
+        if not detected_chars:
+            detected_chars = ["Harry Potter"]
+
+        detected_props = []
+        prop_candidates = [
+            (["marauder", "map"], "Marauder Map"),
+            (["mirror", "erised"], "Mirror of Erised"),
+            (["remembrall"], "Remembrall"),
+            (["horcrux", "diary", "locket", "ring", "cup", "diadem"], "Horcrux"),
+            (["wand", "elder wand"], "Wand"),
+            (["cloak", "invisibility cloak"], "Invisibility Cloak"),
+            (["sword of gryffindor", "sword"], "Sword of Gryffindor"),
+            (["howler"], "Howler"),
+            (["triwizard cup"], "Triwizard Cup"),
+            (["quidditch", "snitch"], "Golden Snitch"),
+            (["sorting hat"], "Sorting Hat")
+        ]
+        for tokens, canonical_prop in prop_candidates:
+            if any(t in combined_text for t in tokens):
+                if canonical_prop not in detected_props:
+                    detected_props.append(canonical_prop)
+
+        b_num = getattr(candidate, "book_number", getattr(candidate, "corresponding_movie_number", 1)) or 1
+        b_title = getattr(candidate, "book_title", f"Book {b_num}")
+
+        hook_candidate = (
+            getattr(candidate, "hook_concept", None)
+            or getattr(candidate, "suggested_title", None)
+        )
+        if hook_candidate and len(hook_candidate.strip()) > 10:
+            hook_str = hook_candidate.strip()
+            if not hook_str.endswith(("?", ".", "!")):
+                hook_str += "?"
+        else:
+            primary_lead = detected_chars[0]
+            hook_str = f"Did you know the secret about {primary_lead} that the movies completely omitted?"
+
+        dev_raw = (
+            getattr(candidate, "novel_fact_summary", None)
+            or getattr(candidate, "story_event_summary", None)
+            or getattr(candidate, "movie_omits_or_changes", None)
+            or "In the original books, J.K. Rowling provided crucial canon context that was cut from the final film."
+        )
+        dev_words = str(dev_raw).split()[:50]
+        dev_str = " ".join(dev_words)
+        if not dev_str.endswith("."):
+            dev_str += "."
+
+        payoff_raw = (
+            getattr(candidate, "payoff_conclusion", None)
+            or getattr(candidate, "insider_epiphany", None)
+            or getattr(candidate, "payoff_text", None)
+            or f"This changes how you understand {detected_chars[0]} throughout the entire story."
+        )
+        payoff_words = str(payoff_raw).split()[:30]
+        payoff_str = " ".join(payoff_words)
+        if not payoff_str.endswith("."):
+            payoff_str += "."
+
+        lead_char = detected_chars[0]
+        second_char = detected_chars[1] if len(detected_chars) > 1 else lead_char
+        visual_beats = [
+            {
+                "beat_id": "beat_1",
+                "duration_seconds": 6.5,
+                "narration_text": hook_str,
+                "visual_requirement": f"Close-up or dramatic focus shot of {lead_char}",
+                "characters": [lead_char],
+                "location": "Hogwarts",
+                "action": f"{lead_char} appearing in dramatic focus",
+                "objects": detected_props[:2] or ["Wand"],
+                "emotional_context": "Mystery, revelation, and canon depth",
+                "preferred_movie_number": b_num,
+                "source_grounding": getattr(candidate, "source_location", f"Book {b_num}"),
+                "retrieval_hints": [lead_char] + detected_props[:2]
+            },
+            {
+                "beat_id": "beat_2",
+                "duration_seconds": 12.0,
+                "narration_text": dev_str,
+                "visual_requirement": f"Key scene showing {lead_char} interacting with {second_char} or relevant magical event",
+                "characters": detected_chars[:2],
+                "location": "Hogwarts setting",
+                "action": f"Dramatic narrative interaction involving {lead_char}",
+                "objects": detected_props[:2] or ["Robes", "Wand"],
+                "emotional_context": "Rising stakes and lore detail",
+                "preferred_movie_number": b_num,
+                "source_grounding": "Canon scene development",
+                "retrieval_hints": detected_chars[:2] + detected_props[:2]
+            },
+            {
+                "beat_id": "beat_3",
+                "duration_seconds": 8.0,
+                "narration_text": payoff_str,
+                "visual_requirement": f"Climactic realization shot focused on {lead_char}",
+                "characters": [lead_char],
+                "location": "Hogwarts",
+                "action": f"Climactic resolution and reaction of {lead_char}",
+                "objects": detected_props[:2] or ["Magic"],
+                "emotional_context": "Deep canonical insight and emotional payoff",
+                "preferred_movie_number": b_num,
+                "source_grounding": "Canon scene resolution",
+                "retrieval_hints": [lead_char] + detected_props[:1]
+            }
+        ]
         return {
-            "hook": f"Something unforgettable was unfolding inside {b_title}.",
-            "development": f"{event_str}. The magical atmosphere grew denser as the situation reached a turning point.",
-            "payoff": "What began as a quiet moment soon reshaped the fate of the entire wizarding world.",
-            "visual_beats": [
-                {
-                    "beat_id": "beat_1",
-                    "duration_seconds": 6.0,
-                    "narration_text": f"Something unforgettable was unfolding inside {b_title}.",
-                    "visual_requirement": "Establishing shot of Hogwarts castle or relevant setting",
-                    "characters": ["Harry Potter"],
-                    "location": "Hogwarts",
-                    "action": "Atmospheric scene opening",
-                    "objects": ["Wand"],
-                    "emotional_context": "Mystery and tension",
-                    "preferred_movie_number": candidate.book_number,
-                    "source_grounding": candidate.source_location if hasattr(candidate, "source_location") else "Canon",
-                    "retrieval_hints": ["Hogwarts", "castle", "magic"]
-                },
-                {
-                    "beat_id": "beat_2",
-                    "duration_seconds": 10.0,
-                    "narration_text": f"{event_str[:60]}...",
-                    "visual_requirement": "Characters interacting in dramatic confrontation",
-                    "characters": ["Harry Potter", "Ron Weasley"],
-                    "location": "Hogwarts corridors",
-                    "action": "Tense conversation or movement",
-                    "objects": ["Robes"],
-                    "emotional_context": "Rising stakes",
-                    "preferred_movie_number": candidate.book_number,
-                    "source_grounding": "Scene development",
-                    "retrieval_hints": ["Harry", "corridor", "wand"]
-                },
-                {
-                    "beat_id": "beat_3",
-                    "duration_seconds": 8.0,
-                    "narration_text": "What began as a quiet moment soon reshaped the fate of the entire wizarding world.",
-                    "visual_requirement": "Dramatic climactic character reaction or magical event",
-                    "characters": ["Harry Potter"],
-                    "location": "Great Hall or Grounds",
-                    "action": "Climactic resolution",
-                    "objects": ["Wand", "Magic"],
-                    "emotional_context": "Triumph and wonder",
-                    "preferred_movie_number": candidate.book_number,
-                    "source_grounding": "Scene resolution",
-                    "retrieval_hints": ["magic", "Harry Potter", "destiny"]
-                }
-            ]
+            "hook": hook_str,
+            "development": dev_str,
+            "payoff": payoff_str,
+            "visual_beats": visual_beats
         }
 
     # ── Core Script Generation ────────────────────────────────────────────────

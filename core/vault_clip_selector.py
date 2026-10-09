@@ -122,6 +122,83 @@ ENTITY_CONFLICT_RULES = [
 MIN_CONFIDENCE_SCORE = 35.0
 
 
+def get_character_variants(char_name: str) -> List[str]:
+    """
+    Returns search variants for a character name to match DB primary_subject and characters_present.
+    e.g. 'Severus Snape' -> ['Severus Snape', 'Snape', 'Professor Snape', 'Severus']
+    """
+    if not char_name:
+        return []
+    variants = [char_name.strip()]
+    low = char_name.lower().strip()
+    
+    aliases = {
+        "severus snape": ["Snape", "Professor Snape", "Severus"],
+        "snape": ["Severus Snape", "Professor Snape", "Snape"],
+        "professor snape": ["Severus Snape", "Snape", "Professor Snape"],
+        "albus dumbledore": ["Dumbledore", "Professor Dumbledore", "Albus", "Headmaster Dumbledore"],
+        "dumbledore": ["Albus Dumbledore", "Professor Dumbledore", "Albus"],
+        "professor dumbledore": ["Albus Dumbledore", "Dumbledore"],
+        "minerva mcgonagall": ["McGonagall", "Professor McGonagall", "Minerva"],
+        "mcgonagall": ["Minerva McGonagall", "Professor McGonagall"],
+        "professor mcgonagall": ["Minerva McGonagall", "McGonagall"],
+        "lord voldemort": ["Voldemort", "Tom Riddle", "Dark Lord", "Lord Voldemort"],
+        "voldemort": ["Lord Voldemort", "Tom Riddle", "Dark Lord"],
+        "tom riddle": ["Lord Voldemort", "Voldemort", "Tom Riddle"],
+        "remus lupin": ["Lupin", "Professor Lupin", "Remus", "Moony"],
+        "lupin": ["Remus Lupin", "Professor Lupin", "Moony"],
+        "professor lupin": ["Remus Lupin", "Lupin"],
+        "sirius black": ["Sirius", "Padfoot", "Sirius Black"],
+        "sirius": ["Sirius Black", "Padfoot"],
+        "lily potter": ["Lily Evans", "Lily", "Lily Potter"],
+        "lily evans": ["Lily Potter", "Lily", "Lily Evans"],
+        "lily": ["Lily Potter", "Lily Evans"],
+        "james potter": ["James", "Prongs", "James Potter"],
+        "james": ["James Potter", "Prongs"],
+        "barty crouch jr": ["Barty Crouch Jr.", "Barty Crouch Jr", "Barty Crouch", "Crouch Jr"],
+        "barty crouch jr.": ["Barty Crouch Jr.", "Barty Crouch Jr", "Barty Crouch", "Crouch Jr"],
+        "barty crouch sr": ["Barty Crouch Sr.", "Barty Crouch Sr", "Barty Crouch", "Crouch Sr"],
+        "barty crouch sr.": ["Barty Crouch Sr.", "Barty Crouch Sr", "Barty Crouch", "Crouch Sr"],
+        "alastor moody": ["Mad-Eye Moody", "Moody", "Mad-Eye"],
+        "mad-eye moody": ["Alastor Moody", "Moody", "Mad-Eye"],
+        "harry potter": ["Harry", "Harry Potter"],
+        "ron weasley": ["Ron", "Ron Weasley"],
+        "hermione granger": ["Hermione", "Hermione Granger"],
+        "draco malfoy": ["Draco", "Malfoy", "Draco Malfoy"],
+        "lucius malfoy": ["Lucius", "Malfoy", "Lucius Malfoy"],
+        "arthur weasley": ["Arthur", "Arthur Weasley"],
+        "molly weasley": ["Molly", "Molly Weasley", "Mrs. Weasley", "Mrs Weasley"],
+        "fred weasley": ["Fred", "Fred Weasley"],
+        "george weasley": ["George", "George Weasley"],
+        "fred and george": ["Fred Weasley", "George Weasley", "Fred", "George", "Weasley twins"],
+        "ginny weasley": ["Ginny", "Ginny Weasley"],
+        "neville longbottom": ["Neville", "Neville Longbottom"],
+        "luna lovegood": ["Luna", "Luna Lovegood"],
+        "bellatrix lestrange": ["Bellatrix", "Bellatrix Lestrange"],
+        "dolores umbridge": ["Umbridge", "Dolores Umbridge"],
+        "rubeus hagrid": ["Hagrid", "Rubeus Hagrid"],
+        "peter pettigrew": ["Wormtail", "Pettigrew", "Peter Pettigrew"],
+        "sybill trelawney": ["Trelawney", "Professor Trelawney"],
+        "argus filch": ["Filch", "Argus Filch"],
+        "dobby": ["Dobby", "Dobby the House-Elf"],
+        "dobby the house-elf": ["Dobby", "Dobby the House-Elf"]
+    }
+    
+    if low in aliases:
+        variants.extend(aliases[low])
+        
+    parts = [p for p in re.split(r'[\s\.\-]+', char_name) if p and p.lower() not in HONORIFICS and len(p) >= 3]
+    variants.extend(parts)
+    
+    seen = set()
+    result = []
+    for v in variants:
+        v_clean = v.strip()
+        if v_clean and v_clean.lower() not in seen and len(v_clean) >= 3:
+            seen.add(v_clean.lower())
+            result.append(v_clean)
+    return result
+
 
 class VaultClipSelector:
     def __init__(self, db_path: Path = DB_PATH, clips_output_dir: Optional[Path] = None):
@@ -249,35 +326,40 @@ class VaultClipSelector:
         unique_terms = list(dict.fromkeys(search_terms))
         candidates_dict: Dict[str, Dict[str, Any]] = {}
 
-        # 1. Targeted Character Queries (pulls all clips featuring requested characters)
+        # 1. Targeted Character Queries (pulls all clips featuring requested characters and variants)
         for char in active_characters:
-            char_clean = char.strip()
-            if len(char_clean) > 2:
-                try:
-                    cur.execute(
-                        "SELECT fc.* FROM franchise_clips fc WHERE fc.characters_present LIKE ? OR fc.primary_subject LIKE ? LIMIT 40",
-                        [f"%{char_clean}%", f"%{char_clean}%"]
-                    )
-                    for row in cur.fetchall():
-                        r = dict(row)
-                        candidates_dict[r["clip_id"]] = r
-                except Exception as e:
-                    logger.warning(f"Character targeted query notice: {e}")
+            char_variants = get_character_variants(char)
+            for cv in char_variants:
+                cv_clean = cv.strip()
+                if len(cv_clean) > 2:
+                    try:
+                        cur.execute(
+                            "SELECT fc.* FROM franchise_clips fc WHERE fc.characters_present LIKE ? OR fc.primary_subject LIKE ? LIMIT 40",
+                            [f"%{cv_clean}%", f"%{cv_clean}%"]
+                        )
+                        for row in cur.fetchall():
+                            r = dict(row)
+                            candidates_dict[r["clip_id"]] = r
+                    except Exception as e:
+                        logger.warning(f"Character targeted query notice: {e}")
 
-        # 2. Targeted Prop / Object Queries (pulls all clips featuring requested props)
+        # 2. Targeted Prop / Object Queries (pulls all clips featuring requested props and prop tokens)
         for prop in (preferred_props or []):
             prop_clean = prop.strip()
-            if len(prop_clean) > 2:
-                try:
-                    cur.execute(
-                        "SELECT fc.* FROM franchise_clips fc WHERE fc.visible_objects_props LIKE ? OR fc.primary_subject LIKE ? OR fc.action_description LIKE ? LIMIT 40",
-                        [f"%{prop_clean}%", f"%{prop_clean}%", f"%{prop_clean}%"]
-                    )
-                    for row in cur.fetchall():
-                        r = dict(row)
-                        candidates_dict[r["clip_id"]] = r
-                except Exception as e:
-                    logger.warning(f"Prop targeted query notice: {e}")
+            tokens = [w for w in re.sub(r"[^a-zA-Z0-9\s]", " ", prop_clean).split() if len(w) > 3 and w.lower() not in STOPWORDS]
+            search_variants = list(dict.fromkeys([prop_clean] + tokens))
+            for pv in search_variants:
+                if len(pv) > 2:
+                    try:
+                        cur.execute(
+                            "SELECT fc.* FROM franchise_clips fc WHERE fc.visible_objects_props LIKE ? OR fc.primary_subject LIKE ? OR fc.action_description LIKE ? LIMIT 40",
+                            [f"%{pv}%", f"%{pv}%", f"%{pv}%"]
+                        )
+                        for row in cur.fetchall():
+                            r = dict(row)
+                            candidates_dict[r["clip_id"]] = r
+                    except Exception as e:
+                        logger.warning(f"Prop targeted query notice: {e}")
 
         # 3. Targeted Location Queries (pulls clips from requested setting)
         if preferred_location and len(preferred_location.strip()) > 2:
@@ -354,35 +436,37 @@ class VaultClipSelector:
             cand_chars_lower = set(c.lower() for c in cand_chars_list)
             subj_lower = str(cand.get("primary_subject", "")).lower()
 
-            crowd_penalty = 0.6 if len(cand_chars_list) > 6 else 1.0
+            crowd_penalty = 0.5 if len(cand_chars_list) > 6 else 1.0
             has_any_char_match = False
             char_match_count = 0
 
             for idx, char in enumerate(active_characters):
-                char_low = char.lower()
-                char_parts = [p for p in char_low.split() if len(p) > 2 and p not in HONORIFICS]
-                if not char_parts:
-                    char_parts = [p for p in char_low.split() if len(p) > 2]
-                has_char = any(char_low in ccl or ccl in char_low or any(p in ccl for p in char_parts) for ccl in cand_chars_lower)
-                is_subj = any(p in subj_lower for p in char_parts) if char_parts else (char_low in subj_lower)
+                char_variants = get_character_variants(char)
+                char_vars_lower = [v.lower() for v in char_variants]
+
+                has_char = any(any(v in ccl or ccl in v for v in char_vars_lower) for ccl in cand_chars_lower)
+                is_subj = any(v in subj_lower for v in char_vars_lower)
                 is_lead = (idx == 0)
 
                 if has_char or is_subj:
                     char_match_count += 1
                     has_any_char_match = True
                     if is_lead:
-                        score += 300.0 * crowd_penalty
                         if is_subj:
-                            score += 150.0
+                            score += 500.0
+                        else:
+                            score += 250.0 * crowd_penalty
                     else:
-                        score += 150.0 * crowd_penalty
                         if is_subj:
-                            score += 80.0
+                            score += 200.0
+                        else:
+                            score += 100.0 * crowd_penalty
 
-            # Character Disqualification: If beat explicitly named characters, penalize candidates with wrong characters
-            if active_characters and char_match_count == 0:
-                if len(cand_chars_list) > 0 and subj_lower not in ("none", "general", "establishing", "landscape", "object", "scene"):
-                    score -= 500.0
+            # Crowd penalty: if lead character is in a huge crowd scene (> 6 characters) and is NOT primary_subject
+            if active_characters and len(cand_chars_list) > 6:
+                lead_vars = [v.lower() for v in get_character_variants(active_characters[0])]
+                if not any(v in subj_lower for v in lead_vars):
+                    score -= 400.0
 
             # ------------------------------------------------------------------
             # Field 2: Props & Objects Matching & Strict Elimination
@@ -405,9 +489,22 @@ class VaultClipSelector:
                 prop_match_count = 0
                 for prop in preferred_props:
                     prop_low = prop.lower().strip()
-                    in_objs = any(prop_low in col or col in prop_low for col in cand_objs_lower)
-                    in_subj = prop_low in subj_lower
-                    in_act = prop_low in act_text
+                    prop_clean = re.sub(r"[^a-z0-9\s]", " ", prop_low).strip()
+                    p_tokens = [w for w in prop_clean.split() if len(w) > 2 and w not in STOPWORDS]
+
+                    in_objs = any(
+                        (prop_low in col or col in prop_low) or
+                        (p_tokens and all(t in re.sub(r"[^a-z0-9\s]", " ", col) for t in p_tokens))
+                        for col in cand_objs_lower
+                    )
+                    in_subj = (
+                        prop_low in subj_lower or
+                        (p_tokens and all(t in re.sub(r"[^a-z0-9\s]", " ", subj_lower) for t in p_tokens))
+                    )
+                    in_act = (
+                        prop_low in act_text or
+                        (p_tokens and all(t in re.sub(r"[^a-z0-9\s]", " ", act_text) for t in p_tokens))
+                    )
                     if in_objs or in_subj or in_act:
                         prop_match_count += 1
                         has_any_prop_match = True
@@ -419,6 +516,12 @@ class VaultClipSelector:
 
                 if prop_match_count == 0:
                     score -= 300.0
+
+            # Character Disqualification: If beat explicitly named characters, penalize candidates with wrong characters
+            # (Do not disqualify if candidate is a direct prop match or object shot)
+            if active_characters and char_match_count == 0 and not has_any_prop_match:
+                if len(cand_chars_list) > 0 and subj_lower not in ("none", "general", "establishing", "landscape", "object", "scene", "the parchment", "parchment"):
+                    score -= 500.0
 
             # ------------------------------------------------------------------
             # Field 3: Location / Environment Setting Matching
