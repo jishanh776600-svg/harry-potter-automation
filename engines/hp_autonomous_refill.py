@@ -228,7 +228,9 @@ class HPAutonomousRefillEngine:
         if full_exclusions:
             existing_query = existing_query.filter(~HarryPotterScript.id.in_(full_exclusions))
 
-        script = existing_query.order_by(HarryPotterScript.created_at.asc()).first()
+        # PRIORITIZE VISUAL-FIRST SCRIPTS: Clips and scenes selected first, zero mismatch guaranteed
+        vf_script = existing_query.filter(HarryPotterScript.discovery_type == "VISUAL_FIRST").order_by(HarryPotterScript.created_at.asc()).first()
+        script = vf_script or existing_query.order_by(HarryPotterScript.created_at.asc()).first()
         if script:
             words = (script.full_text or "").strip().split()
             wc = script.word_count or len(words)
@@ -573,6 +575,13 @@ class HPAutonomousRefillEngine:
                 logger.info(f"[Refill:Vault] Canonical DB immediately synchronized to Drive vault for {script_id}.")
             except Exception as sync_err:
                 logger.warning(f"[Refill:Vault] Notice: Immediate DB sync warning (non-fatal): {sync_err}")
+
+            # Explicit garbage collection and cache cleanup to prevent PyTorch CPU memory bloat / segfault
+            try:
+                import gc
+                gc.collect()
+            except Exception:
+                pass
 
             return True, script_id, None
         except Exception as ue:
