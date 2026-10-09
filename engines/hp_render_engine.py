@@ -694,7 +694,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
         if res.returncode != 0:
-            raise RuntimeError(f"FFmpeg render failed for {script_id}: {res.stderr[-400:]}")
+            logger.error(f"[FFMPEG_ERROR] FFmpeg render failed for {script_id} with exit code {res.returncode}:\n{res.stderr}")
+            raise RuntimeError(f"FFmpeg render failed for {script_id}: {res.stderr[-1000:]}")
 
         logger.info(f"Render complete: {output_mp4.name} ({output_mp4.stat().st_size} bytes)")
         return output_mp4

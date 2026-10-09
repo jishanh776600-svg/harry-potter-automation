@@ -572,11 +572,14 @@ class VaultClipSelector:
 
         # Audio-synchronized duration rescaling: ensures sum of video shots perfectly matches audio duration
         if target_total_duration and target_total_duration > 0:
+            for b in beats:
+                if float(b.get("duration_seconds") or 0.0) <= 0.0:
+                    b["duration_seconds"] = target_total_duration / max(1, len(beats))
             sum_dur = sum(float(b.get("duration_seconds", 2.5)) for b in beats)
             if sum_dur > 0:
                 scale = target_total_duration / sum_dur
                 for b in beats:
-                    b["duration_seconds"] = round(float(b.get("duration_seconds", 2.5)) * scale, 3)
+                    b["duration_seconds"] = max(1.2, round(float(b.get("duration_seconds", 2.5)) * scale, 3))
 
         # Purge any old shots for this script
         session.query(HPMovieClip).filter_by(script_id=script_id).delete()
@@ -589,7 +592,7 @@ class VaultClipSelector:
 
         for idx, beat in enumerate(beats):
             beat_id = beat.get("beat_id", f"beat_{idx + 1}")
-            dur = float(beat.get("duration_seconds", 3.0))
+            dur = max(1.2, float(beat.get("duration_seconds", 3.0)))
             # Pure visual requirement: never pollute visual retrieval with voiceover dialogue
             pure_visual = (beat.get("visual_requirement") or beat.get("description") or beat.get("action") or "").strip()
             chars = beat.get("characters", [])

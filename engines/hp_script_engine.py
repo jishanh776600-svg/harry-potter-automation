@@ -949,6 +949,17 @@ OUTPUT STRICT JSON:
                     "description": str(b),
                 })
 
+        # Step 0: Ensure every beat has an initial positive duration
+        total_words = sum(len(str(b.get("narration_text", "")).split()) for b in result_beats)
+        for b in result_beats:
+            cur_dur = float(b.get("duration_seconds") or 0.0)
+            if cur_dur <= 0.0:
+                w_cnt = len(str(b.get("narration_text", "")).split())
+                if total_words > 0 and w_cnt > 0:
+                    b["duration_seconds"] = round(target_duration * (w_cnt / total_words), 2)
+                else:
+                    b["duration_seconds"] = round(target_duration / max(1, len(result_beats)), 2)
+
         # Step 1: Subdivide beats until we reach target_min (8-9 beats minimum)
         max_subdivide_iter = 20
         iter_count = 0
@@ -1014,11 +1025,16 @@ OUTPUT STRICT JSON:
             result_beats = result_beats[:shortest_idx] + [merged] + result_beats[shortest_idx+2:]
 
         # Step 3: Re-index beat IDs and rebalance duration so sum matches target_duration
+        min_beat_dur = 1.2
         total_d = sum(b.get("duration_seconds", 0) for b in result_beats)
         if total_d > 0 and target_duration > 0:
             scale = target_duration / total_d
             for b in result_beats:
-                b["duration_seconds"] = round(b.get("duration_seconds", 0) * scale, 2)
+                b["duration_seconds"] = max(min_beat_dur, round(b.get("duration_seconds", 0) * scale, 2))
+        else:
+            equal_dur = max(min_beat_dur, round(target_duration / max(1, len(result_beats)), 2))
+            for b in result_beats:
+                b["duration_seconds"] = equal_dur
 
         for idx, b in enumerate(result_beats, 1):
             b["beat_id"] = f"beat_{idx}"
@@ -1692,7 +1708,8 @@ OUTPUT STRICT JSON:
             "visual_beats": [
                 {
                     "beat_id": "beat_1",
-                    "narration_text": f"Something unforgettable was unfolding inside {candidate.book_title}.",
+                    "duration_seconds": 6.0,
+                    "narration_text": f"Something unforgettable was unfolding inside {b_title}.",
                     "visual_requirement": "Establishing shot of Hogwarts castle or relevant setting",
                     "characters": ["Harry Potter"],
                     "location": "Hogwarts",
@@ -1705,6 +1722,7 @@ OUTPUT STRICT JSON:
                 },
                 {
                     "beat_id": "beat_2",
+                    "duration_seconds": 10.0,
                     "narration_text": f"{event_str[:60]}...",
                     "visual_requirement": "Characters interacting in dramatic confrontation",
                     "characters": ["Harry Potter", "Ron Weasley"],
@@ -1718,6 +1736,7 @@ OUTPUT STRICT JSON:
                 },
                 {
                     "beat_id": "beat_3",
+                    "duration_seconds": 8.0,
                     "narration_text": "What began as a quiet moment soon reshaped the fate of the entire wizarding world.",
                     "visual_requirement": "Dramatic climactic character reaction or magical event",
                     "characters": ["Harry Potter"],
