@@ -993,38 +993,51 @@ class DriveVaultEngine:
         existing = self.find_file_in_folder("00_SYSTEM", filename)
 
         from googleapiclient.http import MediaFileUpload
-        media = MediaFileUpload(
-            str(local_path),
-            mimetype="application/x-sqlite3",
-            resumable=True
-        )
+        import time
 
-        if existing:
-            file_id = existing["id"]
-            logger.info(f"Updating canonical database in Drive (File ID: {file_id}, size: {local_path.stat().st_size} bytes)...")
-            req = drive.files().update(
-                fileId=file_id,
-                media_body=media,
-                fields="id, name, size, md5Checksum, modifiedTime"
-            )
-            file_obj = retry_call(req.execute, max_retries=3, base_delay=2.0, max_delay=10.0)
-            logger.info(f"[+] Successfully updated canonical database in Drive: ID={file_obj.get('id')}")
-            return file_obj
-        else:
-            file_metadata = {
-                "name": filename,
-                "parents": [system_folder_id],
-                "description": "Historia Production SQLite Database"
-            }
-            logger.info(f"Uploading new canonical database to Drive (00_SYSTEM/{filename})...")
-            req = drive.files().create(
-                body=file_metadata,
-                media_body=media,
-                fields="id, name, size, md5Checksum, modifiedTime"
-            )
-            file_obj = retry_call(req.execute, max_retries=3, base_delay=2.0, max_delay=10.0)
-            logger.info(f"[+] Successfully created canonical database in Drive: ID={file_obj.get('id')}")
-            return file_obj
+        for attempt in range(1, 4):
+            try:
+                media = MediaFileUpload(
+                    str(local_path),
+                    mimetype="application/x-sqlite3",
+                    chunksize=5 * 1024 * 1024,
+                    resumable=True
+                )
+
+                if existing:
+                    file_id = existing["id"]
+                    logger.info(f"Updating canonical database in Drive (File ID: {file_id}, size: {local_path.stat().st_size} bytes, attempt {attempt})...")
+                    req = drive.files().update(
+                        fileId=file_id,
+                        media_body=media,
+                        fields="id, name, size, md5Checksum, modifiedTime"
+                    )
+                else:
+                    file_metadata = {
+                        "name": filename,
+                        "parents": [system_folder_id],
+                        "description": "Historia Production SQLite Database"
+                    }
+                    logger.info(f"Uploading new canonical database to Drive (00_SYSTEM/{filename}, attempt {attempt})...")
+                    req = drive.files().create(
+                        body=file_metadata,
+                        media_body=media,
+                        fields="id, name, size, md5Checksum, modifiedTime"
+                    )
+
+                response = None
+                while response is None:
+                    status, response = req.next_chunk()
+                    if status:
+                        logger.debug(f"[Drive Upload] Progress: {int(status.progress() * 100)}%")
+
+                logger.info(f"[+] Successfully synced canonical database in Drive: ID={response.get('id')}")
+                return response
+            except Exception as e:
+                logger.warning(f"[Drive Upload] Attempt {attempt} failed for database upload: {e}")
+                if attempt >= 3:
+                    raise
+                time.sleep(2.0 * attempt)
 
     def download_database(
         self,

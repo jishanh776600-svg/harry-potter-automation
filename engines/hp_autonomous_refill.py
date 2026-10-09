@@ -230,6 +230,22 @@ class HPAutonomousRefillEngine:
 
         # PRIORITIZE VISUAL-FIRST SCRIPTS: Clips and scenes selected first, zero mismatch guaranteed
         vf_script = existing_query.filter(HarryPotterScript.discovery_type == "VISUAL_FIRST").order_by(HarryPotterScript.created_at.asc()).first()
+        if not vf_script:
+            logger.info("[Refill:Pool] No pending VISUAL_FIRST scripts found. Autonomously discovering and planning brand new visual scenes from vault...")
+            try:
+                from core.visual_first_engine import VisualFirstEngine
+                vf_engine = VisualFirstEngine()
+                new_sids = vf_engine.autonomously_plan_fresh_scenes(count=3)
+                if new_sids:
+                    session.expire_all()
+                    vf_script = session.query(HarryPotterScript).filter(
+                        HarryPotterScript.id.in_(new_sids),
+                        HarryPotterScript.qa_status.in_(["APPROVED", "PASSED"]),
+                        ~HarryPotterScript.id.in_(deposited_scripts)
+                    ).order_by(HarryPotterScript.created_at.asc()).first()
+            except Exception as e:
+                logger.warning(f"Notice during autonomous visual-first planning: {e}")
+
         script = vf_script or existing_query.order_by(HarryPotterScript.created_at.asc()).first()
         if script:
             words = (script.full_text or "").strip().split()
