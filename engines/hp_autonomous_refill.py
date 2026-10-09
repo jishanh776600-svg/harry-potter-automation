@@ -228,166 +228,62 @@ class HPAutonomousRefillEngine:
         if full_exclusions:
             existing_query = existing_query.filter(~HarryPotterScript.id.in_(full_exclusions))
 
-        # PRIORITIZE VISUAL-FIRST SCRIPTS: Clips and scenes selected first, zero mismatch guaranteed
-        vf_script = existing_query.filter(HarryPotterScript.discovery_type == "VISUAL_FIRST").order_by(HarryPotterScript.created_at.asc()).first()
+        # STRICT ARCHITECTURAL INVARIANT: 100% VISUAL-FIRST ONLY!
+        # Clips & visuals MUST be selected FIRST from franchise_visual_vault.db, and script written SECOND.
+        # ZERO text-first or retrieval-matched scripts are ever allowed to be produced.
+        existing_query = session.query(HarryPotterScript).filter(
+            HarryPotterScript.discovery_type == "VISUAL_FIRST",
+            HarryPotterScript.qa_status.in_(["APPROVED", "PASSED"]),
+            ~HarryPotterScript.id.in_(deposited_scripts)
+        )
+        if full_exclusions:
+            existing_query = existing_query.filter(~HarryPotterScript.id.in_(full_exclusions))
+
+        vf_script = existing_query.order_by(HarryPotterScript.created_at.asc()).first()
         if not vf_script:
             logger.info("[Refill:Pool] No pending VISUAL_FIRST scripts found. Autonomously discovering and planning brand new visual scenes from vault...")
             try:
                 from core.visual_first_engine import VisualFirstEngine
                 vf_engine = VisualFirstEngine()
-                new_sids = vf_engine.autonomously_plan_fresh_scenes(count=3)
+                new_sids = vf_engine.autonomously_plan_fresh_scenes(count=4)
                 if new_sids:
                     session.expire_all()
                     vf_script = session.query(HarryPotterScript).filter(
                         HarryPotterScript.id.in_(new_sids),
+                        HarryPotterScript.discovery_type == "VISUAL_FIRST",
                         HarryPotterScript.qa_status.in_(["APPROVED", "PASSED"]),
                         ~HarryPotterScript.id.in_(deposited_scripts)
                     ).order_by(HarryPotterScript.created_at.asc()).first()
             except Exception as e:
                 logger.warning(f"Notice during autonomous visual-first planning: {e}")
 
-        script = vf_script or existing_query.order_by(HarryPotterScript.created_at.asc()).first()
-        if script:
-            words = (script.full_text or "").strip().split()
-            wc = script.word_count or len(words)
-            if wc < 55 or wc > 90:
-                logger.warning(f"[Refill:Pool] Script {script.id} has invalid word count ({wc} not in [55, 90]). Quarantining...")
-                script.qa_status = "FAILED"
-                script.status = "QUARANTINED"
-                session.commit()
-                full_exclusions.add(script.id)
-                return self._get_or_create_candidate_script(session, content_type, full_exclusions)
+        # HARD LOCK: If no valid VISUAL_FIRST script is available, abort rather than produce mismatched video
+        if not vf_script:
+            logger.error("[Refill:Pool] Unable to obtain a verified VISUAL_FIRST script. Text-first production is permanently banned.")
+            return None
 
-            # Quality & integrity check: scripts with empty visual beats cannot be rendered
-            v_beats = []
-            try:
-                v_beats = json.loads(script.visual_beats_json or "[]")
-            except Exception:
-                pass
-            has_content = any(b.get("visual_requirement") or b.get("narration_text") or b.get("description") or b.get("action") for b in v_beats) if v_beats else False
-            if (not v_beats or not has_content) and content_type.startswith("discovery"):
-                logger.warning(f"[Refill:Pool] Script {script.id} has empty visual beats. Quarantining...")
-                script.qa_status = "FAILED"
-                script.status = "QUARANTINED"
-                session.commit()
-                full_exclusions.add(script.id)
-                return self._get_or_create_candidate_script(session, content_type, full_exclusions)
+        # Verify that all pre-linked movie clips have valid drive_file_ids
+        pre_shots = session.query(HPMovieClip).filter_by(script_id=vf_script.id).all()
+        if not pre_shots or any(not sh.source_drive_id for sh in pre_shots):
+            logger.warning(f"[Refill:Pool] Script {vf_script.id} has missing pre-linked shots or missing drive_file_ids. Quarantining...")
+            vf_script.qa_status = "FAILED"
+            vf_script.status = "QUARANTINED"
+            session.commit()
+            full_exclusions.add(vf_script.id)
+            return self._get_or_create_candidate_script(session, content_type, full_exclusions)
 
-            # Quality & integrity check: scripts with fake dummy boilerplate text cannot be rendered
-            text_low = (script.full_text or "").lower()
-            if "something unforgettable" in text_low or "reshaped the fate of the entire" in text_low:
-                logger.warning(f"[Refill:Pool] Script {script.id} contains generic dummy boilerplate. Quarantining...")
-                script.qa_status = "FAILED"
-                script.status = "QUARANTINED"
-                session.commit()
-                full_exclusions.add(script.id)
-                return self._get_or_create_candidate_script(session, content_type, full_exclusions)
+        words = (vf_script.full_text or "").strip().split()
+        wc = vf_script.word_count or len(words)
+        if wc < 55 or wc > 90:
+            logger.warning(f"[Refill:Pool] Script {vf_script.id} has invalid word count ({wc} not in [55, 90]). Quarantining...")
+            vf_script.qa_status = "FAILED"
+            vf_script.status = "QUARANTINED"
+            session.commit()
+            full_exclusions.add(vf_script.id)
+            return self._get_or_create_candidate_script(session, content_type, full_exclusions)
 
-            # Franchise Vault Movie Availability Check: Vault currently has cataloged clips for Movies 1-5 only
-            m_num = script.corresponding_movie_number or script.book_number
-            if m_num and int(m_num) > 5:
-                logger.warning(f"[Refill:Pool] Script {script.id} requires Movie {m_num} footage which is not yet cataloged in vault. Quarantining...")
-                script.qa_status = "FAILED"
-                script.status = "QUARANTINED"
-                session.commit()
-                full_exclusions.add(script.id)
-                return self._get_or_create_candidate_script(session, content_type, full_exclusions)
-
-            logger.info(f"[Refill:Pool] Found existing undeposited script: {script.id} ({content_type})")
-            return script
-
-        # 2. If no eligible script in DB, look for unscripted candidates
-        logger.info(f"[Refill:Pool] No undeposited {content_type} scripts found in DB. Sourcing candidate pool...")
-        script_engine = HarryPotterScriptEngine()
-        existing_script_cand_ids = session.query(HarryPotterScript.candidate_id).filter(
-            HarryPotterScript.candidate_id.isnot(None)
-        )
-
-        excluded_cand_ids = set()
-        for s in full_exclusions:
-            excluded_cand_ids.add(s)
-            clean_s = s.replace("hps_", "")
-            excluded_cand_ids.add(clean_s)
-
-        if content_type == "novel_story":
-            cand_query = session.query(NovStoryCandidate).filter(
-                NovStoryCandidate.status == "ELIGIBLE",
-                ~NovStoryCandidate.id.in_(existing_script_cand_ids),
-                ~NovStoryCandidate.id.in_(excluded_cand_ids)
-            )
-            candidate = cand_query.order_by(NovStoryCandidate.global_chronology_start.asc()).first()
-
-            # If no candidates in DB, invoke ContentPlanner to plan next chapter segments
-            if not candidate:
-                logger.info("[Refill:Pool] Sourcing fresh Novel Story candidates via ContentPlanner...")
-                try:
-                    planner = ContentPlannerEngine()
-                    new_cands = planner.plan_novel_story_candidates(count=4)
-                    if new_cands:
-                        for nc in new_cands:
-                            cid = nc.get("candidate_id") or nc.get("id")
-                            if cid and cid not in excluded_cand_ids:
-                                candidate = session.query(NovStoryCandidate).filter_by(id=cid).first()
-                                if candidate:
-                                    break
-                except Exception as cp_err:
-                    logger.warning(f"Notice during Novel Story candidate planning: {cp_err}")
-
-            if candidate:
-                logger.info(f"[Refill:Pool] Generating script for novel candidate {candidate.id}...")
-                new_script = script_engine.generate_script_for_candidate(candidate, session)
-                new_script.status = "APPROVED"
-                session.commit()
-                return new_script
-
-        elif content_type.startswith("discovery"):
-            cand_query = session.query(DiscoveryCandidate).filter(
-                DiscoveryCandidate.status.in_(["ELIGIBLE", "APPROVED"]),
-                ~DiscoveryCandidate.id.in_(existing_script_cand_ids),
-                ~DiscoveryCandidate.id.in_(excluded_cand_ids)
-            )
-            candidate = cand_query.first()
-
-            # If no discovery candidates in DB, invoke ContentPlanner
-            if not candidate:
-                logger.info("[Refill:Pool] Sourcing fresh Discovery candidates via ContentPlanner...")
-                try:
-                    planner = ContentPlannerEngine()
-                    new_cands = planner.plan_discovery_candidates(count=6)
-                    # ContentPlanner uses its own DB session/transaction.
-                    # Expire the refill session's identity map so it can see
-                    # the newly committed DiscoveryCandidate rows.
-                    session.expire_all()
-                    if new_cands:
-                        new_ids = [
-                            nc.get("candidate_id") or nc.get("id")
-                            for nc in new_cands
-                            if not nc.get("duplicate")  # skip already-scripted duplicates
-                        ]
-                        logger.info(f"[Refill:Pool] ContentPlanner produced {len(new_ids)} new candidate(s): {new_ids}")
-                        for cid in new_ids:
-                            if cid and cid not in excluded_cand_ids:
-                                candidate = session.query(DiscoveryCandidate).filter_by(id=cid).first()
-                                if candidate and candidate.status in ("ELIGIBLE", "APPROVED"):
-                                    logger.info(f"[Refill:Pool] Selected new candidate from planner: {cid}")
-                                    break
-                        # Fallback: if all returned were duplicates, re-query broadly
-                        if not candidate:
-                            logger.info("[Refill:Pool] All planner results were duplicates; re-querying DB for any eligible candidate...")
-                            candidate = session.query(DiscoveryCandidate).filter(
-                                DiscoveryCandidate.status.in_(["ELIGIBLE", "APPROVED"]),
-                                ~DiscoveryCandidate.id.in_(existing_script_cand_ids),
-                                ~DiscoveryCandidate.id.in_(excluded_cand_ids)
-                            ).first()
-                except Exception as cp_err:
-                    logger.warning(f"Notice during Discovery candidate planning: {cp_err}")
-
-            if candidate:
-                logger.info(f"[Refill:Pool] Generating script for discovery candidate {candidate.id}...")
-                new_script = script_engine.generate_script_for_candidate(candidate, session)
-                new_script.status = "APPROVED"
-                session.commit()
-                return new_script
+        logger.info(f"[Refill:Pool] Selected verified VISUAL_FIRST script: {vf_script.id} ('{vf_script.suggested_title}')")
+        return vf_script
 
         return None
 
@@ -407,6 +303,14 @@ class HPAutonomousRefillEngine:
         script_id = script.id
         content_type = script.content_type
         logger.info(f"[Refill:Produce] Starting production pipeline for {script_id} ({content_type})...")
+
+        # HARD INVARIANT: 100% VISUAL_FIRST ONLY - ZERO TOLERANCE FOR TEXT-FIRST SCRIPTS
+        if getattr(script, "discovery_type", "") != "VISUAL_FIRST":
+            logger.error(f"[Refill:Produce] HARD REJECTION: Script {script_id} is not VISUAL_FIRST! Aborting production.")
+            script.status = "QUARANTINED"
+            script.qa_status = "FAILED"
+            session.commit()
+            return False, script_id, "REJECTED_NOT_VISUAL_FIRST"
 
         # Step 2: Headless Composition & Rendering (Deterministic Fingerprint Cache Check)
         from engines.hp_render_engine import (
@@ -474,25 +378,12 @@ class HPAutonomousRefillEngine:
                     session.commit()
                     existing_shots = []
 
-            if not existing_shots:
-                logger.info(f"[Refill:Visual] Resolving movie shots for {script_id} via VaultClipSelector...")
-                try:
-                    vault_selector = VaultClipSelector()
-                    shots = vault_selector.resolve_script_shots(script_id, session=session, allow_download=True)
-                    accepted_shots_count = len(shots)
-                    if accepted_shots_count == 0:
-                        logger.warning(f"[Refill:Visual] 0 vault movie shots for {script_id}. Quarantining script...")
-                        script.qa_status = "FAILED"
-                        script.status = "QUARANTINED"
-                        session.commit()
-                        return False, script_id, f"Vault retrieval yielded 0 accepted movie shots for {script_id}"
-                    logger.info(f"[Refill:Visual] Successfully resolved {accepted_shots_count} vault movie shots for {script_id}")
-                except Exception as ve:
-                    logger.error(f"[Refill:Visual] Visual shot resolution failed for {script_id}: {ve}")
-                    script.qa_status = "FAILED"
-                    script.status = "QUARANTINED"
-                    session.commit()
-                    return False, script_id, f"Vault retrieval exception: {ve}"
+            if not existing_shots or any(not sh.source_drive_id for sh in existing_shots):
+                logger.error(f"[Refill:Visual] Script {script_id} missing pre-linked verified cloud shots with valid Drive IDs! Quarantining...")
+                script.qa_status = "FAILED"
+                script.status = "QUARANTINED"
+                session.commit()
+                return False, script_id, "REJECTED_MISSING_PRELINKED_SHOTS"
 
             try:
                 render_engine = HPRenderEngine()
