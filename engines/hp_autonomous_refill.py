@@ -262,10 +262,10 @@ class HPAutonomousRefillEngine:
             logger.error("[Refill:Pool] Unable to obtain a verified VISUAL_FIRST script. Text-first production is permanently banned.")
             return None
 
-        # Verify that all pre-linked movie clips have valid drive_file_ids
+        # Verify that all pre-linked movie clips have valid drive_file_ids and strictly 9 to 11 clips
         pre_shots = session.query(HPMovieClip).filter_by(script_id=vf_script.id).all()
-        if not pre_shots or any(not sh.source_drive_id for sh in pre_shots):
-            logger.warning(f"[Refill:Pool] Script {vf_script.id} has missing pre-linked shots or missing drive_file_ids. Quarantining...")
+        if not pre_shots or len(pre_shots) < 9 or len(pre_shots) > 11 or any(not sh.source_drive_id for sh in pre_shots):
+            logger.warning(f"[Refill:Pool] Script {vf_script.id} does not satisfy 9-11 clip constraint (found {len(pre_shots)} shots). Quarantining...")
             vf_script.qa_status = "FAILED"
             vf_script.status = "QUARANTINED"
             session.commit()
@@ -378,12 +378,12 @@ class HPAutonomousRefillEngine:
                     session.commit()
                     existing_shots = []
 
-            if not existing_shots or any(not sh.source_drive_id for sh in existing_shots):
-                logger.error(f"[Refill:Visual] Script {script_id} missing pre-linked verified cloud shots with valid Drive IDs! Quarantining...")
+            if not existing_shots or len(existing_shots) < 9 or len(existing_shots) > 11 or any(not sh.source_drive_id for sh in existing_shots):
+                logger.error(f"[Refill:Visual] Script {script_id} does not have strictly 9-11 verified cloud shots (found {len(existing_shots) if existing_shots else 0})! Quarantining...")
                 script.qa_status = "FAILED"
                 script.status = "QUARANTINED"
                 session.commit()
-                return False, script_id, "REJECTED_MISSING_PRELINKED_SHOTS"
+                return False, script_id, "REJECTED_INVALID_CLIP_COUNT"
 
             try:
                 render_engine = HPRenderEngine()

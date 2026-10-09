@@ -286,12 +286,13 @@ class VisualFirstEngine:
         print(f"[VisualFirst] Successfully registered {registered_count} Visual-First scripts and pre-linked shots.")
         return registered_count
 
-    def discover_candidate_clusters(self, min_clips: int = 3, max_clips: int = 4, limit: int = 20) -> List[List[Dict[str, Any]]]:
+    def discover_candidate_clusters(self, min_clips: int = 9, max_clips: int = 11, limit: int = 20) -> List[List[Dict[str, Any]]]:
         """
         Discovers unproduced clusters of clips from franchise_visual_vault.db:
         - Excludes clips already linked in hp_movie_clips or published scripts.
         - Excludes generic/corrupt descriptions.
-        - Clusters by movie_number and temporal proximity (<= 90s) with related context.
+        - Clusters by movie_number and temporal proximity (<= 150s) with related context.
+        - Enforces strictly 9 to 11 clips per Short.
         """
         v_conn = sqlite3.connect(str(self.vault_db_path))
         v_conn.row_factory = sqlite3.Row
@@ -309,7 +310,7 @@ class VisualFirstEngine:
                    lore_context, location_setting, drive_file_id
             FROM franchise_clips
             WHERE drive_file_id IS NOT NULL AND drive_file_id != ''
-              AND duration_seconds >= 2.0 AND duration_seconds <= 15.0
+              AND duration_seconds >= 1.5 AND duration_seconds <= 15.0
             ORDER BY movie_number, start_seconds ASC
         """)
         rows = [dict(r) for r in cursor.fetchall()]
@@ -339,10 +340,10 @@ class VisualFirstEngine:
             r_loc = (r["location_setting"] or "").lower()
             p_loc = (prev["location_setting"] or "").lower()
 
-            related = (time_diff <= 90.0) and (
+            related = (time_diff <= 150.0) and (
                 r_subj in p_subj or p_subj in r_subj or
                 r_loc in p_loc or p_loc in r_loc or
-                time_diff <= 45.0
+                time_diff <= 60.0
             )
 
             if same_movie and related:
@@ -351,9 +352,9 @@ class VisualFirstEngine:
                 if min_clips <= len(curr) <= max_clips:
                     clusters.append(curr)
                 elif len(curr) > max_clips:
-                    for i in range(0, len(curr), max_clips):
-                        chunk = curr[i:i + max_clips]
-                        if len(chunk) >= min_clips:
+                    for i in range(0, len(curr), 10):
+                        chunk = curr[i:i + 10]
+                        if min_clips <= len(chunk) <= max_clips:
                             clusters.append(chunk)
                 curr = [r]
 
@@ -365,11 +366,12 @@ class VisualFirstEngine:
     def autonomously_generate_script_for_cluster(self, cluster_clips: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
         """
         Uses Gemini to author a canon-accurate lore script where every beat
-        strictly describes and matches the visuals of the provided clips.
+        strictly describes and matches the visuals of the 9-11 provided clips.
         """
         from core.gemini_client import get_gemini_client
 
-        if len(cluster_clips) < 3:
+        if len(cluster_clips) < 9 or len(cluster_clips) > 11:
+            logger.warning(f"[VisualFirst] Cluster clip count ({len(cluster_clips)}) outside required 9-11 range")
             return None
 
         m_num = cluster_clips[0]["movie_number"]
@@ -382,30 +384,31 @@ class VisualFirstEngine:
             obj = c.get("visible_objects_props") or "[]"
             loc = c.get("location_setting") or "Hogwarts"
             clip_descriptions.append(
-                f"- Beat {idx + 1} (Clip {c['clip_id']}): Setting: {loc}. Subject: {sub}. Action: {act}. Props: {obj}"
+                f"- Shot {idx + 1} (Clip {c['clip_id']}): Setting: {loc}. Subject: {sub}. Action: {act}."
             )
 
         prompt = f"""You are an expert Harry Potter lore documentarian.
-We have ALREADY selected {len(cluster_clips)} exact canonical movie clips from {m_title} for a 20-24 second YouTube Short.
-Your task is to write a thrilling, 100% canon-accurate lore script where EVERY BEAT STRICTLY DESCRIBES AND MATCHES THE SPECIFIC VISUALS IN THESE CLIPS IN EXACT CHRONOLOGICAL ORDER.
+We have ALREADY selected {len(cluster_clips)} exact canonical movie clips from {m_title} for a 22-25 second fast-paced YouTube Short.
+Every shot lasts approximately 2.0 to 2.5 seconds, cutting through this continuous visual scene.
+Your task is to write a thrilling, 100% canon-accurate lore script where THE NARRATION PROGRESSION STRICTLY MATCHES THE UNFOLDING VISUAL ACTION OF THESE {len(cluster_clips)} CLIPS IN EXACT ORDER.
 
-VISUAL CLIPS TO NARRATE:
+VISUAL CLIPS SEQUENCE (Cut-by-Cut):
 """ + "\n".join(clip_descriptions) + f"""
 
 STRICT INVARIANTS:
-1. Total word count: Strictly between 60 and 72 words (approx 20-24 seconds at 2.8 words/sec).
-2. Beat 1 (Hook, 15-20 words): Directly introduces the scene and character visible in Beat 1.
-3. Beat 2 (Development, 25-32 words): Narrates the action and hidden book detail visible in Beat 2 (and Beat 3 if 4 clips).
-4. Beat 3 (Payoff, 15-20 words): Delivers the punchline, consequence, or revealed truth matching the final clip.
+1. Total word count: Strictly between 60 and 72 words (approx 22-24 seconds spoken by narrator).
+2. Beat 1 (Hook, 16-20 words): Matches the opening shots (Shots 1 to 3), introducing the setting and character in focus.
+3. Beat 2 (Development, 26-34 words): Matches the escalation shots (Shots 4 to 7), revealing the untold book lore or dramatic event.
+4. Beat 3 (Payoff, 16-20 words): Matches the climax and resolution shots (Shots 8 to {len(cluster_clips)}), delivering the punchline or revelation.
 5. NO generic filler phrases like "Something unforgettable was unfolding", "Little did they know", or "In a magical world".
 6. Ground the facts in canonical Harry Potter lore (books/films).
-7. Return STRICT VALID JSON ONLY with no extra commentary or markdown text outside the JSON:
+7. Return STRICT VALID JSON ONLY with no extra commentary:
 {{
   "title": "A punchy, intriguing 5-8 word title (under 60 chars)",
-  "hook": "Sentence for Beat 1",
-  "development": "Sentences for Beat 2",
-  "payoff": "Sentence for Beat 3",
-  "full_text": "Combined full script of all 3 beats"
+  "hook": "Sentence for Opening Shots 1-3",
+  "development": "Sentences for Middle Shots 4-7",
+  "payoff": "Sentence for Climax Shots 8-{len(cluster_clips)}",
+  "full_text": "Combined full script"
 }}
 """
 
@@ -436,11 +439,12 @@ STRICT INVARIANTS:
         """
         Autonomously discovers unused clip clusters from vault, generates scripts via Gemini,
         and registers them into pipeline.db (hp_scripts + hp_movie_clips) with 100% zero visual mismatch.
+        Strictly enforces 9 to 11 clips per Short.
         """
         import re
-        clusters = self.discover_candidate_clusters(min_clips=3, max_clips=4, limit=count * 3)
+        clusters = self.discover_candidate_clusters(min_clips=9, max_clips=11, limit=count * 3)
         if not clusters:
-            logger.warning("[VisualFirst] No usable scene clusters found in franchise vault!")
+            logger.warning("[VisualFirst] No usable 9-11 clip scene clusters found in franchise vault!")
             return []
 
         p_conn = sqlite3.connect(str(self.pipeline_db_path))
