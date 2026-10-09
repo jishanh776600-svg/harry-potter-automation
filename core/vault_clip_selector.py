@@ -660,7 +660,7 @@ class VaultClipSelector:
                 clip_end_seconds=dur,
                 duration_seconds=dur,
                 matched_text=f"{matched_clip['primary_subject']} - {matched_clip['action_description'][:80]}",
-                retrieval_query=v_req,
+                retrieval_query=pure_visual,
                 retrieval_score=score,
                 confidence=confidence,
                 match_status="ACCEPTED",
