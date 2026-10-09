@@ -401,6 +401,16 @@ STRICT INVARIANTS:
   "full_text": "Combined full script"
 }}
 """
+        # HARD ARCHITECTURAL INVARIANT: Strictly require all frames on disk for Gemini Vision.
+        # Blind text generation without visual frames is strictly prohibited to guarantee ZERO mismatch.
+        missing_frames = [c['clip_id'] for c in cluster_clips if not (self.frames_dir / f"{c['clip_id']}.jpg").exists()]
+        if missing_frames:
+            logger.error(
+                f"[VisualFirst] Aborting script generation: {len(missing_frames)}/{len(cluster_clips)} frames missing on disk: {missing_frames[:3]}. "
+                f"Strictly refusing blind script generation without image frames!"
+            )
+            return None
+
         contents: List[Any] = [prompt_header]
 
         for idx, c in enumerate(cluster_clips):
