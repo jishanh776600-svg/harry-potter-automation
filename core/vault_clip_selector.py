@@ -811,6 +811,7 @@ class VaultClipSelector:
         for idx, beat in enumerate(beats):
             beat_id = beat.get("beat_id", f"beat_{idx + 1}")
             dur = max(1.2, float(beat.get("duration_seconds", 3.0)))
+            pure_visual = (beat.get("visual_requirement") or beat.get("description") or beat.get("action") or "").strip()
             clip_id_target = beat.get("clip_id")
             matched_clip = None
 
@@ -824,7 +825,6 @@ class VaultClipSelector:
 
             # 2. Semantic fallback if not pre-linked
             if not matched_clip:
-                pure_visual = (beat.get("visual_requirement") or beat.get("description") or beat.get("action") or "").strip()
                 chars = beat.get("characters", [])
                 props = beat.get("objects", [])
                 location = beat.get("location") or beat.get("setting") or ""
